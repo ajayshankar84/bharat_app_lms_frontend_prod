@@ -44,7 +44,7 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/dashboard']);
+      this.router.navigate([this.authService.getDashboardRoute()]);
       return;
     }
 
@@ -167,11 +167,11 @@ export class LoginComponent implements OnInit {
           this.authService.fetchMyInfo().subscribe({
             next: () => {
               this.isSubmitting = false;
-              this.router.navigate(['/dashboard']);
+              this.router.navigate([this.authService.getDashboardRoute()]);
             },
             error: () => {
               this.isSubmitting = false;
-              this.router.navigate(['/dashboard']);
+              this.router.navigate([this.authService.getDashboardRoute()]);
             },
           });
         } else {

@@ -2,7 +2,6 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import {
-  ADMIN_MOBILE,
   USER_LOGIN_SEND_OTP,
   USER_LOGIN_VERIFY_OTP,
   USER_MY_INFO,
@@ -90,7 +89,6 @@ export class AuthService {
           if (res.success) {
             this.session.setAuthToken(res.authToken);
             this.session.setSessionToken(res.sessionToken);
-            this.session.setIsAdmin(payload.phone === ADMIN_MOBILE);
           }
         }),
       );
@@ -114,6 +112,10 @@ export class AuthService {
 
   isAdmin(): boolean {
     return this.session.isAdmin();
+  }
+
+  getDashboardRoute(): string {
+    return this.session.getDashboardRoute();
   }
 
   logout(): void {

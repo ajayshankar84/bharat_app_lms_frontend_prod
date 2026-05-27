@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   Router,
@@ -9,6 +9,8 @@ import {
 import { AuthService, UserInfo } from '../core/services/auth.service';
 import { ThemeService } from '../core/services/theme.service';
 import { SessionService } from '../core/services/session.service';
+import { ImagePathPipe } from '../shared/pipes/image-path.pipe';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 interface NavItem {
   path: string;
@@ -20,7 +22,7 @@ interface NavItem {
 @Component({
   selector: 'app-features',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ImagePathPipe],
   templateUrl: './features.component.html',
   styleUrls: ['./features.component.scss'],
 })
@@ -28,6 +30,7 @@ export class FeaturesComponent implements OnInit {
   private authService = inject(AuthService);
   private sessionService = inject(SessionService);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
   themeService = inject(ThemeService);
 
   isSidebarOpen = false;
@@ -100,8 +103,17 @@ export class FeaturesComponent implements OnInit {
     return this.user?.name || this.user?.username || 'User';
   }
 
+  get hasProfileImage(): boolean {
+    return !!this.user?.profileImage;
+  }
+
   ngOnInit(): void {
     this.user = this.authService.currentUser;
+    this.authService.currentUser$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((user) => {
+        this.user = user;
+      });
     this.checkScreenSize();
   }
 

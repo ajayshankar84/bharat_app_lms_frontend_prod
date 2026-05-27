@@ -24,5 +24,3 @@ export const COURSES_ENDPOINT = `${API_BASE_URL}/course`;
 export const USER_LOGIN_SEND_OTP = `${USERS_URL}/user/login-send-otp`;
 export const USER_LOGIN_VERIFY_OTP = `${USERS_URL}/user/login-verify-otp`;
 export const USER_MY_INFO = `${USERS_URL}/user/my-info`;
-
-export const ADMIN_MOBILE = '6203511069';

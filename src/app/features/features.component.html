@@ -39,7 +39,15 @@
 
       <div class="profile" [class.profile--open]="isProfileMenuOpen">
         <button class="profile__trigger" (click)="toggleProfileMenu()">
-          <div class="profile__avatar">{{ userInitials }}</div>
+          <div class="profile__avatar">
+            <img
+              *ngIf="hasProfileImage; else headerAvatarFallback"
+              class="profile__avatar-image"
+              [src]="user?.profileImage | imagePath"
+              [alt]="displayName"
+            />
+            <ng-template #headerAvatarFallback>{{ userInitials }}</ng-template>
+          </div>
           <div class="profile__info">
             <span class="profile__name">{{ displayName }}</span>
             <span class="profile__role">{{
@@ -52,7 +60,13 @@
         <div class="profile__menu" *ngIf="isProfileMenuOpen">
           <div class="profile__menu-header">
             <div class="profile__avatar profile__avatar--lg">
-              {{ userInitials }}
+              <img
+                *ngIf="hasProfileImage; else menuAvatarFallback"
+                class="profile__avatar-image"
+                [src]="user?.profileImage | imagePath"
+                [alt]="displayName"
+              />
+              <ng-template #menuAvatarFallback>{{ userInitials }}</ng-template>
             </div>
             <div>
               <div class="profile__menu-name">{{ displayName }}</div>
@@ -162,7 +176,15 @@
 
     <div class="sidebar__footer">
       <div class="sidebar__user">
-        <div class="sidebar__user-avatar">{{ userInitials }}</div>
+        <div class="sidebar__user-avatar">
+          <img
+            *ngIf="hasProfileImage; else sidebarAvatarFallback"
+            class="sidebar__user-avatar-image"
+            [src]="user?.profileImage | imagePath"
+            [alt]="displayName"
+          />
+          <ng-template #sidebarAvatarFallback>{{ userInitials }}</ng-template>
+        </div>
         <div class="sidebar__user-info">
           <div class="sidebar__user-name">{{ displayName }}</div>
           <div class="sidebar__user-role">
