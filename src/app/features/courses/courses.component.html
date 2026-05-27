@@ -1,0 +1,377 @@
+<div class="courses-page">
+  <header class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-header__title">
+        <i class="bi bi-journal-bookmark-fill"></i>
+        Course Management
+      </h1>
+      <p class="page-header__subtitle" *ngIf="!isLoading">
+        Showing {{ filteredCourses.length }} of {{ allCourses.length }} courses
+        <span *ngIf="pagination">
+          · Page {{ pagination.currentPage }} of
+          {{ pagination.totalPages }}</span
+        >
+      </p>
+    </div>
+    <button class="btn-primary" (click)="navigateToAdd()">
+      <i class="bi bi-plus-circle"></i>
+      <span>Add Course</span>
+    </button>
+  </header>
+
+  <section class="filter-bar" *ngIf="!isLoading && allCourses.length > 0">
+    <div class="search-box">
+      <i class="bi bi-search search-box__icon"></i>
+      <input
+        type="text"
+        class="search-box__input"
+        placeholder="Search by title, instructor, category..."
+        [value]="searchQuery"
+        (input)="onSearchChange($any($event.target).value)"
+      />
+      <button
+        type="button"
+        class="search-box__clear"
+        *ngIf="searchQuery"
+        (click)="onSearchChange('')"
+      >
+        <i class="bi bi-x-circle-fill"></i>
+      </button>
+    </div>
+
+    <div class="sort-select">
+      <i class="bi bi-sort-down sort-select__icon"></i>
+      <select
+        [value]="sortBy"
+        (change)="onSortChange($any($event.target).value)"
+      >
+        <option value="newest">Newest First</option>
+        <option value="title">Title (A-Z)</option>
+        <option value="price-low">Price: Low to High</option>
+        <option value="price-high">Price: High to Low</option>
+        <option value="rating">Highest Rated</option>
+      </select>
+      <i class="bi bi-chevron-down sort-select__chev"></i>
+    </div>
+  </section>
+
+  <section class="chip-bar" *ngIf="!isLoading && allCourses.length > 0">
+    <div class="chip-group" *ngIf="categoryChips.length > 1">
+      <span class="chip-group__label">Category</span>
+      <div class="chip-group__items">
+        <button
+          *ngFor="let c of categoryChips"
+          class="chip"
+          [class.chip--active]="activeCategory === c.value"
+          (click)="setCategory(c.value)"
+        >
+          {{ c.label }}
+          <span class="chip__count" *ngIf="c.count !== undefined">{{
+            c.count
+          }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="chip-group">
+      <span class="chip-group__label">Level</span>
+      <div class="chip-group__items">
+        <button
+          *ngFor="let l of levelChips"
+          class="chip chip--sm"
+          [class.chip--active]="activeLevel === l.value"
+          (click)="setLevel(l.value)"
+        >
+          {{ l.label }}
+        </button>
+      </div>
+    </div>
+
+    <div class="chip-group">
+      <span class="chip-group__label">Type</span>
+      <div class="chip-group__items">
+        <button
+          class="chip chip--sm"
+          [class.chip--active]="activeType === 'all'"
+          (click)="setType('all')"
+        >
+          All
+        </button>
+        <button
+          class="chip chip--sm"
+          [class.chip--active]="activeType === 'free'"
+          (click)="setType('free')"
+        >
+          <i class="bi bi-gift-fill"></i> Free
+        </button>
+        <button
+          class="chip chip--sm"
+          [class.chip--active]="activeType === 'paid'"
+          (click)="setType('paid')"
+        >
+          <i class="bi bi-currency-rupee"></i> Paid
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="state-box loading-state" *ngIf="isLoading">
+    <div class="spinner-lg"></div>
+    <p>Loading courses...</p>
+  </div>
+
+  <div class="state-box error-state" *ngIf="!isLoading && errorMessage">
+    <div class="state-box__icon state-box__icon--error">
+      <i class="bi bi-exclamation-triangle"></i>
+    </div>
+    <h3>Couldn't load courses</h3>
+    <p>{{ errorMessage }}</p>
+    <button class="btn-primary" (click)="loadCourses()">
+      <i class="bi bi-arrow-clockwise"></i>
+      Try Again
+    </button>
+  </div>
+
+  <div
+    class="state-box empty-state"
+    *ngIf="!isLoading && !errorMessage && allCourses.length === 0"
+  >
+    <div class="state-box__icon">
+      <i class="bi bi-journal-plus"></i>
+    </div>
+    <h3>No courses yet</h3>
+    <p>Get started by creating your first course.</p>
+    <button class="btn-primary" (click)="navigateToAdd()">
+      <i class="bi bi-plus-circle"></i>
+      Create First Course
+    </button>
+  </div>
+
+  <div
+    class="state-box empty-state"
+    *ngIf="
+      !isLoading &&
+      !errorMessage &&
+      allCourses.length > 0 &&
+      filteredCourses.length === 0
+    "
+  >
+    <div class="state-box__icon">
+      <i class="bi bi-search"></i>
+    </div>
+    <h3>No matching courses</h3>
+    <p>Try adjusting your filters or search query.</p>
+    <button class="btn-secondary" (click)="clearFilters()">
+      <i class="bi bi-arrow-counterclockwise"></i>
+      Clear Filters
+    </button>
+  </div>
+
+  <div class="courses-grid" *ngIf="!isLoading && filteredCourses.length > 0">
+    <article class="course-card" *ngFor="let course of filteredCourses">
+      <div class="course-card__media">
+        <img
+          *ngIf="course.image && isExternalUrl(course.image)"
+          [src]="course.image"
+          [alt]="course.title"
+          loading="lazy"
+          (error)="$any($event.target).style.display = 'none'"
+        />
+
+        <img
+          *ngIf="course.image && !isExternalUrl(course.image)"
+          [src]="course.image | imagePath"
+          [alt]="course.title"
+          loading="lazy"
+          (error)="$any($event.target).style.display = 'none'"
+        />
+
+        <div class="course-card__media-fallback" *ngIf="!course.image">
+          <i class="bi bi-image"></i>
+        </div>
+
+        <div class="course-card__overlay"></div>
+
+        <div class="course-card__badges">
+          <span class="badge badge--accent">{{ course.category }}</span>
+          <span class="badge badge--free" *ngIf="course.type === 'free'">
+            <i class="bi bi-gift-fill"></i> FREE
+          </span>
+        </div>
+
+        <div class="course-card__bottom-badges">
+          <span class="meta-badge" *ngIf="course.totalLessons">
+            <i class="bi bi-collection-play"></i>
+            {{ course.totalLessons }} lessons
+          </span>
+          <span class="meta-badge" *ngIf="course.duration">
+            <i class="bi bi-clock"></i>
+            {{ course.duration }}
+          </span>
+        </div>
+      </div>
+
+      <div class="course-card__body">
+        <div class="course-card__meta">
+          <span class="level-pill" [attr.data-level]="course.level">
+            <i class="bi bi-bar-chart"></i>
+            {{ course.level }}
+          </span>
+          <span class="lang-pill">
+            <i class="bi bi-translate"></i>
+            {{ course.language }}
+          </span>
+          <span class="lang-pill" *ngIf="course.subcategory">
+            <i class="bi bi-tag"></i>
+            {{ course.subcategory }}
+          </span>
+        </div>
+
+        <h3 class="course-card__title">{{ course.title }}</h3>
+
+        <p class="course-card__desc">{{ course.description }}</p>
+
+        <div class="course-card__rating" *ngIf="course.rating !== undefined">
+          <div class="rating-stars">
+            <i
+              class="bi bi-star-fill"
+              [class.dim]="(course.rating || 0) < 1"
+            ></i>
+            <i
+              class="bi bi-star-fill"
+              [class.dim]="(course.rating || 0) < 2"
+            ></i>
+            <i
+              class="bi bi-star-fill"
+              [class.dim]="(course.rating || 0) < 3"
+            ></i>
+            <i
+              class="bi bi-star-fill"
+              [class.dim]="(course.rating || 0) < 4"
+            ></i>
+            <i
+              class="bi bi-star-fill"
+              [class.dim]="(course.rating || 0) < 5"
+            ></i>
+          </div>
+          <span class="rating-text">
+            {{ (course.rating || 0).toFixed(1) }}
+            <small>({{ course.totalRatings || 0 }})</small>
+          </span>
+          <span class="students-text" *ngIf="course.totalStudents">
+            <i class="bi bi-people-fill"></i>
+            {{ course.totalStudents }}
+          </span>
+        </div>
+
+        <div class="course-card__instructor" *ngIf="course.instructor?.name">
+          <div class="course-card__instructor-avatar">
+            <img
+              *ngIf="
+                course.instructor.avatar &&
+                isExternalUrl(course.instructor.avatar)
+              "
+              [src]="course.instructor.avatar"
+              [alt]="course.instructor.name"
+              (error)="$any($event.target).style.display = 'none'"
+            />
+            <img
+              *ngIf="
+                course.instructor.avatar &&
+                !isExternalUrl(course.instructor.avatar)
+              "
+              [src]="course.instructor.avatar | imagePath"
+              [alt]="course.instructor.name"
+              (error)="$any($event.target).style.display = 'none'"
+            />
+            <span *ngIf="!course.instructor.avatar">{{
+              getInstructorInitial(course)
+            }}</span>
+          </div>
+          <div class="course-card__instructor-info">
+            <span class="course-card__instructor-label">Instructor</span>
+            <span class="course-card__instructor-name">{{
+              course.instructor.name
+            }}</span>
+          </div>
+          <div
+            class="course-card__instructor-rating"
+            *ngIf="course.instructor.averageRating"
+          >
+            <i class="bi bi-star-fill"></i>
+            {{ course.instructor.averageRating }}
+          </div>
+        </div>
+
+        <div
+          class="course-card__tags"
+          *ngIf="course.tags && course.tags.length > 0"
+        >
+          <span class="tag-chip" *ngFor="let tag of course.tags.slice(0, 3)"
+            >#{{ tag }}</span
+          >
+        </div>
+
+        <div class="course-card__pricing">
+          <div class="price-info" *ngIf="!isFree(course)">
+            <span class="price-info__current"
+              >₹{{ course.price | number }}</span
+            >
+            <span
+              class="price-info__original"
+              *ngIf="
+                course.originalPrice && course.originalPrice > course.price
+              "
+            >
+              ₹{{ course.originalPrice | number }}
+            </span>
+            <span
+              class="price-info__discount"
+              *ngIf="course.discount && course.discount > 0"
+            >
+              {{ course.discount }}% OFF
+            </span>
+          </div>
+          <div class="price-info price-info--free" *ngIf="isFree(course)">
+            <i class="bi bi-gift-fill"></i>
+            <span>Free</span>
+          </div>
+
+          <span
+            class="cert-badge"
+            *ngIf="course.certificate"
+            title="Certificate Available"
+          >
+            <i class="bi bi-patch-check-fill"></i>
+          </span>
+          <span
+            class="live-badge"
+            *ngIf="course.hasLiveClasses"
+            title="Live Classes"
+          >
+            <i class="bi bi-broadcast"></i>
+          </span>
+        </div>
+
+        <div class="course-card__actions">
+          <button
+            class="action-btn action-btn--ghost"
+            (click)="navigateToEdit(course._id)"
+            title="Edit course"
+          >
+            <i class="bi bi-pencil-square"></i>
+            <span>Edit</span>
+          </button>
+          <button
+            class="action-btn action-btn--primary"
+            (click)="navigateToDetail(course._id)"
+            title="View content"
+          >
+            <i class="bi bi-eye"></i>
+            <span>View</span>
+          </button>
+        </div>
+      </div>
+    </article>
+  </div>
+</div>

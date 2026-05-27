@@ -1,0 +1,61 @@
+.my-courses-page {
+    min-height: 100vh;
+    background: #f4f7fb;
+    .btn {
+        border-radius: 2rem;
+    }
+    .my-course-card {
+        border: none;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        background: #fff;
+        &:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 1.5rem 2.5rem rgba(15, 23, 42, 0.14) !important;
+        }
+    }
+    .course-image {
+        height: 180px;
+        background-size: cover;
+        background-position: center;
+    }
+    .bg-course-1 {
+        background: linear-gradient(135deg, #8d5dff 0%, #3f78ff 100%);
+    }
+    .bg-course-2 {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    .bg-course-3 {
+        background: linear-gradient(135deg, #00c3ff 0%, #ffff1c 100%);
+    }
+    .bg-course-4 {
+        background: linear-gradient(135deg, #7c83fd 0%, #5de8d8 100%);
+    }
+    .bg-course-5 {
+        background: linear-gradient(135deg, #fb7185 0%, #f59e0b 100%);
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+    .course-card-title {
+        font-size: 1rem;
+        font-weight: 700;
+    }
+    .badge-premium {
+        background: #4f46e5;
+        color: #fff;
+    }
+    .badge-bestseller {
+        background: #7dd3fc;
+        color: #0f172a;
+    }
+    @media (max-width: 767.98px) {
+        .course-image {
+            height: 150px;
+        }
+        .card-body {
+            padding: 1.1rem;
+        }
+    }
+}

@@ -1,0 +1,192 @@
+<div
+  class="app-shell"
+  [class.sidebar-open]="isSidebarOpen"
+  [class.is-mobile]="isMobile"
+>
+  <header class="topbar">
+    <div class="topbar__left">
+      <button
+        class="icon-btn d-lg-none"
+        (click)="toggleSidebar()"
+        aria-label="Toggle menu"
+      >
+        <i class="bi" [ngClass]="isSidebarOpen ? 'bi-x-lg' : 'bi-list'"></i>
+      </button>
+      <div class="topbar__brand">
+        <div class="topbar__brand-icon">
+          <i class="bi bi-mortarboard-fill"></i>
+        </div>
+        <div class="topbar__brand-text">
+          LearnDash
+          <span *ngIf="isAdmin" class="admin-badge">Admin</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="topbar__right">
+      <button
+        class="icon-btn"
+        (click)="toggleTheme()"
+        aria-label="Toggle theme"
+      >
+        <i
+          class="bi"
+          [ngClass]="
+            themeService.theme() === 'light' ? 'bi-moon-stars' : 'bi-sun-fill'
+          "
+        ></i>
+      </button>
+
+      <div class="profile" [class.profile--open]="isProfileMenuOpen">
+        <button class="profile__trigger" (click)="toggleProfileMenu()">
+          <div class="profile__avatar">{{ userInitials }}</div>
+          <div class="profile__info">
+            <span class="profile__name">{{ displayName }}</span>
+            <span class="profile__role">{{
+              isAdmin ? "Administrator" : "Student"
+            }}</span>
+          </div>
+          <i class="bi bi-chevron-down profile__chev"></i>
+        </button>
+
+        <div class="profile__menu" *ngIf="isProfileMenuOpen">
+          <div class="profile__menu-header">
+            <div class="profile__avatar profile__avatar--lg">
+              {{ userInitials }}
+            </div>
+            <div>
+              <div class="profile__menu-name">{{ displayName }}</div>
+              <div class="profile__menu-phone">+91 {{ user?.phone }}</div>
+            </div>
+          </div>
+          <a
+            class="profile__menu-item"
+            routerLink="/dashboard/profile"
+            (click)="closeProfileMenu()"
+          >
+            <i class="bi bi-person"></i>
+            <span>My Profile</span>
+          </a>
+          <a
+            class="profile__menu-item"
+            routerLink="/dashboard/settings"
+            (click)="closeProfileMenu()"
+          >
+            <i class="bi bi-gear"></i>
+            <span>Settings</span>
+          </a>
+          <button
+            class="profile__menu-item profile__menu-item--danger"
+            (click)="logout()"
+            [disabled]="isLoggingOut"
+          >
+            <i
+              class="bi"
+              [ngClass]="
+                isLoggingOut ? 'bi-arrow-clockwise spin' : 'bi-box-arrow-right'
+              "
+            ></i>
+            <span>{{ isLoggingOut ? "Logging out..." : "Logout" }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <aside class="sidebar">
+    <div class="sidebar__header">
+      <div class="sidebar__brand">
+        <div class="sidebar__brand-icon">
+          <i class="bi bi-mortarboard-fill"></i>
+        </div>
+        <div class="sidebar__brand-text">
+          <span class="sidebar__brand-title">LearnDash</span>
+          <span class="sidebar__brand-sub">{{
+            isAdmin ? "Admin Portal" : "Learner Portal"
+          }}</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar__nav">
+      <div class="sidebar__section-title">Menu</div>
+
+      <a
+        *ngFor="let item of navItems"
+        [routerLink]="item.path"
+        routerLinkActive="sidebar__link--active"
+        class="sidebar__link"
+        (click)="closeSidebarOnMobile()"
+      >
+        <i class="bi" [ngClass]="item.icon"></i>
+        <span>{{ item.label }}</span>
+      </a>
+
+      <div class="sidebar__divider"></div>
+
+      <div class="sidebar__section-title">Account</div>
+
+      <a
+        routerLink="/dashboard/profile"
+        routerLinkActive="sidebar__link--active"
+        class="sidebar__link"
+        (click)="closeSidebarOnMobile()"
+      >
+        <i class="bi bi-person"></i>
+        <span>Profile</span>
+      </a>
+      <a
+        routerLink="/dashboard/settings"
+        routerLinkActive="sidebar__link--active"
+        class="sidebar__link"
+        (click)="closeSidebarOnMobile()"
+      >
+        <i class="bi bi-gear"></i>
+        <span>Settings</span>
+      </a>
+
+      <button
+        class="sidebar__link sidebar__link--danger"
+        (click)="logout()"
+        [disabled]="isLoggingOut"
+      >
+        <i
+          class="bi"
+          [ngClass]="
+            isLoggingOut ? 'bi-arrow-clockwise spin' : 'bi-box-arrow-right'
+          "
+        ></i>
+        <span>{{ isLoggingOut ? "Logging out..." : "Logout" }}</span>
+      </button>
+    </nav>
+
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__user-avatar">{{ userInitials }}</div>
+        <div class="sidebar__user-info">
+          <div class="sidebar__user-name">{{ displayName }}</div>
+          <div class="sidebar__user-role">
+            {{ isAdmin ? "Administrator" : "Student" }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="main__content">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+
+  <div
+    class="overlay"
+    *ngIf="isMobile && isSidebarOpen"
+    (click)="toggleSidebar()"
+  ></div>
+  <div
+    class="profile-backdrop"
+    *ngIf="isProfileMenuOpen"
+    (click)="closeProfileMenu()"
+  ></div>
+</div>

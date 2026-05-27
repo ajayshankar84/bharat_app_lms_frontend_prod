@@ -1,0 +1,129 @@
+﻿@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap");
+
+:root {
+  --brand-primary: #0a1f44;
+  --brand-mid: #153a72;
+  --brand-accent: #4a90e2;
+  --brand-accent-hover: #3b7dd4;
+  --brand-accent-light: #e8f0fe;
+  --brand-highlight: #b4e6ff;
+
+  --bg-page: #f4f7fc;
+  --bg-card: #ffffff;
+  --bg-input: #f8fafc;
+  --bg-subtle: #f1f5f9;
+
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --text-inverse: #ffffff;
+
+  --border-light: #e2e8f0;
+  --border-input: #dbe3ef;
+
+  --shadow-card: 0 20px 60px rgba(15, 23, 42, 0.1);
+  --shadow-btn: 0 4px 16px rgba(74, 144, 226, 0.35);
+  --shadow-btn-hover: 0 6px 24px rgba(74, 144, 226, 0.5);
+  --shadow-focus: 0 0 0 3px rgba(74, 144, 226, 0.12);
+
+  --radius-xs: 6px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 999px;
+
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --speed-fast: 0.2s;
+  --speed-base: 0.3s;
+
+  --color-error: #ef4444;
+  --color-error-bg: rgba(239, 68, 68, 0.06);
+}
+
+body.dark {
+  --brand-primary: #0f2744;
+  --brand-mid: #1a3a5c;
+  --brand-accent: #60a5fa;
+  --brand-accent-hover: #4a94e8;
+  --brand-accent-light: #1e3a5f;
+  --brand-highlight: #93c5fd;
+
+  --bg-page: #0f172a;
+  --bg-card: #1e293b;
+  --bg-input: #334155;
+  --bg-subtle: #1e293b;
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-inverse: #0f172a;
+
+  --border-light: #334155;
+  --border-input: #475569;
+
+  --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.4);
+  --shadow-btn: 0 4px 16px rgba(96, 165, 250, 0.3);
+  --shadow-btn-hover: 0 6px 24px rgba(96, 165, 250, 0.45);
+  --shadow-focus: 0 0 0 3px rgba(96, 165, 250, 0.15);
+
+  --color-error-bg: rgba(239, 68, 68, 0.1);
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+  transition:
+    background var(--speed-base) var(--ease),
+    color var(--speed-base) var(--ease);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+a {
+  color: var(--brand-accent);
+  text-decoration: none;
+  transition: color var(--speed-fast) ease;
+}
+
+a:hover {
+  color: var(--brand-accent-hover);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:focus {
+  transition:
+    background-color 600000s 0s,
+    color 600000s 0s;
+}

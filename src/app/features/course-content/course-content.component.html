@@ -1,0 +1,661 @@
+<div class="content-page">
+  <header class="page-header">
+    <div class="page-header__left">
+      <button
+        class="back-btn"
+        (click)="navigateBack()"
+        *ngIf="viewMode === 'overview'"
+      >
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <button
+        class="back-btn"
+        (click)="goToOverview()"
+        *ngIf="viewMode === 'lessons'"
+      >
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <button
+        class="back-btn"
+        (click)="goToLessons()"
+        *ngIf="viewMode === 'lesson-detail'"
+      >
+        <i class="bi bi-arrow-left"></i>
+      </button>
+
+      <nav class="breadcrumb">
+        <a (click)="navigateBack()">Courses</a>
+        <i class="bi bi-chevron-right"></i>
+        <a (click)="goToOverview()" *ngIf="viewMode !== 'overview'">{{
+          course?.title || "Course"
+        }}</a>
+        <span *ngIf="viewMode === 'overview'">{{
+          course?.title || "Course"
+        }}</span>
+        <ng-container *ngIf="viewMode === 'lessons'">
+          <i class="bi bi-chevron-right"></i>
+          <span>Lessons</span>
+        </ng-container>
+        <ng-container *ngIf="viewMode === 'lesson-detail'">
+          <i class="bi bi-chevron-right"></i>
+          <a (click)="goToLessons()">Lessons</a>
+          <i class="bi bi-chevron-right"></i>
+          <span>{{ selectedLesson?.name }}</span>
+        </ng-container>
+      </nav>
+    </div>
+    <button class="btn-primary" (click)="navigateToEdit()" *ngIf="course">
+      <i class="bi bi-pencil-square"></i>
+      <span>Edit Course</span>
+    </button>
+  </header>
+
+  <div class="state-box" *ngIf="isLoading">
+    <div class="spinner-lg"></div>
+    <p>Loading course details...</p>
+  </div>
+
+  <div class="state-box state-box--error" *ngIf="!isLoading && errorMessage">
+    <div class="state-box__icon">
+      <i class="bi bi-exclamation-triangle"></i>
+    </div>
+    <h3>Couldn't load course</h3>
+    <p>{{ errorMessage }}</p>
+    <button class="btn-primary" (click)="courseId && loadCourse(courseId)">
+      <i class="bi bi-arrow-clockwise"></i> Try Again
+    </button>
+  </div>
+
+  <ng-container *ngIf="!isLoading && course && viewMode === 'overview'">
+    <section class="hero-section">
+      <div class="hero-section__media">
+        <img
+          *ngIf="course.image && isExternalUrl(course.image)"
+          [src]="course.image"
+          [alt]="course.title"
+          (error)="$any($event.target).style.display = 'none'"
+        />
+        <img
+          *ngIf="course.image && !isExternalUrl(course.image)"
+          [src]="course.image | imagePath"
+          [alt]="course.title"
+          (error)="$any($event.target).style.display = 'none'"
+        />
+        <div class="hero-section__overlay"></div>
+
+        <button class="hero-section__play" *ngIf="course.preview?.videoUrl">
+          <i class="bi bi-play-fill"></i>
+          <span>Watch Preview</span>
+          <small *ngIf="course.preview?.duration">{{
+            course.preview?.duration
+          }}</small>
+        </button>
+      </div>
+
+      <div class="hero-section__info">
+        <div class="hero-section__badges">
+          <span class="badge badge--accent">{{ course.category }}</span>
+          <span class="badge badge--muted" *ngIf="course.subcategory">{{
+            course.subcategory
+          }}</span>
+          <span class="badge badge--free" *ngIf="course.type === 'free'">
+            <i class="bi bi-gift-fill"></i> FREE
+          </span>
+        </div>
+
+        <h1 class="hero-section__title">{{ course.title }}</h1>
+        <p class="hero-section__desc">{{ course.description }}</p>
+
+        <div class="hero-section__meta">
+          <span class="meta-pill" [attr.data-level]="course.level">
+            <i class="bi bi-bar-chart"></i> {{ course.level }}
+          </span>
+          <span class="meta-pill">
+            <i class="bi bi-translate"></i> {{ course.language }}
+          </span>
+          <span class="meta-pill">
+            <i class="bi bi-clock"></i> {{ course.duration }}
+          </span>
+          <span class="meta-pill">
+            <i class="bi bi-collection-play"></i>
+            {{ course.totalLessons }} lessons
+          </span>
+        </div>
+
+        <div class="hero-section__rating" *ngIf="course.rating !== undefined">
+          <div class="rating-stars">
+            <i
+              class="bi bi-star-fill"
+              [class.dim]="(course.rating || 0) < 1"
+            ></i>
+            <i
+              class="bi bi-star-fill"
+              [class.dim]="(course.rating || 0) < 2"
+            ></i>
+            <i
+              class="bi bi-star-fill"
+              [class.dim]="(course.rating || 0) < 3"
+            ></i>
+            <i
+              class="bi bi-star-fill"
+              [class.dim]="(course.rating || 0) < 4"
+            ></i>
+            <i
+              class="bi bi-star-fill"
+              [class.dim]="(course.rating || 0) < 5"
+            ></i>
+          </div>
+          <span class="rating-num">{{ (course.rating || 0).toFixed(1) }}</span>
+          <span class="rating-count"
+            >({{ course.totalRatings || 0 }} ratings)</span
+          >
+          <span class="separator">•</span>
+          <span class="students-count">
+            <i class="bi bi-people-fill"></i>
+            {{ course.totalStudents || 0 }} students
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <div class="content-grid">
+      <main class="content-main">
+        <nav class="tab-bar">
+          <button
+            class="tab-bar__btn"
+            [class.active]="activeTab === 'about'"
+            (click)="setTab('about')"
+          >
+            <i class="bi bi-info-circle"></i>
+            About
+          </button>
+          <button
+            class="tab-bar__btn"
+            [class.active]="activeTab === 'curriculum'"
+            (click)="setTab('curriculum')"
+          >
+            <i class="bi bi-list-ul"></i>
+            Curriculum
+            <span class="tab-bar__count">{{ course.totalLessons }}</span>
+          </button>
+          <button
+            class="tab-bar__btn"
+            [class.active]="activeTab === 'instructor'"
+            (click)="setTab('instructor')"
+          >
+            <i class="bi bi-person-circle"></i>
+            Instructor
+          </button>
+          <button
+            class="tab-bar__btn"
+            [class.active]="activeTab === 'reviews'"
+            (click)="setTab('reviews')"
+          >
+            <i class="bi bi-star"></i>
+            Reviews
+          </button>
+        </nav>
+
+        <section class="tab-panel" *ngIf="activeTab === 'about'">
+          <div
+            class="info-card"
+            *ngIf="course.whatYouLearn && course.whatYouLearn.length > 0"
+          >
+            <h2 class="info-card__title">
+              <i class="bi bi-trophy-fill"></i>
+              What you'll learn
+            </h2>
+            <ul class="check-list">
+              <li *ngFor="let item of course.whatYouLearn">
+                <i class="bi bi-check2-circle"></i>
+                <span>{{ item }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <div
+            class="info-card"
+            *ngIf="course.requirements && course.requirements.length > 0"
+          >
+            <h2 class="info-card__title">
+              <i class="bi bi-clipboard-check"></i>
+              Requirements
+            </h2>
+            <ul class="dot-list">
+              <li *ngFor="let req of course.requirements">{{ req }}</li>
+            </ul>
+          </div>
+
+          <div class="info-card" *ngIf="course.tags && course.tags.length > 0">
+            <h2 class="info-card__title">
+              <i class="bi bi-tags-fill"></i>
+              Tags
+            </h2>
+            <div class="tag-cloud">
+              <span class="tag" *ngFor="let tag of course.tags"
+                >#{{ tag }}</span
+              >
+            </div>
+          </div>
+
+          <div
+            class="info-card"
+            *ngIf="
+              !course.whatYouLearn?.length &&
+              !course.requirements?.length &&
+              !course.tags?.length
+            "
+          >
+            <div class="empty-mini">
+              <i class="bi bi-info-circle"></i>
+              <p>No additional details have been added for this course yet.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" *ngIf="activeTab === 'curriculum'">
+          <div class="curriculum-header">
+            <div>
+              <h2>Course Content</h2>
+              <p>
+                {{ course.totalLessons }} lessons · {{ course.duration }} total
+              </p>
+            </div>
+            <button
+              class="btn-primary btn-sm"
+              (click)="loadLessons()"
+              *ngIf="lessons.length === 0"
+            >
+              <i class="bi bi-list-ul"></i>
+              View All Lessons
+            </button>
+          </div>
+
+          <div class="lessons-preview" *ngIf="lessons.length > 0">
+            <article
+              class="lesson-row"
+              *ngFor="let lesson of lessons.slice(0, 5); let i = index"
+              (click)="viewLesson(lesson, i)"
+            >
+              <div class="lesson-row__num">{{ i + 1 }}</div>
+              <div class="lesson-row__media">
+                <img
+                  *ngIf="lesson.thumbnail && isExternalUrl(lesson.thumbnail)"
+                  [src]="lesson.thumbnail"
+                  [alt]="lesson.name"
+                />
+                <img
+                  *ngIf="lesson.thumbnail && !isExternalUrl(lesson.thumbnail)"
+                  [src]="lesson.thumbnail | imagePath"
+                  [alt]="lesson.name"
+                />
+                <div
+                  class="lesson-row__media-fallback"
+                  *ngIf="!lesson.thumbnail"
+                >
+                  <i class="bi bi-play-circle"></i>
+                </div>
+              </div>
+              <div class="lesson-row__info">
+                <h3>{{ lesson.name }}</h3>
+                <p *ngIf="lesson.description">{{ lesson.description }}</p>
+                <span class="lesson-row__duration" *ngIf="lesson.duration">
+                  <i class="bi bi-clock"></i>
+                  {{ lesson.duration }}
+                </span>
+              </div>
+              <i class="bi bi-chevron-right lesson-row__arrow"></i>
+            </article>
+
+            <button
+              class="btn-view-all"
+              (click)="goToLessons()"
+              *ngIf="lessons.length > 5"
+            >
+              View all {{ lessons.length }} lessons
+              <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+
+          <div class="loading-state" *ngIf="isLoadingLessons">
+            <div class="spinner-lg"></div>
+            <p>Loading lessons...</p>
+          </div>
+
+          <div
+            class="empty-mini"
+            *ngIf="
+              !isLoadingLessons &&
+              lessons.length === 0 &&
+              course.totalLessons > 0
+            "
+          >
+            <i class="bi bi-collection-play"></i>
+            <p>Click "View All Lessons" to load curriculum.</p>
+          </div>
+
+          <div
+            class="empty-mini"
+            *ngIf="
+              !isLoadingLessons &&
+              lessons.length === 0 &&
+              course.totalLessons === 0
+            "
+          >
+            <i class="bi bi-journal-x"></i>
+            <p>No lessons available for this course yet.</p>
+          </div>
+        </section>
+
+        <section class="tab-panel" *ngIf="activeTab === 'instructor'">
+          <div class="instructor-card" *ngIf="course.instructor">
+            <div class="instructor-card__header">
+              <div class="instructor-card__avatar">
+                <img
+                  *ngIf="
+                    course.instructor.avatar &&
+                    isExternalUrl(course.instructor.avatar)
+                  "
+                  [src]="course.instructor.avatar"
+                  [alt]="course.instructor.name"
+                />
+                <img
+                  *ngIf="
+                    course.instructor.avatar &&
+                    !isExternalUrl(course.instructor.avatar)
+                  "
+                  [src]="course.instructor.avatar | imagePath"
+                  [alt]="course.instructor.name"
+                />
+                <span *ngIf="!course.instructor.avatar">
+                  {{ (course.instructor.name || "?").charAt(0).toUpperCase() }}
+                </span>
+              </div>
+              <div class="instructor-card__info">
+                <h2>{{ course.instructor.name }}</h2>
+                <p *ngIf="course.instructor.bio">{{ course.instructor.bio }}</p>
+              </div>
+            </div>
+
+            <div
+              class="instructor-stats"
+              *ngIf="course.instructor.coursesCount !== undefined"
+            >
+              <div class="instructor-stat">
+                <i class="bi bi-star-fill"></i>
+                <div>
+                  <strong>{{ course.instructor.averageRating || 0 }}</strong>
+                  <span>Rating</span>
+                </div>
+              </div>
+              <div class="instructor-stat">
+                <i class="bi bi-people-fill"></i>
+                <div>
+                  <strong>{{ course.instructor.studentsCount || 0 }}</strong>
+                  <span>Students</span>
+                </div>
+              </div>
+              <div class="instructor-stat">
+                <i class="bi bi-collection"></i>
+                <div>
+                  <strong>{{ course.instructor.coursesCount || 0 }}</strong>
+                  <span>Courses</span>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="instructor-card__specs"
+              *ngIf="
+                course.instructor.specializations &&
+                course.instructor.specializations.length > 0
+              "
+            >
+              <h3>Specializations</h3>
+              <div class="tag-cloud">
+                <span
+                  class="tag"
+                  *ngFor="let spec of course.instructor.specializations"
+                  >{{ spec }}</span
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" *ngIf="activeTab === 'reviews'">
+          <div class="empty-mini">
+            <i class="bi bi-chat-square-quote"></i>
+            <p>
+              {{ course.totalRatings || 0 }} review{{
+                (course.totalRatings || 0) !== 1 ? "s" : ""
+              }}
+              for this course.
+            </p>
+          </div>
+        </section>
+      </main>
+
+      <aside class="content-sidebar">
+        <div class="price-card">
+          <div class="price-card__price" *ngIf="!isFreeCourse()">
+            <div class="price-card__current">
+              ₹{{ course.price | number }}
+              <span
+                class="price-card__discount"
+                *ngIf="getDiscountPercent() > 0"
+              >
+                {{ getDiscountPercent() }}% OFF
+              </span>
+            </div>
+            <div
+              class="price-card__original"
+              *ngIf="
+                course.originalPrice && course.originalPrice > course.price
+              "
+            >
+              ₹{{ course.originalPrice | number }}
+            </div>
+          </div>
+
+          <div class="price-card__free" *ngIf="isFreeCourse()">
+            <i class="bi bi-gift-fill"></i>
+            <span>Free Course</span>
+          </div>
+
+          <button class="btn-primary btn-block" (click)="goToLessons()">
+            <i class="bi bi-play-circle-fill"></i>
+            Start Learning
+          </button>
+
+          <div class="price-card__features">
+            <div class="price-card__feature">
+              <i class="bi bi-clock"></i>
+              <span>{{ course.duration }} of content</span>
+            </div>
+            <div class="price-card__feature">
+              <i class="bi bi-collection-play"></i>
+              <span>{{ course.totalLessons }} lessons</span>
+            </div>
+            <div class="price-card__feature" *ngIf="course.certificate">
+              <i class="bi bi-patch-check-fill"></i>
+              <span>Certificate of completion</span>
+            </div>
+            <div class="price-card__feature" *ngIf="course.hasLiveClasses">
+              <i class="bi bi-broadcast"></i>
+              <span>Live classes included</span>
+            </div>
+            <div class="price-card__feature">
+              <i class="bi bi-translate"></i>
+              <span>Language: {{ course.language }}</span>
+            </div>
+            <div class="price-card__feature">
+              <i class="bi bi-infinity"></i>
+              <span>Lifetime access</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="!isLoading && course && viewMode === 'lessons'">
+    <section class="lessons-header">
+      <h2>
+        <i class="bi bi-collection-play"></i>
+        All Lessons
+      </h2>
+      <p>{{ lessons.length }} lessons · {{ course.duration }} total</p>
+    </section>
+
+    <div class="loading-state" *ngIf="isLoadingLessons">
+      <div class="spinner-lg"></div>
+      <p>Loading lessons...</p>
+    </div>
+
+    <div class="lessons-grid" *ngIf="!isLoadingLessons && lessons.length > 0">
+      <article
+        class="lesson-card"
+        *ngFor="let lesson of lessons; let i = index"
+        (click)="viewLesson(lesson, i)"
+      >
+        <div class="lesson-card__media">
+          <img
+            *ngIf="lesson.thumbnail && isExternalUrl(lesson.thumbnail)"
+            [src]="lesson.thumbnail"
+            [alt]="lesson.name"
+          />
+          <img
+            *ngIf="lesson.thumbnail && !isExternalUrl(lesson.thumbnail)"
+            [src]="lesson.thumbnail | imagePath"
+            [alt]="lesson.name"
+          />
+          <div class="lesson-card__media-fallback" *ngIf="!lesson.thumbnail">
+            <i class="bi bi-play-btn"></i>
+          </div>
+
+          <div class="lesson-card__play">
+            <i class="bi bi-play-fill"></i>
+          </div>
+
+          <span class="lesson-card__num">{{ i + 1 }}</span>
+          <span class="lesson-card__time" *ngIf="lesson.duration">
+            <i class="bi bi-clock"></i>
+            {{ lesson.duration }}
+          </span>
+        </div>
+        <div class="lesson-card__body">
+          <h3>{{ lesson.name }}</h3>
+          <p *ngIf="lesson.description">{{ lesson.description }}</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="empty-mini" *ngIf="!isLoadingLessons && lessons.length === 0">
+      <i class="bi bi-journal-x"></i>
+      <p>No lessons available for this course yet.</p>
+    </div>
+  </ng-container>
+
+  <ng-container
+    *ngIf="
+      !isLoading && course && viewMode === 'lesson-detail' && selectedLesson
+    "
+  >
+    <div class="loading-state" *ngIf="isLoadingLesson">
+      <div class="spinner-lg"></div>
+      <p>Loading lesson...</p>
+    </div>
+
+    <div class="lesson-detail" *ngIf="!isLoadingLesson">
+      <div class="lesson-video">
+        <video
+          *ngIf="selectedLesson.videoUrl"
+          [src]="
+            isExternalUrl(selectedLesson.videoUrl)
+              ? selectedLesson.videoUrl
+              : ''
+          "
+          controls
+          poster=""
+        ></video>
+
+        <div class="lesson-video__placeholder" *ngIf="!selectedLesson.videoUrl">
+          <i class="bi bi-play-btn"></i>
+          <p>Video not available</p>
+        </div>
+      </div>
+
+      <div class="lesson-body">
+        <div class="lesson-body__head">
+          <div class="lesson-body__num">Lesson {{ selectedLesson.order }}</div>
+          <h1>{{ selectedLesson.name }}</h1>
+          <div class="lesson-body__meta">
+            <span *ngIf="selectedLesson.duration">
+              <i class="bi bi-clock"></i>
+              {{ selectedLesson.duration }}
+            </span>
+            <span>
+              <i class="bi bi-bookmark"></i>
+              {{ course.title }}
+            </span>
+          </div>
+        </div>
+
+        <div class="lesson-body__section" *ngIf="selectedLesson.description">
+          <h2>About this lesson</h2>
+          <p>{{ selectedLesson.description }}</p>
+        </div>
+
+        <div class="lesson-nav">
+          <button
+            class="lesson-nav__btn"
+            (click)="prevLesson()"
+            [disabled]="!hasPrevLesson()"
+          >
+            <i class="bi bi-arrow-left"></i>
+            <div>
+              <span>Previous</span>
+              <strong>Lesson {{ (selectedLesson.order || 1) - 1 }}</strong>
+            </div>
+          </button>
+          <button
+            class="lesson-nav__btn lesson-nav__btn--next"
+            (click)="nextLesson()"
+            [disabled]="!hasNextLesson()"
+          >
+            <div>
+              <span>Next</span>
+              <strong>Lesson {{ (selectedLesson.order || 1) + 1 }}</strong>
+            </div>
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <aside class="lesson-sidebar">
+        <h3>
+          <i class="bi bi-list-ol"></i>
+          Course Lessons
+        </h3>
+        <div class="lesson-sidebar__list">
+          <button
+            class="lesson-sidebar__item"
+            *ngFor="let l of lessons; let i = index"
+            [class.active]="isActiveLesson(l, i)"
+            (click)="viewLesson(l, i)"
+          >
+            <span class="lesson-sidebar__num">{{ i + 1 }}</span>
+            <div class="lesson-sidebar__info">
+              <strong>{{ l.name }}</strong>
+              <span *ngIf="l.duration"
+                ><i class="bi bi-clock"></i> {{ l.duration }}</span
+              >
+            </div>
+            <i class="bi bi-play-fill" *ngIf="isActiveLesson(l, i)"></i>
+          </button>
+        </div>
+      </aside>
+    </div>
+  </ng-container>
+</div>

@@ -1,0 +1,1143 @@
+<div class="creator-page">
+  <header class="page-header">
+    <div class="page-header__left">
+      <button type="button" class="back-btn" (click)="onCancel()">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <div>
+        <h1 class="page-header__title">
+          {{ pageTitle }}
+          <span class="mode-badge" *ngIf="isEditMode">
+            <i class="bi bi-pencil"></i> Edit
+          </span>
+        </h1>
+        <p class="page-header__subtitle">{{ pageSubtitle }}</p>
+      </div>
+    </div>
+    <div class="page-header__actions">
+      <button
+        *ngIf="isEditMode"
+        type="button"
+        class="btn-danger"
+        (click)="openDeleteDialog()"
+        [disabled]="isSubmitting || isDeleting"
+      >
+        <i
+          class="bi"
+          [ngClass]="isDeleting ? 'bi-arrow-clockwise spin' : 'bi-trash'"
+        ></i>
+        <span>{{ isDeleting ? "Deleting..." : "Delete" }}</span>
+      </button>
+      <button
+        type="button"
+        class="btn-primary"
+        (click)="openConfirmDialog()"
+        [disabled]="isSubmitting || isDeleting || isLoadingCourse"
+      >
+        <i
+          class="bi"
+          [ngClass]="
+            isSubmitting
+              ? 'bi-arrow-clockwise spin'
+              : isEditMode
+                ? 'bi-check-circle'
+                : 'bi-send-check'
+          "
+        ></i>
+        <span>{{ submitButtonLabel }}</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="state-box" *ngIf="isLoadingCourse">
+    <div class="spinner-lg"></div>
+    <p>Loading course data...</p>
+  </div>
+
+  <form
+    *ngIf="!isLoadingCourse"
+    [formGroup]="courseForm"
+    novalidate
+    class="creator-layout"
+  >
+    <div class="creator-main">
+      <section class="card">
+        <div class="card__header">
+          <div class="card__icon"><i class="bi bi-info-circle"></i></div>
+          <div>
+            <h2>Basic Information</h2>
+            <p>Core course details</p>
+          </div>
+        </div>
+        <div class="card__body">
+          <div class="field" [class.field--error]="isFieldInvalid('title')">
+            <label class="field__label"
+              >Course Title <span class="req">*</span></label
+            >
+            <input
+              type="text"
+              formControlName="title"
+              class="field__input"
+              placeholder="e.g., React Mastery"
+            />
+            <small class="field__msg" *ngIf="isFieldInvalid('title')"
+              >Title required (min 5 chars).</small
+            >
+          </div>
+
+          <div
+            class="field"
+            [class.field--error]="isFieldInvalid('description')"
+          >
+            <label class="field__label"
+              >Description <span class="req">*</span></label
+            >
+            <textarea
+              formControlName="description"
+              class="field__input field__input--textarea"
+              rows="4"
+              placeholder="Describe what students will learn..."
+            ></textarea>
+            <small class="field__msg" *ngIf="isFieldInvalid('description')"
+              >Description required (min 20 chars).</small
+            >
+          </div>
+
+          <div class="field-row">
+            <div
+              class="field"
+              [class.field--error]="isFieldInvalid('category')"
+            >
+              <label class="field__label"
+                >Category <span class="req">*</span></label
+              >
+              <div class="select-wrap">
+                <i class="bi bi-grid select-wrap__icon"></i>
+                <select
+                  formControlName="category"
+                  class="field__input field__input--select"
+                >
+                  <option value="" disabled>Select category</option>
+                  <option *ngFor="let cat of categories" [value]="cat">
+                    {{ cat }}
+                  </option>
+                </select>
+                <i class="bi bi-chevron-down select-wrap__chev"></i>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field__label">Subcategory</label>
+              <input
+                type="text"
+                formControlName="subcategory"
+                class="field__input"
+                placeholder="e.g., Web Development"
+              />
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field" [class.field--error]="isFieldInvalid('level')">
+              <label class="field__label"
+                >Level <span class="req">*</span></label
+              >
+              <div class="chip-row">
+                <label
+                  *ngFor="let lvl of levels"
+                  class="chip"
+                  [class.chip--active]="f['level'].value === lvl"
+                >
+                  <input
+                    type="radio"
+                    formControlName="level"
+                    [value]="lvl"
+                    hidden
+                  />
+                  {{ lvl }}
+                </label>
+              </div>
+            </div>
+
+            <div
+              class="field"
+              [class.field--error]="isFieldInvalid('language')"
+            >
+              <label class="field__label"
+                >Language <span class="req">*</span></label
+              >
+              <div class="chip-row">
+                <label
+                  *ngFor="let lang of languages"
+                  class="chip"
+                  [class.chip--active]="f['language'].value === lang"
+                >
+                  <input
+                    type="radio"
+                    formControlName="language"
+                    [value]="lang"
+                    hidden
+                  />
+                  {{ lang }}
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div
+              class="field"
+              [class.field--error]="isFieldInvalid('duration')"
+            >
+              <label class="field__label"
+                >Total Duration <span class="req">*</span></label
+              >
+              <div class="input-prefix">
+                <i
+                  class="bi bi-clock input-prefix__sym input-prefix__sym--icon"
+                ></i>
+                <input
+                  type="text"
+                  formControlName="duration"
+                  class="field__input"
+                  placeholder="e.g., 42h or 42:30"
+                />
+              </div>
+            </div>
+            <div class="field">
+              <label class="field__label">Total Lessons</label>
+              <div class="input-prefix">
+                <i
+                  class="bi bi-collection-play input-prefix__sym input-prefix__sym--icon"
+                ></i>
+                <input
+                  type="number"
+                  formControlName="totalLessons"
+                  class="field__input"
+                  min="0"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__header">
+          <div class="card__icon card__icon--green">
+            <i class="bi bi-currency-rupee"></i>
+          </div>
+          <div>
+            <h2>Pricing</h2>
+            <p>Set price and discounts</p>
+          </div>
+        </div>
+        <div class="card__body">
+          <label class="toggle-row">
+            <span
+              class="toggle-row__track"
+              [class.toggle-row__track--on]="f['isFree'].value"
+            >
+              <span class="toggle-row__knob"></span>
+              <input type="checkbox" formControlName="isFree" hidden />
+            </span>
+            <span class="toggle-row__info">
+              <strong>Free Course</strong>
+              <small>Make course free for everyone</small>
+            </span>
+          </label>
+
+          <div class="pricing-grid" [class.pricing-grid--disabled]="isFreeMode">
+            <div class="field">
+              <label class="field__label">
+                Original Price
+                <span
+                  class="field__badge field__badge--muted"
+                  *ngIf="isFreeMode"
+                  >Disabled</span
+                >
+              </label>
+              <div class="input-prefix">
+                <span class="input-prefix__sym">₹</span>
+                <input
+                  type="number"
+                  formControlName="originalPrice"
+                  class="field__input"
+                  min="0"
+                  placeholder="7999"
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field__label">
+                Selling Price
+                <span
+                  class="field__badge field__badge--green"
+                  *ngIf="!isFreeMode && getDiscountPercent() > 0"
+                >
+                  {{ getDiscountPercent() }}% off
+                </span>
+              </label>
+              <div class="input-prefix">
+                <span class="input-prefix__sym">₹</span>
+                <input
+                  type="number"
+                  formControlName="price"
+                  class="field__input"
+                  min="0"
+                  placeholder="4999"
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field__label">
+                Discount %
+                <span class="field__label-hint">(auto)</span>
+              </label>
+              <div class="input-prefix input-prefix--highlight">
+                <span class="input-prefix__sym">%</span>
+                <input
+                  type="number"
+                  formControlName="discount"
+                  class="field__input"
+                  readonly
+                />
+              </div>
+            </div>
+
+            <div
+              class="price-summary"
+              *ngIf="!isFreeMode && f['price'].value > 0"
+            >
+              <div class="price-summary__item">
+                <span>Original</span>
+                <strong>₹{{ f["originalPrice"].value || 0 }}</strong>
+              </div>
+              <div class="price-summary__item">
+                <span>Selling</span>
+                <strong class="price-summary__final"
+                  >₹{{ f["price"].value || 0 }}</strong
+                >
+              </div>
+              <div class="price-summary__item" *ngIf="getDiscountPercent() > 0">
+                <span>Save</span>
+                <strong class="price-summary__save"
+                  >{{ getDiscountPercent() }}%</strong
+                >
+              </div>
+            </div>
+
+            <div class="price-summary price-summary--free" *ngIf="isFreeMode">
+              <i class="bi bi-gift"></i>
+              <span>This course is free for all students</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__header">
+          <div class="card__icon card__icon--orange">
+            <i class="bi bi-list-check"></i>
+          </div>
+          <div>
+            <h2>Course Details</h2>
+            <p>Tags, requirements and outcomes</p>
+          </div>
+        </div>
+        <div class="card__body">
+          <div class="field">
+            <label class="field__label">Tags</label>
+            <div class="tag-input-row">
+              <input
+                type="text"
+                class="field__input"
+                placeholder="Add a tag and press Enter"
+                [(ngModel)]="tagInput"
+                [ngModelOptions]="{ standalone: true }"
+                (keydown)="onTagKeydown($event)"
+              />
+              <button type="button" class="btn-add" (click)="addTag()">
+                <i class="bi bi-plus"></i>
+              </button>
+            </div>
+            <div class="tag-list" *ngIf="tags.length > 0">
+              <span class="tag-chip" *ngFor="let tag of tags; let i = index">
+                {{ tag }}
+                <button type="button" (click)="removeTag(i)">
+                  <i class="bi bi-x"></i>
+                </button>
+              </span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label">Requirements</label>
+            <div class="tag-input-row">
+              <input
+                type="text"
+                class="field__input"
+                placeholder="e.g., Basic HTML knowledge"
+                [(ngModel)]="requirementInput"
+                [ngModelOptions]="{ standalone: true }"
+                (keydown)="onRequirementKeydown($event)"
+              />
+              <button type="button" class="btn-add" (click)="addRequirement()">
+                <i class="bi bi-plus"></i>
+              </button>
+            </div>
+            <ul class="list-items" *ngIf="requirements.length > 0">
+              <li *ngFor="let req of requirements; let i = index">
+                <i class="bi bi-dot"></i>
+                <span>{{ req }}</span>
+                <button type="button" (click)="removeRequirement(i)">
+                  <i class="bi bi-x"></i>
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div class="field">
+            <label class="field__label">What You Will Learn</label>
+            <div class="tag-input-row">
+              <input
+                type="text"
+                class="field__input"
+                placeholder="e.g., Build real-world apps"
+                [(ngModel)]="learnInput"
+                [ngModelOptions]="{ standalone: true }"
+                (keydown)="onLearnKeydown($event)"
+              />
+              <button type="button" class="btn-add" (click)="addLearnItem()">
+                <i class="bi bi-plus"></i>
+              </button>
+            </div>
+            <ul
+              class="list-items list-items--green"
+              *ngIf="whatYouLearn.length > 0"
+            >
+              <li *ngFor="let item of whatYouLearn; let i = index">
+                <i class="bi bi-check2"></i>
+                <span>{{ item }}</span>
+                <button type="button" (click)="removeLearnItem(i)">
+                  <i class="bi bi-x"></i>
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__header">
+          <div class="card__icon card__icon--purple">
+            <i class="bi bi-collection-play"></i>
+          </div>
+          <div>
+            <h2>Lessons (Optional)</h2>
+            <p>
+              {{ lessons.length }} lesson{{
+                lessons.length !== 1 ? "s" : ""
+              }}
+              added
+            </p>
+          </div>
+          <button type="button" class="btn-add-lesson" (click)="addLesson()">
+            <i class="bi bi-plus-circle"></i>
+            Add Lesson
+          </button>
+        </div>
+
+        <div class="card__body">
+          <div
+            class="lesson-card"
+            *ngFor="let lesson of lessons.controls; let i = index"
+            [formGroup]="$any(lesson)"
+          >
+            <div class="lesson-card__header">
+              <div class="lesson-num">
+                <span>{{ i + 1 }}</span>
+              </div>
+              <div class="lesson-card__title-row">
+                <span class="lesson-card__label">Lesson {{ i + 1 }}</span>
+                <span
+                  class="lesson-duration-badge"
+                  *ngIf="getLessonControl(i, 'duration').value"
+                >
+                  <i class="bi bi-clock"></i>
+                  {{ getLessonControl(i, "duration").value }}
+                </span>
+              </div>
+              <button
+                type="button"
+                class="lesson-remove"
+                (click)="removeLesson(i)"
+                [disabled]="lessons.length <= 1"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+
+            <div class="lesson-card__body">
+              <div class="field-row">
+                <div
+                  class="field"
+                  [class.field--error]="isLessonFieldInvalid(i, 'name')"
+                >
+                  <label class="field__label"
+                    >Title <span class="req">*</span></label
+                  >
+                  <input
+                    type="text"
+                    formControlName="name"
+                    class="field__input"
+                    placeholder="Lesson title"
+                  />
+                </div>
+                <div class="field">
+                  <label class="field__label"
+                    >Duration
+                    <span class="field__label-hint">(auto)</span></label
+                  >
+                  <div class="input-prefix">
+                    <i
+                      class="bi bi-clock input-prefix__sym input-prefix__sym--icon"
+                    ></i>
+                    <input
+                      type="text"
+                      formControlName="duration"
+                      class="field__input"
+                      placeholder="MM:SS"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="field__label">Description</label>
+                <textarea
+                  formControlName="description"
+                  class="field__input field__input--textarea"
+                  rows="2"
+                  placeholder="What this lesson covers..."
+                ></textarea>
+              </div>
+
+              <div class="media-section">
+                <div class="media-col">
+                  <div class="media-label">
+                    <i class="bi bi-play-circle"></i>
+                    Lesson Video
+                    <span
+                      class="upload-status upload-status--done"
+                      *ngIf="lessonMediaStates[i]?.isUploaded"
+                    >
+                      <i class="bi bi-check-circle-fill"></i> Uploaded
+                    </span>
+                  </div>
+
+                  <div
+                    class="media-drop"
+                    *ngIf="!lessonMediaStates[i]?.preview"
+                  >
+                    <label
+                      [for]="'lesson-video-' + i"
+                      class="media-drop__label"
+                    >
+                      <i class="bi bi-camera-video"></i>
+                      <span>Select video</span>
+                      <input
+                        [id]="'lesson-video-' + i"
+                        type="file"
+                        accept="video/*"
+                        hidden
+                        (change)="onLessonVideoSelected($event, i)"
+                      />
+                    </label>
+                  </div>
+
+                  <div
+                    class="media-preview media-preview--video"
+                    *ngIf="lessonMediaStates[i]?.preview"
+                  >
+                    <video
+                      [src]="lessonMediaStates[i].preview"
+                      controls
+                      class="media-preview__video"
+                    ></video>
+                    <div class="media-preview__actions">
+                      <button
+                        type="button"
+                        class="btn-upload"
+                        (click)="uploadLessonVideo(i)"
+                        [disabled]="
+                          lessonMediaStates[i].isUploading ||
+                          lessonMediaStates[i].isUploaded
+                        "
+                      >
+                        <i
+                          class="bi"
+                          [ngClass]="
+                            lessonMediaStates[i].isUploading
+                              ? 'bi-arrow-clockwise spin'
+                              : 'bi-cloud-arrow-up'
+                          "
+                        ></i>
+                        {{
+                          lessonMediaStates[i].isUploading
+                            ? "Uploading..."
+                            : lessonMediaStates[i].isUploaded
+                              ? "Uploaded"
+                              : "Upload Video"
+                        }}
+                      </button>
+                      <label
+                        [for]="'lesson-video-change-' + i"
+                        class="btn-change"
+                      >
+                        <i class="bi bi-arrow-repeat"></i>
+                        <input
+                          [id]="'lesson-video-change-' + i"
+                          type="file"
+                          accept="video/*"
+                          hidden
+                          (change)="onLessonVideoSelected($event, i)"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="media-col">
+                  <div class="media-label">
+                    <i class="bi bi-image"></i>
+                    Lesson Thumbnail
+                    <span
+                      class="upload-status upload-status--done"
+                      *ngIf="lessonThumbnailMediaStates[i]?.isUploaded"
+                    >
+                      <i class="bi bi-check-circle-fill"></i> Uploaded
+                    </span>
+                  </div>
+
+                  <div
+                    class="media-drop"
+                    *ngIf="!lessonThumbnailMediaStates[i]?.preview"
+                  >
+                    <label
+                      [for]="'lesson-thumb-' + i"
+                      class="media-drop__label"
+                    >
+                      <i class="bi bi-image"></i>
+                      <span>Select image</span>
+                      <input
+                        [id]="'lesson-thumb-' + i"
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        (change)="onLessonThumbnailSelected($event, i)"
+                      />
+                    </label>
+                  </div>
+
+                  <div
+                    class="media-preview"
+                    *ngIf="lessonThumbnailMediaStates[i]?.preview"
+                  >
+                    <img
+                      [src]="lessonThumbnailMediaStates[i].preview"
+                      class="media-preview__img"
+                      alt="Thumbnail"
+                    />
+                    <div class="media-preview__actions">
+                      <button
+                        type="button"
+                        class="btn-upload"
+                        (click)="uploadLessonThumbnail(i)"
+                        [disabled]="
+                          lessonThumbnailMediaStates[i].isUploading ||
+                          lessonThumbnailMediaStates[i].isUploaded
+                        "
+                      >
+                        <i
+                          class="bi"
+                          [ngClass]="
+                            lessonThumbnailMediaStates[i].isUploading
+                              ? 'bi-arrow-clockwise spin'
+                              : 'bi-cloud-arrow-up'
+                          "
+                        ></i>
+                        {{
+                          lessonThumbnailMediaStates[i].isUploading
+                            ? "Uploading..."
+                            : lessonThumbnailMediaStates[i].isUploaded
+                              ? "Uploaded"
+                              : "Upload Image"
+                        }}
+                      </button>
+                      <label
+                        [for]="'lesson-thumb-change-' + i"
+                        class="btn-change"
+                      >
+                        <i class="bi bi-arrow-repeat"></i>
+                        <input
+                          [id]="'lesson-thumb-change-' + i"
+                          type="file"
+                          accept="image/*"
+                          hidden
+                          (change)="onLessonThumbnailSelected($event, i)"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="creator-sidebar">
+      <section class="card">
+        <div class="card__header">
+          <div class="card__icon card__icon--purple">
+            <i class="bi bi-image"></i>
+          </div>
+          <div>
+            <h2>Thumbnail <span class="req">*</span></h2>
+            <p>Course cover image</p>
+          </div>
+        </div>
+        <div class="card__body">
+          <div class="media-drop" *ngIf="!thumbnailMedia.preview">
+            <label for="course-thumb" class="media-drop__label">
+              <i class="bi bi-cloud-arrow-up"></i>
+              <span>Upload thumbnail</span>
+              <small>PNG, JPG up to 5MB</small>
+              <input
+                id="course-thumb"
+                type="file"
+                accept="image/*"
+                hidden
+                (change)="onThumbnailSelected($event)"
+              />
+            </label>
+          </div>
+
+          <div class="media-preview" *ngIf="thumbnailMedia.preview">
+            <img
+              [src]="thumbnailMedia.preview"
+              class="media-preview__img"
+              alt="Thumbnail"
+            />
+            <div class="media-preview__actions">
+              <button
+                type="button"
+                class="btn-upload"
+                (click)="uploadThumbnail()"
+                [disabled]="
+                  thumbnailMedia.isUploading ||
+                  thumbnailMedia.isUploaded ||
+                  !thumbnailMedia.file
+                "
+              >
+                <i
+                  class="bi"
+                  [ngClass]="
+                    thumbnailMedia.isUploading
+                      ? 'bi-arrow-clockwise spin'
+                      : 'bi-cloud-arrow-up'
+                  "
+                ></i>
+                {{
+                  thumbnailMedia.isUploading
+                    ? "Uploading..."
+                    : thumbnailMedia.isUploaded
+                      ? "Uploaded ✓"
+                      : "Upload"
+                }}
+              </button>
+              <label for="course-thumb-change" class="btn-change">
+                <i class="bi bi-arrow-repeat"></i>
+                <input
+                  id="course-thumb-change"
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  (change)="onThumbnailSelected($event)"
+                />
+              </label>
+            </div>
+            <div
+              class="upload-status upload-status--done"
+              *ngIf="thumbnailMedia.isUploaded"
+            >
+              <i class="bi bi-check-circle-fill"></i> Ready
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__header">
+          <div class="card__icon card__icon--orange">
+            <i class="bi bi-play-btn"></i>
+          </div>
+          <div>
+            <h2>Preview Video</h2>
+            <p>Course trailer (optional)</p>
+          </div>
+        </div>
+        <div class="card__body">
+          <div class="media-drop" *ngIf="!previewMedia.preview">
+            <label for="course-preview" class="media-drop__label">
+              <i class="bi bi-camera-video"></i>
+              <span>Upload preview</span>
+              <small>MP4, MOV up to 100MB</small>
+              <input
+                id="course-preview"
+                type="file"
+                accept="video/*"
+                hidden
+                (change)="onPreviewSelected($event)"
+              />
+            </label>
+          </div>
+
+          <div
+            class="media-preview media-preview--video"
+            *ngIf="previewMedia.preview"
+          >
+            <video
+              [src]="previewMedia.preview"
+              controls
+              class="media-preview__video"
+            ></video>
+            <div class="media-preview__actions">
+              <button
+                type="button"
+                class="btn-upload"
+                (click)="uploadPreview()"
+                [disabled]="
+                  previewMedia.isUploading ||
+                  previewMedia.isUploaded ||
+                  !previewMedia.file
+                "
+              >
+                <i
+                  class="bi"
+                  [ngClass]="
+                    previewMedia.isUploading
+                      ? 'bi-arrow-clockwise spin'
+                      : 'bi-cloud-arrow-up'
+                  "
+                ></i>
+                {{
+                  previewMedia.isUploading
+                    ? "Uploading..."
+                    : previewMedia.isUploaded
+                      ? "Uploaded ✓"
+                      : "Upload"
+                }}
+              </button>
+              <label for="course-preview-change" class="btn-change">
+                <i class="bi bi-arrow-repeat"></i>
+                <input
+                  id="course-preview-change"
+                  type="file"
+                  accept="video/*"
+                  hidden
+                  (change)="onPreviewSelected($event)"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__header">
+          <div class="card__icon card__icon--green">
+            <i class="bi bi-person-badge"></i>
+          </div>
+          <div>
+            <h2>Instructor</h2>
+            <p>Course author details</p>
+          </div>
+        </div>
+        <div class="card__body">
+          <div
+            class="field"
+            [class.field--error]="isFieldInvalid('instructorName')"
+          >
+            <label class="field__label">Name <span class="req">*</span></label>
+            <input
+              type="text"
+              formControlName="instructorName"
+              class="field__input"
+              placeholder="Instructor name"
+            />
+          </div>
+          <div class="field">
+            <label class="field__label">Bio</label>
+            <textarea
+              formControlName="instructorBio"
+              class="field__input field__input--textarea"
+              rows="2"
+              placeholder="Short bio"
+            ></textarea>
+          </div>
+          <div class="field">
+            <label class="field__label">Specializations</label>
+            <div class="tag-input-row">
+              <input
+                type="text"
+                class="field__input"
+                placeholder="Add specialization"
+                [(ngModel)]="specializationInput"
+                [ngModelOptions]="{ standalone: true }"
+                (keydown)="onSpecKeydown($event)"
+              />
+              <button
+                type="button"
+                class="btn-add"
+                (click)="addSpecialization()"
+              >
+                <i class="bi bi-plus"></i>
+              </button>
+            </div>
+            <div class="tag-list" *ngIf="specializations.length > 0">
+              <span
+                class="tag-chip"
+                *ngFor="let s of specializations; let i = index"
+              >
+                {{ s }}
+                <button type="button" (click)="removeSpecialization(i)">
+                  <i class="bi bi-x"></i>
+                </button>
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__header">
+          <div class="card__icon"><i class="bi bi-sliders"></i></div>
+          <div>
+            <h2>Settings</h2>
+            <p>Additional options</p>
+          </div>
+        </div>
+        <div class="card__body">
+          <label class="toggle-row toggle-row--compact">
+            <span
+              class="toggle-row__track"
+              [class.toggle-row__track--on]="f['certificate'].value"
+            >
+              <span class="toggle-row__knob"></span>
+              <input type="checkbox" formControlName="certificate" hidden />
+            </span>
+            <span class="toggle-row__info">
+              <strong>Certificate</strong>
+              <small>Students earn a certificate</small>
+            </span>
+          </label>
+
+          <label class="toggle-row toggle-row--compact">
+            <span
+              class="toggle-row__track"
+              [class.toggle-row__track--on]="f['hasLiveClasses'].value"
+            >
+              <span class="toggle-row__knob"></span>
+              <input type="checkbox" formControlName="hasLiveClasses" hidden />
+            </span>
+            <span class="toggle-row__info">
+              <strong>Live Classes</strong>
+              <small>Course includes live sessions</small>
+            </span>
+          </label>
+        </div>
+      </section>
+
+      <div class="stats-mini">
+        <div class="stats-mini__item">
+          <i class="bi bi-collection-play"></i>
+          <div>
+            <div class="stats-mini__val">{{ lessons.length }}</div>
+            <div class="stats-mini__lbl">Lessons</div>
+          </div>
+        </div>
+        <div class="stats-mini__item">
+          <i class="bi bi-clock"></i>
+          <div>
+            <div class="stats-mini__val">{{ f["duration"].value || "—" }}</div>
+            <div class="stats-mini__lbl">Duration</div>
+          </div>
+        </div>
+        <div class="stats-mini__item">
+          <i class="bi bi-tags"></i>
+          <div>
+            <div class="stats-mini__val">{{ tags.length }}</div>
+            <div class="stats-mini__lbl">Tags</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="error-banner" *ngIf="errorMessage">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <button
+        type="button"
+        class="btn-primary btn-publish"
+        (click)="openConfirmDialog()"
+        [disabled]="isSubmitting || isDeleting"
+      >
+        <i
+          class="bi"
+          [ngClass]="
+            isSubmitting
+              ? 'bi-arrow-clockwise spin'
+              : isEditMode
+                ? 'bi-check-circle'
+                : 'bi-send-check'
+          "
+        ></i>
+        <span>{{ submitButtonLabel }}</span>
+      </button>
+    </div>
+  </form>
+</div>
+
+<div
+  class="dialog-backdrop"
+  *ngIf="showConfirmDialog || showSuccessDialog || showDeleteDialog"
+>
+  <div class="dialog" *ngIf="showConfirmDialog">
+    <div class="dialog__header">
+      <div class="dialog__icon dialog__icon--blue">
+        <i
+          class="bi"
+          [ngClass]="isEditMode ? 'bi-check-circle' : 'bi-send-check'"
+        ></i>
+      </div>
+      <h2>{{ isEditMode ? "Confirm Update" : "Confirm Publication" }}</h2>
+      <p>
+        {{
+          isEditMode
+            ? "Review changes before updating"
+            : "Review the summary before publishing"
+        }}
+      </p>
+    </div>
+
+    <div class="dialog__body">
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="summary-item__label">Title</span>
+          <span class="summary-item__val">{{ f["title"].value }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-item__label">Category</span>
+          <span class="summary-item__val">{{ f["category"].value }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-item__label">Level</span>
+          <span class="summary-item__val">{{ f["level"].value }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-item__label">Language</span>
+          <span class="summary-item__val">{{ f["language"].value }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-item__label">Duration</span>
+          <span class="summary-item__val">{{ f["duration"].value }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-item__label">Lessons</span>
+          <span class="summary-item__val">{{ lessons.length }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-item__label">Pricing</span>
+          <span class="summary-item__val" *ngIf="!isFreeMode"
+            >₹{{ f["price"].value }}</span
+          >
+          <span
+            class="summary-item__val summary-item__val--free"
+            *ngIf="isFreeMode"
+            >Free</span
+          >
+        </div>
+        <div class="summary-item">
+          <span class="summary-item__label">Certificate</span>
+          <span class="summary-item__val">{{
+            f["certificate"].value ? "Yes" : "No"
+          }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog__footer">
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="closeConfirmDialog()"
+      >
+        Go Back & Edit
+      </button>
+      <button type="button" class="btn-primary" (click)="onConfirmSubmit()">
+        <i
+          class="bi"
+          [ngClass]="isEditMode ? 'bi-check-circle' : 'bi-send-check'"
+        ></i>
+        {{ isEditMode ? "Yes, Update Now" : "Yes, Publish Now" }}
+      </button>
+    </div>
+  </div>
+
+  <div class="dialog" *ngIf="showDeleteDialog">
+    <div class="dialog__header">
+      <div class="dialog__icon dialog__icon--red">
+        <i class="bi bi-exclamation-triangle"></i>
+      </div>
+      <h2>Delete Course?</h2>
+      <p>
+        This action cannot be undone. The course and all its content will be
+        permanently removed.
+      </p>
+    </div>
+    <div class="dialog__footer">
+      <button type="button" class="btn-secondary" (click)="closeDeleteDialog()">
+        Cancel
+      </button>
+      <button type="button" class="btn-danger" (click)="confirmDelete()">
+        <i class="bi bi-trash"></i>
+        Yes, Delete
+      </button>
+    </div>
+  </div>
+
+  <div class="dialog dialog--success" *ngIf="showSuccessDialog">
+    <div class="dialog__header">
+      <div class="dialog__icon dialog__icon--green">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <h2>{{ isEditMode ? "Course Updated!" : "Course Published!" }}</h2>
+      <p>
+        <strong>{{ createdCourseName }}</strong> is now
+        {{ isEditMode ? "updated" : "live and available to students" }}.
+      </p>
+    </div>
+    <div class="dialog__footer">
+      <button type="button" class="btn-primary" (click)="closeSuccessDialog()">
+        <i class="bi bi-arrow-right"></i>
+        Go to Courses
+      </button>
+    </div>
+  </div>
+</div>

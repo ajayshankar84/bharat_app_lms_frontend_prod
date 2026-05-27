@@ -1,0 +1,134 @@
+.assigned-course-page {
+    color: #1f2937
+}
+
+.assigned-course-page .page-header {
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 1rem
+}
+
+.assigned-course-page .eyebrow {
+    color: #0d6efd;
+    font-weight: 700;
+    text-transform: uppercase
+}
+
+.assigned-course-page .page-title {
+    font-size: 1.75rem;
+    font-weight: 800
+}
+
+.assigned-course-page .page-subtitle {
+    color: #6b7280
+}
+
+.assigned-course-page .status-chip {
+    background: rgba(13, 110, 253, .12);
+    color: #0d6efd;
+    border-radius: 999px;
+    padding: .5rem .9rem;
+    font-weight: 700
+}
+
+.assigned-course-page .summary-card,
+.assigned-course-page .panel {
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    background: #fff
+}
+
+.assigned-course-page .summary-card {
+    padding: 1rem 1.1rem
+}
+
+.assigned-course-page .summary-label {
+    color: #6b7280
+}
+
+.assigned-course-page .summary-value {
+    font-size: 1.7rem;
+    font-weight: 800
+}
+
+.assigned-course-page .summary-caption {
+    color: #4b5563
+}
+
+.assigned-course-page .panel {
+    padding: 1.1rem
+}
+
+.assigned-course-page .panel-kicker {
+    color: #0d6efd;
+    font-weight: 700;
+    text-transform: uppercase
+}
+
+.assigned-course-page .date-timepicker {
+    min-width: 170px;
+}
+
+.assigned-course-page .date-timepicker .form-control {
+    border-radius: 999px !important;
+}
+
+.assigned-course-page .date-timepicker .input-group-text {
+    border-radius: 999px 0 0 999px !important;
+}
+
+.assigned-course-page .panel-title {
+    font-size: 1.1rem;
+    font-weight: 800
+}
+
+.assigned-course-page .panel-badge {
+    background: #eff6ff;
+    color: #0d6efd;
+    border-radius: 999px;
+    padding: .35rem .75rem
+}
+
+.assigned-course-page .table th {
+    color: #6b7280
+}
+
+.assigned-course-page .milestone-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    background: #f8fafc;
+    border-radius: .85rem;
+    padding: .9rem 1rem
+}
+
+.assigned-course-page .milestone-row h4 {
+    font-weight: 800
+}
+
+.assigned-course-page .milestone-row p {
+    color: #6b7280
+}
+
+.assigned-course-page .status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: .3rem .75rem;
+    font-weight: 700
+}
+
+.assigned-course-page .status-on-track {
+    background: #ecfdf3;
+    color: #047857
+}
+
+.assigned-course-page .status-review {
+    background: #fef3c7;
+    color: #b45309
+}
+
+.assigned-course-page .status-pending {
+    background: #fee2e2;
+    color: #b91c1c
+}

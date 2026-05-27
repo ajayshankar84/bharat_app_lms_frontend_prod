@@ -1,0 +1,171 @@
+<section class="account-page py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-xl-11">
+                <div class="account-shell rounded-4 overflow-hidden shadow-lg">
+                    <div class="row g-0">
+                        <div class="col-lg-5 brand-panel p-4 p-lg-5 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex align-items-center gap-3 mb-4">
+                                    <div class="logo-badge">📘</div>
+                                    <div>
+                                        <h1 class="h4 mb-0 text-white">LearnDash Portal</h1>
+                                        <p class="text-white-50 mb-0">Build skills with confidence</p>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <h2 class="h2 text-white fw-bold mb-3">Start your learning journey today</h2>
+                                    <p class="text-white-50 mb-4">
+                                        Join thousands of learners and unlock premium courses, personalized recommendations, and career-boosting certificates.
+                                    </p>
+                                    <ul class="list-unstyled mb-0 text-white-50">
+                                        <li class="mb-3"><span class="me-2">✨</span> AI-powered course recommendations</li>
+                                        <li class="mb-3"><span class="me-2">📊</span> Real-time progress analytics</li>
+                                        <li class="mb-3"><span class="me-2">🏆</span> Industry-recognized certificates</li>
+                                        <li><span class="me-2">👥</span> Live mentorship sessions</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="testimonial-card rounded-4 p-3 p-md-4 mt-4">
+                                <p class="mb-2 fst-italic text-white-50">
+                                    “LearnDash gave me the skills to switch careers in just 6 months. The community and curriculum are world-class.”
+                                </p>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="testimonial-avatar">MT</div>
+                                    <span class="small text-white fw-semibold">— Michael Tran, Data Analyst</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-7 form-panel p-4 p-lg-5 bg-body">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <p class="text-primary fw-semibold mb-1">Create account</p>
+                                    <h2 class="h3 mb-0">Get started with your free LearnDash account</h2>
+                                </div>
+                            </div>
+
+                            <form [formGroup]="accountForm" (ngSubmit)="onSubmit()" novalidate>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">First name</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">👤</span>
+                                            <input type="text" class="form-control" formControlName="firstName" placeholder="Alex" [class.is-invalid]="submitted && f['firstName'].invalid" />
+                                        </div>
+                                        <div class="invalid-feedback d-block" *ngIf="submitted && f['firstName'].errors">
+                                            <span *ngIf="f['firstName'].errors['required']">First name is required.</span>
+                                            <span *ngIf="f['firstName'].errors['minlength']">Use at least 2 characters.</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Last name</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">👤</span>
+                                            <input type="text" class="form-control" formControlName="lastName" placeholder="Johnson" [class.is-invalid]="submitted && f['lastName'].invalid" />
+                                        </div>
+                                        <div class="invalid-feedback d-block" *ngIf="submitted && f['lastName'].errors">
+                                            <span *ngIf="f['lastName'].errors['required']">Last name is required.</span>
+                                            <span *ngIf="f['lastName'].errors['minlength']">Use at least 2 characters.</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Email address</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">📧</span>
+                                            <input type="email" class="form-control" formControlName="email" placeholder="alex@example.com" [class.is-invalid]="submitted && f['email'].invalid" />
+                                        </div>
+                                        <div class="invalid-feedback d-block" *ngIf="submitted && f['email'].errors">
+                                            <span *ngIf="f['email'].errors['required']">Email is required.</span>
+                                            <span *ngIf="f['email'].errors['email']">Enter a valid email address.</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Mobile number</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">📱</span>
+                                            <input type="tel" class="form-control" formControlName="mobile" placeholder="9876543210" inputmode="numeric" maxlength="10" minlength="10" autocomplete="tel" [class.is-invalid]="submitted && f['mobile'].invalid" />
+                                        </div>
+                                        <div class="invalid-feedback d-block" *ngIf="submitted && f['mobile'].errors">
+                                            <span *ngIf="f['mobile'].errors['required']">Mobile number is required.</span>
+                                            <span *ngIf="f['mobile'].errors['minlength'] || f['mobile'].errors['maxlength']">Mobile number must be exactly 10 digits.</span>
+                                            <span *ngIf="f['mobile'].errors['pattern']">Enter a valid 10-digit mobile number without leading zero or negatives.</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Password</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">🔒</span>
+                                            <input type="password" class="form-control" formControlName="password" placeholder="Create a strong password" [class.is-invalid]="submitted && f['password'].invalid" />
+                                        </div>
+                                        <div class="invalid-feedback d-block" *ngIf="submitted && f['password'].errors">
+                                            <span *ngIf="f['password'].errors['required']">Password is required.</span>
+                                            <span *ngIf="f['password'].errors['minlength']">Use at least 8 characters.</span>
+                                        </div>
+                                        <div class="mt-2">
+                                            <div class="d-flex justify-content-between small text-muted mb-1">
+                                                <span>Password strength</span>
+                                                <span class="fw-semibold">{{ strengthText }}</span>
+                                            </div>
+                                            <div class="progress" style="height: 6px">
+                                                <div class="progress-bar {{ strengthClass }}" role="progressbar" [style.width.%]="strengthPercent"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Confirm password</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">✓</span>
+                                            <input type="password" class="form-control" formControlName="confirmPassword" placeholder="Confirm your password" [class.is-invalid]="submitted && (f['confirmPassword'].invalid || accountForm.errors?.['passwordMismatch'])" />
+                                        </div>
+                                        <div class="invalid-feedback d-block" *ngIf="submitted && f['confirmPassword'].errors">
+                                            <span *ngIf="f['confirmPassword'].errors['required']">Confirm your password.</span>
+                                        </div>
+                                        <div class="invalid-feedback d-block" *ngIf="submitted && accountForm.errors?.['passwordMismatch']">
+                                            Passwords do not match.
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="d-grid mt-4">
+                                    <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-semibold">
+                    Create free account →
+                  </button>
+                                </div>
+                            </form>
+
+                            <div class="text-center mt-4 mb-3">
+                                <span class="text-muted">or sign up with</span>
+                            </div>
+
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-outline-secondary w-100 rounded-3">🄶 Google</button>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-outline-secondary w-100 rounded-3">🐙 GitHub</button>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-outline-secondary w-100 rounded-3">🔗 LinkedIn</button>
+                                </div>
+                            </div>
+
+                            <p class="text-center text-muted mt-4 mb-0">
+                                Already have an account?
+                                <a [routerLink]="['/auth/login']" class="link-primary fw-semibold text-decoration-none">Sign in →</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

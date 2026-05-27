@@ -1,0 +1,55 @@
+$bg: #f4f7fb;
+$radius: 1.6rem;
+$alert-bg: rgba(13, 110, 253, 0.08);
+$primary-color: #0d6efd;
+$dark: #111827;
+$open-bg: #e9f2ff;
+.course-detail-page {
+    min-height: 100vh;
+    background: $bg;
+    .card {
+        border-radius: $radius;
+    }
+    .alert {
+        background: $alert-bg;
+        color: $primary-color;
+    }
+    h1,
+    h2,
+    h3,
+    h4 {
+        color: $dark;
+    }
+    .accordion-button {
+        border: none;
+        box-shadow: none;
+        font-weight: 600;
+        &:not(.collapsed) {
+            color: $dark;
+            background: $open-bg;
+        }
+        &::after {
+            filter: invert(0.4);
+        }
+    }
+    .card-body {
+        ul {
+            li {
+                margin-bottom: 0.75rem;
+            }
+        }
+    }
+    .course-content-card {
+        min-height: 100%;
+    }
+    .position-sticky {
+        position: sticky;
+        top: 1.5rem;
+    }
+    @media (max-width: 991.98px) {
+        .position-sticky {
+            position: static;
+            top: auto;
+        }
+    }
+}
