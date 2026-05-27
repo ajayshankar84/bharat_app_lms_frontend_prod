@@ -81,14 +81,30 @@
           [alt]="course.title"
           (error)="$any($event.target).style.display = 'none'"
         />
+        <img
+          *ngIf="
+            course.thumbnail && !course.image && isExternalUrl(course.thumbnail)
+          "
+          [src]="course.thumbnail"
+          [alt]="course.title"
+          (error)="$any($event.target).style.display = 'none'"
+        />
+        <img
+          *ngIf="
+            course.thumbnail &&
+            !course.image &&
+            !isExternalUrl(course.thumbnail)
+          "
+          [src]="course.thumbnail | imagePath"
+          [alt]="course.title"
+          (error)="$any($event.target).style.display = 'none'"
+        />
         <div class="hero-section__overlay"></div>
 
-        <button class="hero-section__play" *ngIf="course.preview?.videoUrl">
+        <button class="hero-section__play" *ngIf="getPreviewUrl()">
           <i class="bi bi-play-fill"></i>
           <span>Watch Preview</span>
-          <small *ngIf="course.preview?.duration">{{
-            course.preview?.duration
-          }}</small>
+          <small *ngIf="getPreviewDuration()">{{ getPreviewDuration() }}</small>
         </button>
       </div>
 
@@ -114,11 +130,12 @@
             <i class="bi bi-translate"></i> {{ course.language }}
           </span>
           <span class="meta-pill">
-            <i class="bi bi-clock"></i> {{ course.duration }}
+            <i class="bi bi-clock"></i>
+            {{ course.duration || course.totalDuration || "0s" }}
           </span>
           <span class="meta-pill">
             <i class="bi bi-collection-play"></i>
-            {{ course.totalLessons }} lessons
+            {{ course.totalLessons || course.totalVideos || 0 }} lessons
           </span>
         </div>
 
@@ -176,7 +193,9 @@
           >
             <i class="bi bi-list-ul"></i>
             Curriculum
-            <span class="tab-bar__count">{{ course.totalLessons }}</span>
+            <span class="tab-bar__count">{{
+              course.totalLessons || course.totalVideos || 0
+            }}</span>
           </button>
           <button
             class="tab-bar__btn"
@@ -199,14 +218,21 @@
         <section class="tab-panel" *ngIf="activeTab === 'about'">
           <div
             class="info-card"
-            *ngIf="course.whatYouLearn && course.whatYouLearn.length > 0"
+            *ngIf="
+              (course.whatYouWillLearn && course.whatYouWillLearn.length > 0) ||
+              (course.whatYouLearn && course.whatYouLearn.length > 0)
+            "
           >
             <h2 class="info-card__title">
               <i class="bi bi-trophy-fill"></i>
               What you'll learn
             </h2>
             <ul class="check-list">
-              <li *ngFor="let item of course.whatYouLearn">
+              <li
+                *ngFor="
+                  let item of course.whatYouWillLearn || course.whatYouLearn
+                "
+              >
                 <i class="bi bi-check2-circle"></i>
                 <span>{{ item }}</span>
               </li>
@@ -241,7 +267,7 @@
           <div
             class="info-card"
             *ngIf="
-              !course.whatYouLearn?.length &&
+              !(course.whatYouWillLearn || course.whatYouLearn)?.length &&
               !course.requirements?.length &&
               !course.tags?.length
             "
@@ -258,7 +284,8 @@
             <div>
               <h2>Course Content</h2>
               <p>
-                {{ course.totalLessons }} lessons · {{ course.duration }} total
+                {{ course.totalLessons || course.totalVideos || 0 }} lessons ·
+                {{ course.duration || course.totalDuration || "0s" }} total
               </p>
             </div>
             <button
@@ -327,7 +354,7 @@
             *ngIf="
               !isLoadingLessons &&
               lessons.length === 0 &&
-              course.totalLessons > 0
+              (course.totalLessons || course.totalVideos || 0) > 0
             "
           >
             <i class="bi bi-collection-play"></i>
@@ -339,7 +366,7 @@
             *ngIf="
               !isLoadingLessons &&
               lessons.length === 0 &&
-              course.totalLessons === 0
+              (course.totalLessons || course.totalVideos || 0) === 0
             "
           >
             <i class="bi bi-journal-x"></i>
@@ -353,27 +380,48 @@
               <div class="instructor-card__avatar">
                 <img
                   *ngIf="
-                    course.instructor.avatar &&
-                    isExternalUrl(course.instructor.avatar)
+                    (course.instructor.avatar ||
+                      course.instructor.profileImage) &&
+                    isExternalUrl(
+                      course.instructor.avatar || course.instructor.profileImage
+                    )
                   "
-                  [src]="course.instructor.avatar"
+                  [src]="
+                    course.instructor.avatar || course.instructor.profileImage
+                  "
                   [alt]="course.instructor.name"
                 />
                 <img
                   *ngIf="
-                    course.instructor.avatar &&
-                    !isExternalUrl(course.instructor.avatar)
+                    (course.instructor.avatar ||
+                      course.instructor.profileImage) &&
+                    !isExternalUrl(
+                      course.instructor.avatar || course.instructor.profileImage
+                    )
                   "
-                  [src]="course.instructor.avatar | imagePath"
+                  [src]="
+                    course.instructor.avatar || course.instructor.profileImage
+                      | imagePath
+                  "
                   [alt]="course.instructor.name"
                 />
-                <span *ngIf="!course.instructor.avatar">
+                <span
+                  *ngIf="
+                    !course.instructor.avatar && !course.instructor.profileImage
+                  "
+                >
                   {{ (course.instructor.name || "?").charAt(0).toUpperCase() }}
                 </span>
               </div>
               <div class="instructor-card__info">
                 <h2>{{ course.instructor.name }}</h2>
                 <p *ngIf="course.instructor.bio">{{ course.instructor.bio }}</p>
+                <p
+                  *ngIf="course.instructor.email"
+                  class="instructor-card__email"
+                >
+                  <i class="bi bi-envelope"></i> {{ course.instructor.email }}
+                </p>
               </div>
             </div>
 
@@ -440,13 +488,23 @@
         <div class="price-card">
           <div class="price-card__price" *ngIf="!isFreeCourse()">
             <div class="price-card__current">
-              ₹{{ course.price | number }}
+              ₹{{ course.discountPrice || course.price | number }}
               <span
                 class="price-card__discount"
                 *ngIf="getDiscountPercent() > 0"
               >
                 {{ getDiscountPercent() }}% OFF
               </span>
+            </div>
+            <div
+              class="price-card__original"
+              *ngIf="
+                course.price &&
+                course.discountPrice &&
+                course.discountPrice < course.price
+              "
+            >
+              ₹{{ course.price | number }}
             </div>
             <div
               class="price-card__original"
@@ -471,13 +529,24 @@
           <div class="price-card__features">
             <div class="price-card__feature">
               <i class="bi bi-clock"></i>
-              <span>{{ course.duration }} of content</span>
+              <span
+                >{{ course.duration || course.totalDuration || "0s" }} of
+                content</span
+              >
             </div>
             <div class="price-card__feature">
               <i class="bi bi-collection-play"></i>
-              <span>{{ course.totalLessons }} lessons</span>
+              <span
+                >{{
+                  course.totalLessons || course.totalVideos || 0
+                }}
+                lessons</span
+              >
             </div>
-            <div class="price-card__feature" *ngIf="course.certificate">
+            <div
+              class="price-card__feature"
+              *ngIf="course.certificate || course.certificateAvailable"
+            >
               <i class="bi bi-patch-check-fill"></i>
               <span>Certificate of completion</span>
             </div>
@@ -505,7 +574,10 @@
         <i class="bi bi-collection-play"></i>
         All Lessons
       </h2>
-      <p>{{ lessons.length }} lessons · {{ course.duration }} total</p>
+      <p>
+        {{ lessons.length }} lessons ·
+        {{ course.duration || course.totalDuration || "0s" }} total
+      </p>
     </section>
 
     <div class="loading-state" *ngIf="isLoadingLessons">

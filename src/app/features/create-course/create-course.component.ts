@@ -12,19 +12,27 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, lastValueFrom } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import {
-  CourseContentService,
-  CourseContent,
-} from '../../core/services/course-content.service';
+import { CourseContentService } from '../../core/services/course-content.service';
 import { AuthService } from '../../core/services/auth.service';
+import {
+  compressImage,
+  validateImageFile,
+  validateVideoFile,
+  formatFileSize,
+  MAX_IMAGE_SIZE_MB,
+  MAX_VIDEO_SIZE_MB,
+} from '../../core/utils/media.utils';
 
 interface MediaState {
   file: File | null;
   preview: string;
   uploadedUrl: string;
   isUploading: boolean;
+  isProcessing: boolean;
   uploadError: string;
   isUploaded: boolean;
+  originalSize?: number;
+  finalSize?: number;
 }
 
 function createMediaState(uploadedUrl: string = ''): MediaState {
@@ -33,6 +41,7 @@ function createMediaState(uploadedUrl: string = ''): MediaState {
     preview: uploadedUrl,
     uploadedUrl,
     isUploading: false,
+    isProcessing: false,
     uploadError: '',
     isUploaded: !!uploadedUrl,
   };
@@ -77,6 +86,9 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
   learnInput = '';
   specializationInput = '';
 
+  readonly maxVideoSizeMB = MAX_VIDEO_SIZE_MB;
+  readonly maxImageSizeMB = MAX_IMAGE_SIZE_MB;
+
   private destroy$ = new Subject<void>();
 
   readonly levels = ['Beginner', 'Intermediate', 'Advanced'];
@@ -114,16 +126,59 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
     return this.courseForm.get('requirements')?.value || [];
   }
 
-  get whatYouLearn(): string[] {
-    return this.courseForm.get('whatYouLearn')?.value || [];
+  get whatYouWillLearn(): string[] {
+    return this.courseForm.get('whatYouWillLearn')?.value || [];
   }
 
   get specializations(): string[] {
     return this.courseForm.get('instructorSpecializations')?.value || [];
   }
 
+  get hasUnuploadedMedia(): boolean {
+    if (this.thumbnailMedia.file && !this.thumbnailMedia.isUploaded)
+      return true;
+    if (this.previewMedia.file && !this.previewMedia.isUploaded) return true;
+    for (const state of this.lessonMediaStates) {
+      if (state.file && !state.isUploaded) return true;
+    }
+    for (const state of this.lessonThumbnailMediaStates) {
+      if (state.file && !state.isUploaded) return true;
+    }
+    return false;
+  }
+
+  get isAnyUploading(): boolean {
+    if (this.thumbnailMedia.isUploading || this.thumbnailMedia.isProcessing)
+      return true;
+    if (this.previewMedia.isUploading || this.previewMedia.isProcessing)
+      return true;
+    for (const state of this.lessonMediaStates) {
+      if (state.isUploading || state.isProcessing) return true;
+    }
+    for (const state of this.lessonThumbnailMediaStates) {
+      if (state.isUploading || state.isProcessing) return true;
+    }
+    return false;
+  }
+
+  get publishDisabledReason(): string {
+    if (this.isSubmitting) return 'Publishing in progress...';
+    if (this.isDeleting) return 'Deleting in progress...';
+    if (this.isAnyUploading)
+      return 'Wait for media to finish processing/uploading';
+    if (this.hasUnuploadedMedia) return 'Upload all selected media files first';
+    if (!this.thumbnailMedia.uploadedUrl) return 'Course thumbnail is required';
+    if (this.courseForm.invalid) return 'Fill all required fields';
+    return '';
+  }
+
   get isFormValid(): boolean {
-    return this.courseForm.valid && this.thumbnailMedia.uploadedUrl !== '';
+    return (
+      this.courseForm.valid &&
+      this.thumbnailMedia.uploadedUrl !== '' &&
+      !this.hasUnuploadedMedia &&
+      !this.isAnyUploading
+    );
   }
 
   get pageTitle(): string {
@@ -146,6 +201,7 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initForm();
     this.watchPricing();
+    this.watchTitleForSlug();
 
     this.courseId = this.route.snapshot.queryParamMap.get('course');
     if (this.courseId) {
@@ -166,32 +222,55 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
 
     this.courseForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(5)]],
+      slug: [{ value: '', disabled: true }],
+      shortDescription: ['', [Validators.required, Validators.minLength(10)]],
       description: ['', [Validators.required, Validators.minLength(20)]],
       category: ['', [Validators.required]],
       subcategory: [''],
       level: ['', [Validators.required]],
       language: ['', [Validators.required]],
-      type: ['paid', [Validators.required]],
       isFree: [false],
       price: [0, [Validators.min(0)]],
-      originalPrice: [0, [Validators.min(0)]],
-      discount: [0, [Validators.min(0), Validators.max(100)]],
-      duration: ['', [Validators.required]],
-      totalLessons: [0, [Validators.min(0)]],
+      discountPrice: [0, [Validators.min(0)]],
+      duration: [{ value: '', disabled: true }],
+      totalDuration: [{ value: '00:00', disabled: true }],
+      totalVideos: [{ value: 0, disabled: true }],
       instructorId: [user?._id || ''],
       instructorName: [user?.name || '', [Validators.required]],
+      instructorEmail: [user?.email || ''],
       instructorBio: [user?.bio || ''],
       instructorAvatar: [user?.profileImage || ''],
       instructorSpecializations: [[]],
       tags: [[]],
       requirements: [[]],
-      whatYouLearn: [[]],
+      whatYouWillLearn: [[]],
       previewVideoUrl: [''],
       previewDuration: [''],
-      certificate: [true],
+      certificateAvailable: [true],
+      isPublished: [true],
       hasLiveClasses: [false],
       lessons: this.fb.array([]),
     });
+  }
+
+  private watchTitleForSlug(): void {
+    this.courseForm
+      .get('title')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((title: string) => {
+        if (title) {
+          const slug = title
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+          this.courseForm.get('slug')?.setValue(slug, { emitEvent: false });
+        } else {
+          this.courseForm.get('slug')?.setValue('', { emitEvent: false });
+        }
+      });
   }
 
   private loadCourse(id: string): void {
@@ -199,69 +278,105 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
 
     this.courseContentService.getCourseById(id).subscribe({
-      next: (res) => {
-        if (res?.success && res?.data) {
-          this.populateForm(res.data);
+      next: (res: any) => {
+        const data = res?.data || res;
+        if (data) {
+          this.populateForm(data);
         } else {
           this.errorMessage = 'Failed to load course data.';
         }
         this.isLoadingCourse = false;
       },
       error: (err) => {
-        console.error('Error loading course:', err);
-        this.errorMessage = err?.error?.message || 'Failed to load course.';
+        this.errorMessage = this.extractErrorMessage(err);
         this.isLoadingCourse = false;
       },
     });
   }
 
-  private populateForm(course: CourseContent): void {
+  private populateForm(course: any): void {
     const isFree = course.type === 'free' || course.price === 0;
     this.isFreeMode = isFree;
 
     this.courseForm.patchValue(
       {
         title: course.title || '',
+        shortDescription: course.shortDescription || '',
         description: course.description || '',
         category: course.category || '',
         subcategory: course.subcategory || '',
         level: course.level || '',
         language: course.language || '',
-        type: course.type || 'paid',
         isFree: isFree,
-        price: course.price || 0,
-        originalPrice: course.originalPrice || 0,
-        discount: course.discount || 0,
-        duration: course.duration || '',
-        totalLessons: course.totalLessons || 0,
+        price: course.price || course.originalPrice || 0,
+        discountPrice: course.discountPrice || course.price || 0,
+        duration: course.duration || course.totalDuration || '',
+        totalDuration: course.totalDuration || course.duration || '00:00',
+        totalVideos: course.totalVideos || course.totalLessons || 0,
         instructorId: course.instructor?._id || '',
         instructorName: course.instructor?.name || '',
+        instructorEmail: course.instructor?.email || '',
         instructorBio: course.instructor?.bio || '',
-        instructorAvatar: course.instructor?.avatar || '',
+        instructorAvatar:
+          course.instructor?.profileImage || course.instructor?.avatar || '',
         instructorSpecializations: course.instructor?.specializations || [],
         tags: course.tags || [],
         requirements: course.requirements || [],
-        whatYouLearn: course.whatYouLearn || [],
-        previewVideoUrl: course.preview?.videoUrl || '',
+        whatYouWillLearn: course.whatYouWillLearn || course.whatYouLearn || [],
+        previewVideoUrl:
+          typeof course.preview === 'string'
+            ? course.preview
+            : course.preview?.videoUrl || '',
         previewDuration: course.preview?.duration || '',
-        certificate: course.certificate ?? true,
+        certificateAvailable:
+          course.certificateAvailable ?? course.certificate ?? true,
+        isPublished: course.isPublished ?? true,
         hasLiveClasses: course.hasLiveClasses ?? false,
       },
       { emitEvent: false },
     );
 
-    this.thumbnailMedia = createMediaState(course.image || '');
-    this.previewMedia = createMediaState(course.preview?.videoUrl || '');
+    this.thumbnailMedia = createMediaState(
+      course.thumbnail || course.image || '',
+    );
+    const previewUrl =
+      typeof course.preview === 'string'
+        ? course.preview
+        : course.preview?.videoUrl || '';
+    this.previewMedia = createMediaState(previewUrl);
 
     if (isFree) {
       this.courseForm.get('price')?.disable({ emitEvent: false });
-      this.courseForm.get('originalPrice')?.disable({ emitEvent: false });
-      this.courseForm.get('discount')?.disable({ emitEvent: false });
+      this.courseForm.get('discountPrice')?.disable({ emitEvent: false });
     }
 
-    if (this.lessons.length === 0) {
+    const videos = course.videos || course.lessons || [];
+    if (Array.isArray(videos) && videos.length > 0) {
+      while (this.lessons.length > 0) {
+        this.lessons.removeAt(0);
+      }
+      this.lessonMediaStates = [];
+      this.lessonThumbnailMediaStates = [];
+
+      videos.forEach((v: any) => {
+        const lessonGroup = this.fb.group({
+          name: [v.name || '', [Validators.required]],
+          description: [v.description || ''],
+          videoUrl: [v.videoUrl || ''],
+          thumbnail: [v.thumbnail || ''],
+          duration: [v.duration || ''],
+        });
+        this.lessons.push(lessonGroup);
+        this.lessonMediaStates.push(createMediaState(v.videoUrl || ''));
+        this.lessonThumbnailMediaStates.push(
+          createMediaState(v.thumbnail || ''),
+        );
+      });
+    } else if (this.lessons.length === 0) {
       this.addLesson();
     }
+
+    this.recalculateTotals();
   }
 
   private watchPricing(): void {
@@ -272,41 +387,55 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
         this.isFreeMode = isFree;
         if (isFree) {
           this.courseForm.patchValue(
-            { price: 0, originalPrice: 0, discount: 0, type: 'free' },
+            { price: 0, discountPrice: 0 },
             { emitEvent: false },
           );
           this.courseForm.get('price')?.disable({ emitEvent: false });
-          this.courseForm.get('originalPrice')?.disable({ emitEvent: false });
-          this.courseForm.get('discount')?.disable({ emitEvent: false });
+          this.courseForm.get('discountPrice')?.disable({ emitEvent: false });
         } else {
-          this.courseForm.patchValue({ type: 'paid' }, { emitEvent: false });
           this.courseForm.get('price')?.enable({ emitEvent: false });
-          this.courseForm.get('originalPrice')?.enable({ emitEvent: false });
-          this.courseForm.get('discount')?.enable({ emitEvent: false });
+          this.courseForm.get('discountPrice')?.enable({ emitEvent: false });
         }
       });
 
     this.courseForm
-      .get('originalPrice')
-      ?.valueChanges.pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.recalculateDiscount());
-
-    this.courseForm
       .get('price')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.recalculateDiscount());
+      .subscribe((price: number) => {
+        const currentDiscount =
+          this.courseForm.get('discountPrice')?.value || 0;
+        if (currentDiscount === 0 && price > 0) {
+          this.courseForm
+            .get('discountPrice')
+            ?.setValue(price, { emitEvent: false });
+        }
+        if (currentDiscount > price && price > 0) {
+          this.courseForm
+            .get('discountPrice')
+            ?.setValue(price, { emitEvent: false });
+        }
+      });
+
+    this.courseForm
+      .get('discountPrice')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((discountPrice: number) => {
+        const price = this.courseForm.get('price')?.value || 0;
+        if (discountPrice > price && price > 0) {
+          this.courseForm
+            .get('discountPrice')
+            ?.setValue(price, { emitEvent: false });
+        }
+      });
   }
 
-  private recalculateDiscount(): void {
-    const original = Number(this.courseForm.get('originalPrice')?.value || 0);
-    const current = Number(this.courseForm.get('price')?.value || 0);
-
-    if (original > 0 && current >= 0 && current <= original) {
-      const discount = Math.round(((original - current) / original) * 100);
-      this.courseForm.get('discount')?.setValue(discount, { emitEvent: false });
-    } else {
-      this.courseForm.get('discount')?.setValue(0, { emitEvent: false });
-    }
+  getDiscountPercent(): number {
+    const price = Number(this.courseForm.get('price')?.value || 0);
+    const discountPrice = Number(
+      this.courseForm.get('discountPrice')?.value || 0,
+    );
+    if (price <= 0 || discountPrice >= price) return 0;
+    return Math.round(((price - discountPrice) / price) * 100);
   }
 
   addLesson(): void {
@@ -321,6 +450,7 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
     this.lessons.push(lessonGroup);
     this.lessonMediaStates.push(createMediaState());
     this.lessonThumbnailMediaStates.push(createMediaState());
+    this.recalculateTotals();
   }
 
   removeLesson(index: number): void {
@@ -340,13 +470,62 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
     return !!(ctrl && ctrl.invalid && ctrl.touched);
   }
 
-  onThumbnailSelected(event: Event): void {
-    const file = this.extractFile(event, 'image');
+  formatSize(bytes: number | undefined): string {
+    if (!bytes) return '';
+    return formatFileSize(bytes);
+  }
+
+  private extractRawFile(event: Event): File | null {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    return file || null;
+  }
+
+  private extractFileIdFromResponse(res: any): string {
+    if (res?.files && Array.isArray(res.files) && res.files.length > 0) {
+      return res.files[0].fileId || res.files[0]._id || res.files[0].id || '';
+    }
+    return res?.fileId || res?.data?.fileId || res?.url || res?.data?.url || '';
+  }
+
+  private extractErrorMessage(err: any): string {
+    if (err?.error?.message) return err.error.message;
+    if (err?.error?.error) return err.error.error;
+    if (typeof err?.error === 'string') return err.error;
+    if (err?.message) return err.message;
+    if (err?.status === 413) return 'File is too large for the server.';
+    if (err?.status === 401) return 'Session expired. Please login again.';
+    if (err?.status === 0) return 'Network error. Check your connection.';
+    return 'Operation failed. Please try again.';
+  }
+
+  async onThumbnailSelected(event: Event): Promise<void> {
+    const file = this.extractRawFile(event);
     if (!file) return;
-    this.thumbnailMedia.file = file;
-    this.thumbnailMedia.preview = URL.createObjectURL(file);
+
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      this.thumbnailMedia.uploadError = validation.error || '';
+      return;
+    }
+
+    this.thumbnailMedia.uploadError = '';
+    this.thumbnailMedia.isProcessing = true;
+    this.thumbnailMedia.originalSize = file.size;
     this.thumbnailMedia.uploadedUrl = '';
     this.thumbnailMedia.isUploaded = false;
+
+    try {
+      const compressed = await compressImage(file);
+      this.thumbnailMedia.file = compressed;
+      this.thumbnailMedia.finalSize = compressed.size;
+      this.thumbnailMedia.preview = URL.createObjectURL(compressed);
+    } catch {
+      this.thumbnailMedia.uploadError = 'Failed to process image.';
+    } finally {
+      this.thumbnailMedia.isProcessing = false;
+    }
   }
 
   async uploadThumbnail(): Promise<void> {
@@ -357,20 +536,35 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
       const res = await lastValueFrom(
         this.courseContentService.uploadMedia(this.thumbnailMedia.file),
       );
-      this.thumbnailMedia.uploadedUrl =
-        res?.url || res?.data?.url || res?.data?.fileId || '';
-      this.thumbnailMedia.isUploaded = true;
-    } catch {
-      this.thumbnailMedia.uploadError = 'Upload failed. Please try again.';
+      const fileId = this.extractFileIdFromResponse(res);
+      if (!fileId) {
+        this.thumbnailMedia.uploadError =
+          'Upload succeeded but no file ID returned.';
+      } else {
+        this.thumbnailMedia.uploadedUrl = fileId;
+        this.thumbnailMedia.isUploaded = true;
+      }
+    } catch (err: any) {
+      this.thumbnailMedia.uploadError = this.extractErrorMessage(err);
     } finally {
       this.thumbnailMedia.isUploading = false;
     }
   }
 
   onPreviewSelected(event: Event): void {
-    const file = this.extractFile(event, 'video');
+    const file = this.extractRawFile(event);
     if (!file) return;
+
+    const validation = validateVideoFile(file);
+    if (!validation.valid) {
+      this.previewMedia.uploadError = validation.error || '';
+      return;
+    }
+
+    this.previewMedia.uploadError = '';
     this.previewMedia.file = file;
+    this.previewMedia.originalSize = file.size;
+    this.previewMedia.finalSize = file.size;
     this.previewMedia.preview = URL.createObjectURL(file);
     this.previewMedia.uploadedUrl = '';
     this.previewMedia.isUploaded = false;
@@ -400,23 +594,36 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
       const res = await lastValueFrom(
         this.courseContentService.uploadMedia(this.previewMedia.file),
       );
-      this.previewMedia.uploadedUrl =
-        res?.url || res?.data?.url || res?.data?.fileId || '';
-      this.previewMedia.isUploaded = true;
-      this.courseForm
-        .get('previewVideoUrl')
-        ?.setValue(this.previewMedia.uploadedUrl);
-    } catch {
-      this.previewMedia.uploadError = 'Upload failed. Please try again.';
+      const fileId = this.extractFileIdFromResponse(res);
+      if (!fileId) {
+        this.previewMedia.uploadError =
+          'Upload succeeded but no file ID returned.';
+      } else {
+        this.previewMedia.uploadedUrl = fileId;
+        this.previewMedia.isUploaded = true;
+        this.courseForm.get('previewVideoUrl')?.setValue(fileId);
+      }
+    } catch (err: any) {
+      this.previewMedia.uploadError = this.extractErrorMessage(err);
     } finally {
       this.previewMedia.isUploading = false;
     }
   }
 
   onLessonVideoSelected(event: Event, index: number): void {
-    const file = this.extractFile(event, 'video');
+    const file = this.extractRawFile(event);
     if (!file) return;
+
+    const validation = validateVideoFile(file);
+    if (!validation.valid) {
+      this.lessonMediaStates[index].uploadError = validation.error || '';
+      return;
+    }
+
+    this.lessonMediaStates[index].uploadError = '';
     this.lessonMediaStates[index].file = file;
+    this.lessonMediaStates[index].originalSize = file.size;
+    this.lessonMediaStates[index].finalSize = file.size;
     this.lessonMediaStates[index].preview = URL.createObjectURL(file);
     this.lessonMediaStates[index].uploadedUrl = '';
     this.lessonMediaStates[index].isUploaded = false;
@@ -432,24 +639,51 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
       const res = await lastValueFrom(
         this.courseContentService.uploadMedia(state.file),
       );
-      state.uploadedUrl = res?.url || res?.data?.url || res?.data?.fileId || '';
-      state.isUploaded = true;
-      this.getLessonControl(index, 'videoUrl').setValue(state.uploadedUrl);
-      this.recalculateTotals();
-    } catch {
-      state.uploadError = 'Upload failed. Please try again.';
+      const fileId = this.extractFileIdFromResponse(res);
+      if (!fileId) {
+        state.uploadError = 'Upload succeeded but no file ID returned.';
+      } else {
+        state.uploadedUrl = fileId;
+        state.isUploaded = true;
+        this.getLessonControl(index, 'videoUrl').setValue(fileId);
+        this.recalculateTotals();
+      }
+    } catch (err: any) {
+      state.uploadError = this.extractErrorMessage(err);
     } finally {
       state.isUploading = false;
     }
   }
 
-  onLessonThumbnailSelected(event: Event, index: number): void {
-    const file = this.extractFile(event, 'image');
+  async onLessonThumbnailSelected(event: Event, index: number): Promise<void> {
+    const file = this.extractRawFile(event);
     if (!file) return;
-    this.lessonThumbnailMediaStates[index].file = file;
-    this.lessonThumbnailMediaStates[index].preview = URL.createObjectURL(file);
+
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      this.lessonThumbnailMediaStates[index].uploadError =
+        validation.error || '';
+      return;
+    }
+
+    this.lessonThumbnailMediaStates[index].uploadError = '';
+    this.lessonThumbnailMediaStates[index].isProcessing = true;
+    this.lessonThumbnailMediaStates[index].originalSize = file.size;
     this.lessonThumbnailMediaStates[index].uploadedUrl = '';
     this.lessonThumbnailMediaStates[index].isUploaded = false;
+
+    try {
+      const compressed = await compressImage(file);
+      this.lessonThumbnailMediaStates[index].file = compressed;
+      this.lessonThumbnailMediaStates[index].finalSize = compressed.size;
+      this.lessonThumbnailMediaStates[index].preview =
+        URL.createObjectURL(compressed);
+    } catch {
+      this.lessonThumbnailMediaStates[index].uploadError =
+        'Failed to process image.';
+    } finally {
+      this.lessonThumbnailMediaStates[index].isProcessing = false;
+    }
   }
 
   async uploadLessonThumbnail(index: number): Promise<void> {
@@ -461,26 +695,19 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
       const res = await lastValueFrom(
         this.courseContentService.uploadMedia(state.file),
       );
-      state.uploadedUrl = res?.url || res?.data?.url || res?.data?.fileId || '';
-      state.isUploaded = true;
-      this.getLessonControl(index, 'thumbnail').setValue(state.uploadedUrl);
-    } catch {
-      state.uploadError = 'Upload failed. Please try again.';
+      const fileId = this.extractFileIdFromResponse(res);
+      if (!fileId) {
+        state.uploadError = 'Upload succeeded but no file ID returned.';
+      } else {
+        state.uploadedUrl = fileId;
+        state.isUploaded = true;
+        this.getLessonControl(index, 'thumbnail').setValue(fileId);
+      }
+    } catch (err: any) {
+      state.uploadError = this.extractErrorMessage(err);
     } finally {
       state.isUploading = false;
     }
-  }
-
-  private extractFile(event: Event, type: 'image' | 'video'): File | null {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return null;
-    const isValid =
-      type === 'image'
-        ? file.type.startsWith('image/')
-        : file.type.startsWith('video/');
-    if (!isValid) return null;
-    return file;
   }
 
   private extractVideoDuration(file: File, lessonIndex: number): void {
@@ -500,9 +727,35 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
   }
 
   private recalculateTotals(): void {
+    let totalSeconds = 0;
+    for (const lesson of this.lessons.controls) {
+      const dur = lesson.get('duration')?.value || '00:00';
+      const parts = String(dur).split(':');
+      const mins = parseInt(parts[0] || '0', 10) || 0;
+      const secs = parseInt(parts[1] || '0', 10) || 0;
+      totalSeconds += mins * 60 + secs;
+    }
+
+    const totalMins = Math.floor(totalSeconds / 60);
+    const remSeconds = totalSeconds % 60;
+    const totalDurationStr = `${totalMins.toString().padStart(2, '0')}:${remSeconds.toString().padStart(2, '0')}`;
+
+    const totalHours = Math.floor(totalSeconds / 3600);
+    const displayMinutes = Math.floor((totalSeconds % 3600) / 60);
+    let displayDuration = '';
+    if (totalHours > 0) {
+      displayDuration = `${totalHours}h ${displayMinutes}m`;
+    } else if (displayMinutes > 0) {
+      displayDuration = `${displayMinutes}m ${remSeconds}s`;
+    } else {
+      displayDuration = `${remSeconds}s`;
+    }
+
     this.courseForm.patchValue(
       {
-        totalLessons: this.lessons.length,
+        totalVideos: this.lessons.length,
+        duration: displayDuration,
+        totalDuration: totalDurationStr,
       },
       { emitEvent: false },
     );
@@ -523,10 +776,10 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
   }
 
   addLearnItem(): void {
-    this.addToListField('whatYouLearn', 'learnInput');
+    this.addToListField('whatYouWillLearn', 'learnInput');
   }
   removeLearnItem(i: number): void {
-    this.removeFromListField('whatYouLearn', i);
+    this.removeFromListField('whatYouWillLearn', i);
   }
 
   addSpecialization(): void {
@@ -582,6 +835,7 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
       this.courseForm.markAllAsTouched();
       this.lessons.controls.forEach((c) => (c as FormGroup).markAllAsTouched());
       this.errorMessage =
+        this.publishDisabledReason ||
         'Please fill all required fields and upload the course thumbnail.';
       return;
     }
@@ -613,11 +867,66 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
       );
       this.router.navigate(['/dashboard/courses']);
     } catch (err: any) {
-      this.errorMessage = err?.error?.message || 'Failed to delete course.';
+      this.errorMessage = this.extractErrorMessage(err);
     } finally {
       this.isDeleting = false;
     }
   }
+
+private buildPayload(): any {
+  const formValue = this.courseForm.getRawValue();
+  const user = this.authService.currentUser;
+
+  const videos = this.lessons.controls.map((lesson, idx) => ({
+    videoUrl: this.lessonMediaStates[idx]?.uploadedUrl || lesson.get('videoUrl')?.value || '',
+    name: lesson.get('name')?.value || '',
+    duration: lesson.get('duration')?.value || '00:00',
+    thumbnail: this.lessonThumbnailMediaStates[idx]?.uploadedUrl || lesson.get('thumbnail')?.value || '',
+    description: lesson.get('description')?.value || '',
+  }));
+
+  const payload: any = {
+    title: formValue.title,
+    description: formValue.description,
+    instructor: {
+      _id: formValue.instructorId || user?._id || '',
+      name: formValue.instructorName || user?.name || '',
+      bio: formValue.instructorBio || '',
+      avatar: formValue.instructorAvatar || user?.profileImage || '',
+      specializations: formValue.instructorSpecializations || [],
+    },
+    category: formValue.category,
+    level: formValue.level,
+    language: formValue.language,
+    type: formValue.isFree ? 'free' : 'paid',
+    price: formValue.isFree ? 0 : Number(formValue.discountPrice || formValue.price || 0),
+    originalPrice: formValue.isFree ? 0 : Number(formValue.price || 0),
+    discount: formValue.isFree ? 0 : this.getDiscountPercent(),
+    duration: formValue.totalDuration || '00:00',
+    totalLessons: this.lessons.length,
+    image: this.thumbnailMedia.uploadedUrl,
+    tags: formValue.tags || [],
+    certificate: formValue.certificateAvailable,
+    hasLiveClasses: formValue.hasLiveClasses || false,
+    whatYouLearn: formValue.whatYouWillLearn || [],
+    requirements: formValue.requirements || [],
+    videos: videos,
+  };
+
+  if (formValue.subcategory) {
+    payload.subcategory = formValue.subcategory;
+  }
+
+  const previewUrl = this.previewMedia.uploadedUrl || formValue.previewVideoUrl || '';
+  if (previewUrl) {
+    payload.preview = {
+      videoUrl: previewUrl,
+      duration: formValue.previewDuration || '',
+    };
+  }
+
+  return payload;
+}
 
   async onConfirmSubmit(): Promise<void> {
     this.showConfirmDialog = false;
@@ -625,44 +934,7 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
 
     try {
-      const formValue = this.courseForm.getRawValue();
-      const user = this.authService.currentUser;
-
-      const payload = {
-        title: formValue.title,
-        description: formValue.description,
-        instructor: {
-          _id: formValue.instructorId || user?._id || '',
-          name: formValue.instructorName || user?.name || '',
-          bio: formValue.instructorBio || '',
-          avatar: formValue.instructorAvatar || '',
-          specializations: formValue.instructorSpecializations || [],
-        },
-        category: formValue.category,
-        subcategory: formValue.subcategory || '',
-        level: formValue.level,
-        language: formValue.language,
-        type: formValue.isFree ? 'free' : 'paid',
-        price: formValue.isFree ? 0 : Number(formValue.price || 0),
-        originalPrice: formValue.isFree
-          ? 0
-          : Number(formValue.originalPrice || 0),
-        discount: formValue.isFree ? 0 : Number(formValue.discount || 0),
-        duration: formValue.duration,
-        totalLessons:
-          this.lessons.length || Number(formValue.totalLessons || 0),
-        image: this.thumbnailMedia.uploadedUrl,
-        preview: {
-          videoUrl:
-            this.previewMedia.uploadedUrl || formValue.previewVideoUrl || '',
-          duration: formValue.previewDuration || '',
-        },
-        tags: formValue.tags || [],
-        certificate: formValue.certificate,
-        hasLiveClasses: formValue.hasLiveClasses,
-        whatYouLearn: formValue.whatYouLearn || [],
-        requirements: formValue.requirements || [],
-      };
+      const payload = this.buildPayload();
 
       if (this.isEditMode && this.courseId) {
         await lastValueFrom(
@@ -674,11 +946,10 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
         );
       }
 
-      this.createdCourseName = formValue.title;
+      this.createdCourseName = payload.title;
       this.showSuccessDialog = true;
     } catch (err: any) {
-      this.errorMessage =
-        err?.error?.message || 'Failed to save course. Please try again.';
+      this.errorMessage = this.extractErrorMessage(err);
     } finally {
       this.isSubmitting = false;
     }
@@ -696,12 +967,5 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
   isFieldInvalid(fieldName: string): boolean {
     const field = this.courseForm.get(fieldName);
     return !!(field && field.invalid && (field.touched || field.dirty));
-  }
-
-  getDiscountPercent(): number {
-    const original = Number(this.courseForm.get('originalPrice')?.value || 0);
-    const current = Number(this.courseForm.get('price')?.value || 0);
-    if (original <= 0) return 0;
-    return Math.round(((original - current) / original) * 100);
   }
 }

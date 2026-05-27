@@ -12,8 +12,10 @@ export interface Preview {
 export interface Instructor {
   _id: string;
   name: string;
+  email?: string;
   bio?: string;
   avatar?: string;
+  profileImage?: string;
   specializations?: string[];
   coursesCount?: number;
   studentsCount?: number;
@@ -33,28 +35,38 @@ export interface Lesson {
 export interface CourseContent {
   _id?: string;
   title: string;
+  slug?: string;
   description: string;
+  shortDescription?: string;
   instructor: Instructor;
   category: string;
   subcategory?: string;
   level: string;
   language: string;
-  type: 'free' | 'paid';
+  type?: 'free' | 'paid';
   price: number;
-  originalPrice: number;
-  discount: number;
-  duration: string;
-  totalLessons: number;
+  discountPrice?: number;
+  originalPrice?: number;
+  discount?: number;
+  duration?: string;
+  totalDuration?: string;
+  totalLessons?: number;
+  totalVideos?: number;
   totalStudents?: number;
   rating?: number;
   totalRatings?: number;
-  image: string;
-  preview?: Preview;
+  image?: string;
+  thumbnail?: string;
+  preview?: Preview | string;
   tags?: string[];
   certificate?: boolean;
+  certificateAvailable?: boolean;
+  isPublished?: boolean;
   hasLiveClasses?: boolean;
   whatYouLearn?: string[];
+  whatYouWillLearn?: string[];
   requirements?: string[];
+  videos?: Lesson[];
   lessons?: Lesson[];
   publishedAt?: string;
   createdAt?: string;
@@ -124,7 +136,11 @@ export class CourseContentService {
 
   uploadMedia(file: File): Observable<any> {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('files', file, file.name);
+    formData.append('fileSize', file.size.toString());
+    formData.append('fileType', file.type);
+    formData.append('fileName', file.name);
+
     return this.http.post(`${UPLOAD_URL}/api/upload`, formData, {
       headers: new HttpHeaders({
         Authorization: `Bearer ${this.session.getSessionToken()}`,

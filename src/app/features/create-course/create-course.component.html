@@ -32,7 +32,10 @@
         type="button"
         class="btn-primary"
         (click)="openConfirmDialog()"
-        [disabled]="isSubmitting || isDeleting || isLoadingCourse"
+        [disabled]="
+          !isFormValid || isSubmitting || isDeleting || isLoadingCourse
+        "
+        [title]="publishDisabledReason || submitButtonLabel"
       >
         <i
           class="bi"
@@ -78,10 +81,46 @@
               type="text"
               formControlName="title"
               class="field__input"
-              placeholder="e.g., React Mastery"
+              placeholder="e.g., React Basics Complete Course"
             />
             <small class="field__msg" *ngIf="isFieldInvalid('title')"
               >Title required (min 5 chars).</small
+            >
+          </div>
+
+          <div class="field">
+            <label class="field__label">
+              Slug
+              <span class="field__label-hint">(auto from title)</span>
+            </label>
+            <div class="input-prefix input-prefix--highlight">
+              <i
+                class="bi bi-link-45deg input-prefix__sym input-prefix__sym--icon"
+              ></i>
+              <input
+                type="text"
+                formControlName="slug"
+                class="field__input"
+                placeholder="auto-generated-slug"
+              />
+            </div>
+          </div>
+
+          <div
+            class="field"
+            [class.field--error]="isFieldInvalid('shortDescription')"
+          >
+            <label class="field__label"
+              >Short Description <span class="req">*</span></label
+            >
+            <input
+              type="text"
+              formControlName="shortDescription"
+              class="field__input"
+              placeholder="e.g., Master React with projects"
+            />
+            <small class="field__msg" *ngIf="isFieldInvalid('shortDescription')"
+              >Short description required (min 10 chars).</small
             >
           </div>
 
@@ -90,7 +129,7 @@
             [class.field--error]="isFieldInvalid('description')"
           >
             <label class="field__label"
-              >Description <span class="req">*</span></label
+              >Full Description <span class="req">*</span></label
             >
             <textarea
               formControlName="description"
@@ -184,14 +223,12 @@
           </div>
 
           <div class="field-row">
-            <div
-              class="field"
-              [class.field--error]="isFieldInvalid('duration')"
-            >
-              <label class="field__label"
-                >Total Duration <span class="req">*</span></label
-              >
-              <div class="input-prefix">
+            <div class="field">
+              <label class="field__label">
+                Total Duration
+                <span class="field__label-hint">(auto)</span>
+              </label>
+              <div class="input-prefix input-prefix--highlight">
                 <i
                   class="bi bi-clock input-prefix__sym input-prefix__sym--icon"
                 ></i>
@@ -199,22 +236,23 @@
                   type="text"
                   formControlName="duration"
                   class="field__input"
-                  placeholder="e.g., 42h or 42:30"
+                  placeholder="Add lessons"
                 />
               </div>
             </div>
             <div class="field">
-              <label class="field__label">Total Lessons</label>
-              <div class="input-prefix">
+              <label class="field__label">
+                Total Videos
+                <span class="field__label-hint">(auto)</span>
+              </label>
+              <div class="input-prefix input-prefix--highlight">
                 <i
                   class="bi bi-collection-play input-prefix__sym input-prefix__sym--icon"
                 ></i>
                 <input
                   type="number"
-                  formControlName="totalLessons"
+                  formControlName="totalVideos"
                   class="field__input"
-                  min="0"
-                  placeholder="0"
                 />
               </div>
             </div>
@@ -229,7 +267,7 @@
           </div>
           <div>
             <h2>Pricing</h2>
-            <p>Set price and discounts</p>
+            <p>Set price and discount</p>
           </div>
         </div>
         <div class="card__body">
@@ -261,17 +299,17 @@
                 <span class="input-prefix__sym">₹</span>
                 <input
                   type="number"
-                  formControlName="originalPrice"
+                  formControlName="price"
                   class="field__input"
                   min="0"
-                  placeholder="7999"
+                  placeholder="999"
                 />
               </div>
             </div>
 
             <div class="field">
               <label class="field__label">
-                Selling Price
+                Discount Price
                 <span
                   class="field__badge field__badge--green"
                   *ngIf="!isFreeMode && getDiscountPercent() > 0"
@@ -283,26 +321,10 @@
                 <span class="input-prefix__sym">₹</span>
                 <input
                   type="number"
-                  formControlName="price"
+                  formControlName="discountPrice"
                   class="field__input"
                   min="0"
-                  placeholder="4999"
-                />
-              </div>
-            </div>
-
-            <div class="field">
-              <label class="field__label">
-                Discount %
-                <span class="field__label-hint">(auto)</span>
-              </label>
-              <div class="input-prefix input-prefix--highlight">
-                <span class="input-prefix__sym">%</span>
-                <input
-                  type="number"
-                  formControlName="discount"
-                  class="field__input"
-                  readonly
+                  placeholder="499"
                 />
               </div>
             </div>
@@ -313,12 +335,12 @@
             >
               <div class="price-summary__item">
                 <span>Original</span>
-                <strong>₹{{ f["originalPrice"].value || 0 }}</strong>
+                <strong>₹{{ f["price"].value || 0 }}</strong>
               </div>
               <div class="price-summary__item">
-                <span>Selling</span>
+                <span>Discount Price</span>
                 <strong class="price-summary__final"
-                  >₹{{ f["price"].value || 0 }}</strong
+                  >₹{{ f["discountPrice"].value || f["price"].value }}</strong
                 >
               </div>
               <div class="price-summary__item" *ngIf="getDiscountPercent() > 0">
@@ -405,7 +427,7 @@
               <input
                 type="text"
                 class="field__input"
-                placeholder="e.g., Build real-world apps"
+                placeholder="e.g., React fundamentals"
                 [(ngModel)]="learnInput"
                 [ngModelOptions]="{ standalone: true }"
                 (keydown)="onLearnKeydown($event)"
@@ -416,9 +438,9 @@
             </div>
             <ul
               class="list-items list-items--green"
-              *ngIf="whatYouLearn.length > 0"
+              *ngIf="whatYouWillLearn.length > 0"
             >
-              <li *ngFor="let item of whatYouLearn; let i = index">
+              <li *ngFor="let item of whatYouWillLearn; let i = index">
                 <i class="bi bi-check2"></i>
                 <span>{{ item }}</span>
                 <button type="button" (click)="removeLearnItem(i)">
@@ -436,7 +458,7 @@
             <i class="bi bi-collection-play"></i>
           </div>
           <div>
-            <h2>Lessons (Optional)</h2>
+            <h2>Lessons</h2>
             <p>
               {{ lessons.length }} lesson{{
                 lessons.length !== 1 ? "s" : ""
@@ -548,6 +570,7 @@
                     >
                       <i class="bi bi-camera-video"></i>
                       <span>Select video</span>
+                      <small>Max {{ maxVideoSizeMB }}MB</small>
                       <input
                         [id]="'lesson-video-' + i"
                         type="file"
@@ -558,6 +581,17 @@
                     </label>
                   </div>
 
+                  <p
+                    class="media-error media-error--standalone"
+                    *ngIf="
+                      !lessonMediaStates[i]?.preview &&
+                      lessonMediaStates[i]?.uploadError
+                    "
+                  >
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ lessonMediaStates[i].uploadError }}
+                  </p>
+
                   <div
                     class="media-preview media-preview--video"
                     *ngIf="lessonMediaStates[i]?.preview"
@@ -567,6 +601,21 @@
                       controls
                       class="media-preview__video"
                     ></video>
+
+                    <div
+                      class="size-info"
+                      *ngIf="lessonMediaStates[i].originalSize"
+                    >
+                      <div class="size-info__row">
+                        <span
+                          ><i class="bi bi-file-earmark-play"></i> Size</span
+                        >
+                        <strong>{{
+                          formatSize(lessonMediaStates[i].originalSize)
+                        }}</strong>
+                      </div>
+                    </div>
+
                     <div class="media-preview__actions">
                       <button
                         type="button"
@@ -607,6 +656,13 @@
                         />
                       </label>
                     </div>
+                    <p
+                      class="media-error"
+                      *ngIf="lessonMediaStates[i].uploadError"
+                    >
+                      <i class="bi bi-exclamation-circle"></i>
+                      {{ lessonMediaStates[i].uploadError }}
+                    </p>
                   </div>
                 </div>
 
@@ -632,6 +688,7 @@
                     >
                       <i class="bi bi-image"></i>
                       <span>Select image</span>
+                      <small>Auto-compressed</small>
                       <input
                         [id]="'lesson-thumb-' + i"
                         type="file"
@@ -642,6 +699,17 @@
                     </label>
                   </div>
 
+                  <p
+                    class="media-error media-error--standalone"
+                    *ngIf="
+                      !lessonThumbnailMediaStates[i]?.preview &&
+                      lessonThumbnailMediaStates[i]?.uploadError
+                    "
+                  >
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ lessonThumbnailMediaStates[i].uploadError }}
+                  </p>
+
                   <div
                     class="media-preview"
                     *ngIf="lessonThumbnailMediaStates[i]?.preview"
@@ -651,6 +719,40 @@
                       class="media-preview__img"
                       alt="Thumbnail"
                     />
+
+                    <div
+                      class="size-info"
+                      *ngIf="lessonThumbnailMediaStates[i].originalSize"
+                    >
+                      <div class="size-info__row">
+                        <span><i class="bi bi-file-earmark"></i> Original</span>
+                        <strong>{{
+                          formatSize(lessonThumbnailMediaStates[i].originalSize)
+                        }}</strong>
+                      </div>
+                      <div
+                        class="size-info__row"
+                        *ngIf="
+                          lessonThumbnailMediaStates[i].finalSize &&
+                          lessonThumbnailMediaStates[i].finalSize !==
+                            lessonThumbnailMediaStates[i].originalSize
+                        "
+                      >
+                        <span><i class="bi bi-magic"></i> Compressed</span>
+                        <strong class="size-info__compressed">{{
+                          formatSize(lessonThumbnailMediaStates[i].finalSize)
+                        }}</strong>
+                      </div>
+                    </div>
+
+                    <div
+                      class="processing-badge"
+                      *ngIf="lessonThumbnailMediaStates[i].isProcessing"
+                    >
+                      <i class="bi bi-arrow-clockwise spin"></i>
+                      Compressing...
+                    </div>
+
                     <div class="media-preview__actions">
                       <button
                         type="button"
@@ -658,7 +760,8 @@
                         (click)="uploadLessonThumbnail(i)"
                         [disabled]="
                           lessonThumbnailMediaStates[i].isUploading ||
-                          lessonThumbnailMediaStates[i].isUploaded
+                          lessonThumbnailMediaStates[i].isUploaded ||
+                          lessonThumbnailMediaStates[i].isProcessing
                         "
                       >
                         <i
@@ -691,6 +794,13 @@
                         />
                       </label>
                     </div>
+                    <p
+                      class="media-error"
+                      *ngIf="lessonThumbnailMediaStates[i].uploadError"
+                    >
+                      <i class="bi bi-exclamation-circle"></i>
+                      {{ lessonThumbnailMediaStates[i].uploadError }}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -716,7 +826,7 @@
             <label for="course-thumb" class="media-drop__label">
               <i class="bi bi-cloud-arrow-up"></i>
               <span>Upload thumbnail</span>
-              <small>PNG, JPG up to 5MB</small>
+              <small>PNG, JPG (auto-compressed)</small>
               <input
                 id="course-thumb"
                 type="file"
@@ -727,12 +837,45 @@
             </label>
           </div>
 
+          <p
+            class="media-error media-error--standalone"
+            *ngIf="!thumbnailMedia.preview && thumbnailMedia.uploadError"
+          >
+            <i class="bi bi-exclamation-circle"></i>
+            {{ thumbnailMedia.uploadError }}
+          </p>
+
           <div class="media-preview" *ngIf="thumbnailMedia.preview">
             <img
               [src]="thumbnailMedia.preview"
               class="media-preview__img"
               alt="Thumbnail"
             />
+
+            <div class="size-info" *ngIf="thumbnailMedia.originalSize">
+              <div class="size-info__row">
+                <span><i class="bi bi-file-earmark"></i> Original</span>
+                <strong>{{ formatSize(thumbnailMedia.originalSize) }}</strong>
+              </div>
+              <div
+                class="size-info__row"
+                *ngIf="
+                  thumbnailMedia.finalSize &&
+                  thumbnailMedia.finalSize !== thumbnailMedia.originalSize
+                "
+              >
+                <span><i class="bi bi-magic"></i> Compressed</span>
+                <strong class="size-info__compressed">{{
+                  formatSize(thumbnailMedia.finalSize)
+                }}</strong>
+              </div>
+            </div>
+
+            <div class="processing-badge" *ngIf="thumbnailMedia.isProcessing">
+              <i class="bi bi-arrow-clockwise spin"></i>
+              Compressing image...
+            </div>
+
             <div class="media-preview__actions">
               <button
                 type="button"
@@ -741,6 +884,7 @@
                 [disabled]="
                   thumbnailMedia.isUploading ||
                   thumbnailMedia.isUploaded ||
+                  thumbnailMedia.isProcessing ||
                   !thumbnailMedia.file
                 "
               >
@@ -771,11 +915,15 @@
                 />
               </label>
             </div>
+            <p class="media-error" *ngIf="thumbnailMedia.uploadError">
+              <i class="bi bi-exclamation-circle"></i>
+              {{ thumbnailMedia.uploadError }}
+            </p>
             <div
               class="upload-status upload-status--done"
               *ngIf="thumbnailMedia.isUploaded"
             >
-              <i class="bi bi-check-circle-fill"></i> Ready
+              <i class="bi bi-check-circle-fill"></i> Ready to publish
             </div>
           </div>
         </div>
@@ -796,7 +944,7 @@
             <label for="course-preview" class="media-drop__label">
               <i class="bi bi-camera-video"></i>
               <span>Upload preview</span>
-              <small>MP4, MOV up to 100MB</small>
+              <small>MP4, MOV up to {{ maxVideoSizeMB }}MB</small>
               <input
                 id="course-preview"
                 type="file"
@@ -807,6 +955,14 @@
             </label>
           </div>
 
+          <p
+            class="media-error media-error--standalone"
+            *ngIf="!previewMedia.preview && previewMedia.uploadError"
+          >
+            <i class="bi bi-exclamation-circle"></i>
+            {{ previewMedia.uploadError }}
+          </p>
+
           <div
             class="media-preview media-preview--video"
             *ngIf="previewMedia.preview"
@@ -816,6 +972,14 @@
               controls
               class="media-preview__video"
             ></video>
+
+            <div class="size-info" *ngIf="previewMedia.originalSize">
+              <div class="size-info__row">
+                <span><i class="bi bi-file-earmark-play"></i> Size</span>
+                <strong>{{ formatSize(previewMedia.originalSize) }}</strong>
+              </div>
+            </div>
+
             <div class="media-preview__actions">
               <button
                 type="button"
@@ -854,6 +1018,10 @@
                 />
               </label>
             </div>
+            <p class="media-error" *ngIf="previewMedia.uploadError">
+              <i class="bi bi-exclamation-circle"></i>
+              {{ previewMedia.uploadError }}
+            </p>
           </div>
         </div>
       </section>
@@ -879,6 +1047,15 @@
               formControlName="instructorName"
               class="field__input"
               placeholder="Instructor name"
+            />
+          </div>
+          <div class="field">
+            <label class="field__label">Email</label>
+            <input
+              type="email"
+              formControlName="instructorEmail"
+              class="field__input"
+              placeholder="instructor@email.com"
             />
           </div>
           <div class="field">
@@ -936,14 +1113,32 @@
           <label class="toggle-row toggle-row--compact">
             <span
               class="toggle-row__track"
-              [class.toggle-row__track--on]="f['certificate'].value"
+              [class.toggle-row__track--on]="f['certificateAvailable'].value"
             >
               <span class="toggle-row__knob"></span>
-              <input type="checkbox" formControlName="certificate" hidden />
+              <input
+                type="checkbox"
+                formControlName="certificateAvailable"
+                hidden
+              />
             </span>
             <span class="toggle-row__info">
-              <strong>Certificate</strong>
+              <strong>Certificate Available</strong>
               <small>Students earn a certificate</small>
+            </span>
+          </label>
+
+          <label class="toggle-row toggle-row--compact">
+            <span
+              class="toggle-row__track"
+              [class.toggle-row__track--on]="f['isPublished'].value"
+            >
+              <span class="toggle-row__knob"></span>
+              <input type="checkbox" formControlName="isPublished" hidden />
+            </span>
+            <span class="toggle-row__info">
+              <strong>Published</strong>
+              <small>Make this course visible to students</small>
             </span>
           </label>
 
@@ -974,7 +1169,7 @@
         <div class="stats-mini__item">
           <i class="bi bi-clock"></i>
           <div>
-            <div class="stats-mini__val">{{ f["duration"].value || "—" }}</div>
+            <div class="stats-mini__val">{{ f["duration"].value || "0s" }}</div>
             <div class="stats-mini__lbl">Duration</div>
           </div>
         </div>
@@ -996,7 +1191,8 @@
         type="button"
         class="btn-primary btn-publish"
         (click)="openConfirmDialog()"
-        [disabled]="isSubmitting || isDeleting"
+        [disabled]="!isFormValid || isSubmitting || isDeleting"
+        [title]="publishDisabledReason || submitButtonLabel"
       >
         <i
           class="bi"
@@ -1010,6 +1206,14 @@
         ></i>
         <span>{{ submitButtonLabel }}</span>
       </button>
+
+      <div
+        class="disabled-reason"
+        *ngIf="publishDisabledReason && !isSubmitting"
+      >
+        <i class="bi bi-info-circle"></i>
+        <span>{{ publishDisabledReason }}</span>
+      </div>
     </div>
   </form>
 </div>
@@ -1059,13 +1263,13 @@
           <span class="summary-item__val">{{ f["duration"].value }}</span>
         </div>
         <div class="summary-item">
-          <span class="summary-item__label">Lessons</span>
+          <span class="summary-item__label">Videos</span>
           <span class="summary-item__val">{{ lessons.length }}</span>
         </div>
         <div class="summary-item">
           <span class="summary-item__label">Pricing</span>
           <span class="summary-item__val" *ngIf="!isFreeMode"
-            >₹{{ f["price"].value }}</span
+            >₹{{ f["discountPrice"].value || f["price"].value }}</span
           >
           <span
             class="summary-item__val summary-item__val--free"
@@ -1076,7 +1280,13 @@
         <div class="summary-item">
           <span class="summary-item__label">Certificate</span>
           <span class="summary-item__val">{{
-            f["certificate"].value ? "Yes" : "No"
+            f["certificateAvailable"].value ? "Yes" : "No"
+          }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-item__label">Published</span>
+          <span class="summary-item__val">{{
+            f["isPublished"].value ? "Yes" : "No"
           }}</span>
         </div>
       </div>
@@ -1107,8 +1317,7 @@
       </div>
       <h2>Delete Course?</h2>
       <p>
-        This action cannot be undone. The course and all its content will be
-        permanently removed.
+        This action cannot be undone. The course will be permanently removed.
       </p>
     </div>
     <div class="dialog__footer">

@@ -43,13 +43,6 @@ export class CourseContentComponent implements OnInit {
       this.errorMessage = 'No course ID provided';
     }
   }
-  isActiveLesson(lesson: Lesson, index: number): boolean {
-    if (!this.selectedLesson) return false;
-    if (this.selectedLesson._id && lesson._id) {
-      return this.selectedLesson._id === lesson._id;
-    }
-    return (this.selectedLesson.order || 0) === index + 1;
-  }
   loadCourse(id: string): void {
     this.isLoading = true;
     this.errorMessage = '';
@@ -94,7 +87,25 @@ export class CourseContentComponent implements OnInit {
       },
     });
   }
+  getPreviewUrl(): string {
+    if (!this.course?.preview) return '';
+    if (typeof this.course.preview === 'string') return this.course.preview;
+    return this.course.preview.videoUrl || '';
+  }
 
+  getPreviewDuration(): string {
+    if (!this.course?.preview) return '';
+    if (typeof this.course.preview === 'string') return '';
+    return this.course.preview.duration || '';
+  }
+
+  isActiveLesson(lesson: Lesson, index: number): boolean {
+    if (!this.selectedLesson) return false;
+    if (this.selectedLesson._id && lesson._id) {
+      return this.selectedLesson._id === lesson._id;
+    }
+    return (this.selectedLesson.order || 0) === index + 1;
+  }
   viewLesson(lesson: Lesson, index: number): void {
     if (!this.courseId || !lesson._id) {
       this.selectedLesson = { ...lesson, order: index + 1 };
