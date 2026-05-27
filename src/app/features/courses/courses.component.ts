@@ -1,58 +1,85 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { Course, CourseService } from '../../core/services/course.service'; // Import Course and CourseService
+import { Course, CourseService } from '../../core/services/course.service';
 
 @Component({
   selector: 'app-courses',
   templateUrl: './courses.component.html',
-  styleUrls: ['./courses.component.scss']
+  styleUrls: ['./courses.component.scss'],
 })
 export class CoursesComponent implements OnInit {
-  courses: Course[] = []; // Initialize as an empty array of Course type
+  courses: Course[] = [];
+  searchTerm = '';
+  filterCategory = '';
+  filterStatus: 'all' | 'active' | 'inactive' = 'all';
 
   constructor(
     private router: Router,
-    private courseService: CourseService // Inject CourseService
-  ) { }
+    private courseService: CourseService,
+  ) {}
 
   ngOnInit(): void {
     this.loadCourses();
+  }
+
+  get uniqueCategories(): string[] {
+    const cats = new Set<string>();
+    this.courses.forEach((c) => {
+      if (c.category) cats.add(c.category);
+    });
+    return Array.from(cats).sort();
+  }
+
+  get filteredCourses(): Course[] {
+    const term = this.searchTerm.trim().toLowerCase();
+    return this.courses.filter((course) => {
+      const matchesSearch =
+        !term ||
+        course.name?.toLowerCase().includes(term) ||
+        course.category?.toLowerCase().includes(term) ||
+        course.tag?.toLowerCase().includes(term) ||
+        course.description?.toLowerCase().includes(term);
+
+      const matchesCategory =
+        !this.filterCategory || course.category === this.filterCategory;
+
+      const matchesStatus =
+        this.filterStatus === 'all' ||
+        (this.filterStatus === 'active' && course.active) ||
+        (this.filterStatus === 'inactive' && !course.active);
+
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
   }
 
   loadCourses(): void {
     this.courseService.getCourses().subscribe({
       next: (data: Course[]) => {
         this.courses = data;
-        console.log('Courses loaded:', this.courses);
       },
       error: (err: any) => {
         console.error('Error loading courses:', err);
-        // Handle error, e.g., display a message to the user
-      }
+      },
     });
   }
 
   navigateToAdd(): void {
-    this.router.navigate(['/features/create-course']);
+    this.router.navigate(['/dashboard/create-course']);
   }
 
-  navigateToDetail(id: string | undefined): void { // id can be undefined if _id is not present
+  navigateToDetail(id: string | undefined): void {
     if (id) {
-      // this.router.navigate(['/features/course-content', id]); // Pass ID to course-detail
-      this.router.navigate(['/features/course-content'], {
+      this.router.navigate(['/dashboard/course-content'], {
         queryParams: { course: id },
       });
-    } else {
-      console.warn('Attempted to navigate to course detail without an ID.');
     }
   }
+
   navigateToCourse(id: string | undefined): void {
     if (id) {
-      this.router.navigate(['/features/create-course'], {
+      this.router.navigate(['/dashboard/create-course'], {
         queryParams: { course: id },
       });
-    } else {
-      console.warn('Attempted to navigate to course content without an ID.');
     }
   }
 }

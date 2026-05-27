@@ -1,332 +1,504 @@
-<div class="container-fluid course-detail-page py-4">
-    <div class="row justify-content-center">
-        <div class="col-12">
-
-            <h1 class="display-2"> <span class="badge bg-primary text-uppercase fs-7">Learn, Build & Grow - Build the
-                    Future with BharatApp !</span></h1>
-            <p class="mb-0  fw-semibold">Gain real-world industry experience by working on live projects with India's
-                own social networking platform.
-
-            </p>
-
-            <!-- <a href="#course-content" class="text-decoration-none fw-semibold">See course content →</a> -->
-
+<div class="course-detail">
+  <div class="page-hero">
+    <div class="page-hero__bg"></div>
+    <div class="page-hero__content">
+      <div class="page-hero__left">
+        <span class="page-hero__eyebrow">
+          <i class="bi bi-rocket-takeoff-fill"></i>
+          {{ courseDetail?.[0]?.pageTitle || "Learn, Build & Grow" }}
+        </span>
+        <h1 class="page-hero__title">
+          {{ courseDetail?.[0]?.name | titlecase }}
+        </h1>
+        <p class="page-hero__subtitle">
+          {{
+            courseDetail?.[0]?.pageSubTitle ||
+              "Gain real-world industry experience by working on live projects."
+          }}
+        </p>
+        <div class="page-hero__meta">
+          <span class="page-hero__meta-item">
+            <i class="bi bi-star-fill"></i>
+            <strong>4.4</strong>
+            <span>(626 ratings)</span>
+          </span>
+          <span class="page-hero__meta-item">
+            <i class="bi bi-people-fill"></i>
+            <strong>2,242</strong>
+            <span>learners</span>
+          </span>
+          <span class="page-hero__meta-item">
+            <i class="bi bi-translate"></i>
+            <span>English, Hindi</span>
+          </span>
         </div>
+      </div>
+      <div class="page-hero__badge">
+        <i class="bi bi-award-fill"></i>
+        <span>Certified</span>
+      </div>
     </div>
+  </div>
 
-    <div class="row gx-4">
-        <div class="col-lg-8">
-            <div class="card shadow-sm rounded-4 border-0 mb-4">
-                <div class="card-body p-4 p-xl-5">
-                    <div class="d-flex flex-column gap-3 mb-4">
-                        <div class="d-flex flex-wrap gap-2 align-items-center text-secondary small">
-                            @for (tag of (courseDetail[0]?.tag | split); track $index) {
-                                <span>{{ tag }}</span>
-                                @if (!$last) {
-                                    <span>•</span>
-                                }
-                            }
-                        </div>
-
-                        <h1 class="display-6 fw-bold">{{ courseDetail[0]?.name | titlecase}}</h1>
-
-                        <div class="d-flex flex-wrap align-items-center gap-3 text-secondary">
-                            <div class="d-flex align-items-center gap-1">
-                                <span class="text-warning">★★★★★</span>
-                                <span class="fw-semibold">4.4</span>
-                            </div>
-                            <span>626 ratings</span>
-                            <span>•</span>
-                            <span>2,242 learners</span>
-                        </div>
-                    </div>
-
-                    <div class="row gx-3 gx-xl-4 gy-3 mb-4">
-                        <div class="col-sm-6 col-lg-4">
-                            <div class="bg-light rounded-4 p-3 h-100">
-                                <div class="fw-semibold mb-1">Duration</div>
-                                <div>{{ courseDetail[0]?.duration }}</div>
-                            </div>
-                        </div>
-                        <div class="col-sm-6 col-lg-4">
-                            <div class="bg-light rounded-4 p-3 h-100">
-                                <div class="fw-semibold mb-1">Location</div>
-                                <div>{{ courseDetail[0]?.location }}</div>
-                            </div>
-                        </div>
-                        <div class="col-sm-6 col-lg-4">
-                            <div class="bg-light rounded-4 p-3 h-100">
-                                <div class="fw-semibold mb-1">Start Date</div>
-                                <div>{{ courseDetail[0]?.startDate }}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row gx-4 gy-4">
-                        <div class="col-lg-6">
-                            <div class="card border-0 bg-white shadow-sm rounded-4 h-100">
-                                <div class="card-body">
-                                    <h4 class="h5">What you'll learn</h4>
-                                    @if (courseDetail[0]?.whatYouWillLearn?.length) {
-                                    <ul class="list-unstyled mt-3 lh-lg">
-                                        @for (item of courseDetail[0].whatYouWillLearn; track item) {
-                                        <li>✔ {{ item }}</li>
-                                        }
-                                    </ul>
-                                    } @else {
-                                    <p class="text-secondary mb-0 mt-3">No learning outcomes available.</p>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="card border-0 bg-white shadow-sm rounded-4 h-100">
-                                <div class="card-body">
-                                    <h4 class="h5">Course description</h4>
-                                    <p class="text-secondary mb-3">{{ courseDetail[0]?.description }}</p>
-                                    <p class="text-secondary mb-0">{{courseDetail[0]?.about}}</p>
-                                    <hr>
-                                    <h4 class="h5">Hands On Projects</h4>
-                                    @if (courseDetail[0]?.handsOnProjects?.length) {
-                                    <ul class="list-unstyled mt-3 lh-lg">
-                                        @for (item of courseDetail[0].handsOnProjects; track item) {
-                                        <li>✔ {{ item }}</li>
-                                        }
-                                    </ul>
-                                    } @else {
-                                    <p class="text-secondary mb-0 mt-3">No learning outcomes available.</p>
-                                    }
-
-                                    <hr>
-                                    <h4 class="h5">Mentorship and Assessment</h4>
-                                    @if (courseDetail[0]?.mentorshipAndAssessment?.length) {
-                                    <ul class="list-unstyled mt-3 lh-lg">
-                                        @for (item of courseDetail[0].mentorshipAndAssessment; track item) {
-                                        <li>✔ {{ item }}</li>
-                                        }
-                                    </ul>
-                                    } @else {
-                                    <p class="text-secondary mb-0 mt-3">No learning outcomes available.</p>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row gx-4 gy-4">
-                        <div class="col-lg-12">
-                            <div id="course-content" class="card border-0 bg-white shadow-sm rounded-4">
-                                <div class="card-body p-4">
-                                    <div
-                                        class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
-                                        <div>
-                                            <h3 class="h5 mb-1">Course content</h3>
-                                            <p class="text-secondary mb-0">19 sections • 100 lectures </p>
-                                                <!-- • 2h 39m total length -->
-                                        </div>
-                                        <button class="btn btn-outline-secondary btn-sm">Expand all sections</button>
-                                    </div>
-
-                                    <div class="accordion" id="courseAccordion">
-                                        @if (courseDetail?.[0]?.curriculum?.length) {
-                                        @for (item of courseDetail[0].curriculum; track item; let i = $index) {
-                                        <div class="accordion-item rounded-4 border-0 mb-3 shadow-sm">
-                                            <h2 class="accordion-header" [id]="'heading' + i">
-                                                <button class="accordion-button rounded-4 bg-light collapsed"
-                                                    type="button" data-bs-toggle="collapse"
-                                                    [attr.data-bs-target]="'#collapse' + i" aria-expanded="false"
-                                                    [attr.aria-controls]="'collapse' + i">
-                                                    {{ item?.week || 'Week ' + (i + 1) }} - {{ item?.topics || 'Topics'
-                                                    }}
-                                                </button>
-                                            </h2>
-                                            <div [id]="'collapse' + i" class="accordion-collapse collapse"
-                                                [attr.aria-labelledby]="'heading' + i"
-                                                data-bs-parent="#courseAccordion">
-                                                <div class="accordion-body">
-                                                    <ul class="list-unstyled mb-0">
-                                                        @for (lecture of item.lectures; track lecture) {
-                                                        <li class="py-2 border-bottom">{{ lecture }}</li>
-                                                        }
-                                                        <li class="py-2">{{ item?.outcome || 'Outcome' }}</li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        }
-                                        } @else {
-                                        <div class="text-secondary">No curriculum available.</div>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-12">
-                            <div id="course-content1" class="card border-0 bg-white shadow-sm rounded-4">
-                                <div class="card-body p-4">
-                                    <div
-                                        class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
-                                        <div>
-                                            <h3 class="h5 mb-1">FAQ</h3>
-                                            <p class="text-secondary mb-0">7 sections • 44 lectures • 2h 39m total
-                                                length</p>
-                                        </div>
-                                        <button class="btn btn-outline-secondary btn-sm">Expand all sections</button>
-                                    </div>
-
-                                    <div class="accordion" id="courseAccordion1">
-                                        @if (courseDetail?.[0]?.faq?.length) {
-                                        @for (item of courseDetail[0].faq; track item; let i = $index) {
-                                        <div class="accordion-item rounded-4 border-0 mb-3 shadow-sm">
-                                            <h2 class="accordion-header" [id]="'heading' + i">
-                                                <button class="accordion-button rounded-4 bg-light collapsed"
-                                                    type="button" data-bs-toggle="collapse"
-                                                    [attr.data-bs-target]="'#collapse' + i" aria-expanded="false"
-                                                    [attr.aria-controls]="'collapse' + i">
-                                                    Q. {{ item?.question || 'Topics'
-                                                    }}
-                                                </button>
-                                            </h2>
-                                            <div [id]="'collapse' + i" class="accordion-collapse collapse"
-                                                [attr.aria-labelledby]="'heading' + i"
-                                                data-bs-parent="#courseAccordion1">
-                                                <div class="accordion-body">
-                                                    <ul class="list-unstyled mb-0">
-
-                                                        <li class="py-2">{{ item?.answer || 'Answer' }}</li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        }
-                                        } @else {
-                                        <div class="text-secondary">No FAQ available.</div>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="position-sticky top-4">
-                <!-- placeholder  -->
-
-                <div class="card shadow-sm rounded-4 border-0 mb-4 overflow-hidden">
-                    <div class="card-body p-0">
-                        <div class="px-4 pt-4 pb-3 position-relative">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <img [src]="courseDetail[0]?.imagePath | imagePath" [alt]="courseDetail[0]?.name"
-                                    alt="Course Thumbnail" class="img-fluid rounded-4 w-100" />
-                            </div>
-                            <span class="badge rounded-pill bg-danger px-3 py-2 position-absolute top-0 end-0 m-3">🔥
-                                Limited</span>
-                            <p class="text-uppercase text-secondary small mb-2">Program fee</p>
-                            <div class="d-flex align-items-baseline flex-wrap gap-2">
-                                <span class="display-4 fw-bold text-primary mb-0 lh-1">{{
-                                    courseDetail[0]?.finalPrice | currency: 'INR'}}</span>
-                                <span class="fs-4 text-muted text-decoration-line-through opacity-75">{{
-                                    courseDetail[0]?.price | currency: 'INR' }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mt-3 fs-5">
-                                <span class="badge rounded-pill bg-success px-3 py-2">Save {{
-                                    courseDetail[0]?.discount }}</span>
-                            </div>
-                            <div class="mt-2 fw-bold fs-5">
-                                <span class="text-success">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                                        class="bi bi-check-circle" viewBox="0 0 16 16">
-                                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
-                                        <path
-                                            d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05" />
-                                    </svg>
-                                    {{courseDetail[0]?.taxInclusive}}</span>
-                            </div>
-                        </div>
-                        <div class="px-4 pb-4 fs-4">
-                            <div class="bg-light rounded-4 p-3">
-                                <div class="d-flex align-items-end justify-content-end mb-2">
-                                    <span>🔥 Only <span class="badge rounded-pill bg-danger px-3 py-2"> {{
-                                            courseDetail[0]?.openPositions?.seatsLeft }} Seats Left!</span></span>
-                                </div>
-                                <div class="progress rounded-pill" style="height: 10px;">
-                                    <div class="progress-bar bg-danger rounded-pill" role="progressbar"
-                                        [style.width.%]="courseDetail[0]?.openPositions?.progress || 88"
-                                        [attr.aria-valuenow]="courseDetail[0]?.openPositions?.progress || 88"
-                                        aria-valuemin="0" aria-valuemax="100"></div>
-                                </div>
-                                <div class="mt-3 fw-bold fs-5">
-                                    <p class="text-end">
-                                        <span class="text-danger">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                                fill="currentColor" class="bi bi-person-fill-check" viewBox="0 0 16 16">
-                                                <path
-                                                    d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m1.679-4.493-1.335 2.226a.75.75 0 0 1-1.174.144l-.774-.773a.5.5 0 0 1 .708-.708l.547.548 1.17-1.951a.5.5 0 1 1 .858.514M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
-                                                <path
-                                                    d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4" />
-                                            </svg>
-                                            {{ courseDetail[0]?.openPositions?.seatsFilled}} + already booked</span>
-                                    </p>
-                                    <p class="text-center bg-light">
-                                        <small class="text-primary px-2 py-1 rounded d-inline-block mt-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                                fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
-                                                <path
-                                                    d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976q.576.129 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69q.406.429.747.91zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .45 1.088l-.95.313a7 7 0 0 0-.179-.483m.53 2.507a7 7 0 0 0-.1-1.025l.985-.17q.1.58.116 1.17zm-.131 1.538q.05-.254.081-.51l.993.123a8 8 0 0 1-.23 1.155l-.964-.267q.069-.247.12-.501m-.952 2.379q.276-.436.486-.908l.914.405q-.24.54-.555 1.038zm-.964 1.205q.183-.183.35-.378l.758.653a8 8 0 0 1-.401.432z" />
-                                                <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z" />
-                                                <path
-                                                    d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5" />
-                                            </svg>
-                                            Offer ends soon · Batch Starts {{ courseDetail[0]?.startDate }}
-                                        </small>
-                                    </p>
-
-
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-
-                <div class="card shadow-sm rounded-4 border-0 mb-4">
-                    <div class="card-body p-4">
-                        <h6 class="fw-semibold">Perks And Benefits</h6>
-                        @if (courseDetail[0]?.perksAndBenefits?.length) {
-                        <ul class="list-unstyled mt-3 lh-lg">
-                            @for (item of courseDetail[0].perksAndBenefits; track item) {
-                            <li>✔ {{ item }}</li>
-                            }
-                        </ul>
-                        } @else {
-                        <p class="text-secondary mb-0 mt-3">No learning outcomes available.</p>
-                        }
-
-
-                    </div>
-                </div>
-
-                <div class="card shadow-sm rounded-4 border-0 mb-4">
-                    <div class="card-body p-4">
-                        <h6 class="fw-semibold">Eligibility</h6>
-                        @if (courseDetail[0]?.eligibility?.length) {
-                        <ul class="list-unstyled mt-3 lh-lg">
-                            @for (item of courseDetail[0].eligibility; track item) {
-                            <li>✔ {{ item }}</li>
-                            }
-                        </ul>
-                        } @else {
-                        <p class="text-secondary mb-0 mt-3">No learning outcomes available.</p>
-                        }
-                    </div>
-                </div>
-
-
-            </div>
-        </div>
+  @if (isLoading) {
+    <div class="loading-state">
+      <i class="bi bi-arrow-clockwise spin"></i>
+      <p>Loading course details...</p>
     </div>
+  } @else if (error) {
+    <div class="alert-banner alert-banner--danger">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span>{{ error }}</span>
+    </div>
+  } @else if (courseDetail?.[0]) {
+    <div class="content-layout">
+      <div class="content-layout__main">
+        <div class="info-card">
+          <div class="info-card__breadcrumb">
+            @for (tag of courseDetail[0]?.tag | split; track $index) {
+              <span class="info-card__crumb">
+                <i class="bi bi-hash"></i>
+                {{ tag }}
+              </span>
+              @if (!$last) {
+                <i class="bi bi-chevron-right info-card__sep"></i>
+              }
+            }
+          </div>
+
+          <div class="info-grid">
+            <div class="info-tile">
+              <div class="info-tile__icon info-tile__icon--blue">
+                <i class="bi bi-clock-history"></i>
+              </div>
+              <div class="info-tile__body">
+                <div class="info-tile__label">Duration</div>
+                <div class="info-tile__value">
+                  {{ courseDetail[0]?.duration || "N/A" }}
+                </div>
+              </div>
+            </div>
+
+            <div class="info-tile">
+              <div class="info-tile__icon info-tile__icon--green">
+                <i class="bi bi-geo-alt-fill"></i>
+              </div>
+              <div class="info-tile__body">
+                <div class="info-tile__label">Location</div>
+                <div class="info-tile__value">
+                  {{ courseDetail[0]?.location || "Online" }}
+                </div>
+              </div>
+            </div>
+
+            <div class="info-tile">
+              <div class="info-tile__icon info-tile__icon--orange">
+                <i class="bi bi-calendar-event-fill"></i>
+              </div>
+              <div class="info-tile__body">
+                <div class="info-tile__label">Start Date</div>
+                <div class="info-tile__value">
+                  {{ courseDetail[0]?.startDate || "TBA" }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-lg-6">
+            <div class="section-card">
+              <div class="section-card__header">
+                <span class="section-card__icon section-card__icon--green">
+                  <i class="bi bi-check2-circle"></i>
+                </span>
+                <h3 class="section-card__title">What you'll learn</h3>
+              </div>
+              <div class="section-card__body">
+                @if (courseDetail[0]?.whatYouWillLearn?.length) {
+                  <ul class="item-list">
+                    @for (
+                      item of courseDetail[0].whatYouWillLearn;
+                      track item
+                    ) {
+                      <li class="item-list__row">
+                        <span class="item-list__bullet"
+                          ><i class="bi bi-check-lg"></i
+                        ></span>
+                        <span class="item-list__text">{{ item }}</span>
+                      </li>
+                    }
+                  </ul>
+                } @else {
+                  <p class="empty-text">No learning outcomes available.</p>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="section-card">
+              <div class="section-card__header">
+                <span class="section-card__icon section-card__icon--blue">
+                  <i class="bi bi-file-text-fill"></i>
+                </span>
+                <h3 class="section-card__title">Course Description</h3>
+              </div>
+              <div class="section-card__body">
+                <p class="body-text">{{ courseDetail[0]?.description }}</p>
+                @if (courseDetail[0]?.about) {
+                  <div class="about-block">
+                    <h4 class="about-block__title">
+                      <i class="bi bi-info-circle"></i>
+                      About this course
+                    </h4>
+                    <p class="body-text">{{ courseDetail[0]?.about }}</p>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-card__header">
+            <span class="section-card__icon section-card__icon--orange">
+              <i class="bi bi-tools"></i>
+            </span>
+            <h3 class="section-card__title">Hands-on Projects</h3>
+          </div>
+          <div class="section-card__body">
+            @if (courseDetail[0]?.handsOnProjects?.length) {
+              <div class="projects-grid">
+                @for (
+                  item of courseDetail[0].handsOnProjects;
+                  track item;
+                  let i = $index
+                ) {
+                  <div class="project-tile">
+                    <div class="project-tile__num">{{ i + 1 }}</div>
+                    <div class="project-tile__body">
+                      <i class="bi bi-rocket-takeoff project-tile__icon"></i>
+                      <span class="project-tile__text">{{ item }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="empty-text">No hands-on projects added.</p>
+            }
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-card__header">
+            <span class="section-card__icon section-card__icon--cyan">
+              <i class="bi bi-person-workspace"></i>
+            </span>
+            <h3 class="section-card__title">Mentorship & Assessment</h3>
+          </div>
+          <div class="section-card__body">
+            @if (courseDetail[0]?.mentorshipAndAssessment?.length) {
+              <ul class="item-list">
+                @for (
+                  item of courseDetail[0].mentorshipAndAssessment;
+                  track item
+                ) {
+                  <li class="item-list__row">
+                    <span class="item-list__bullet item-list__bullet--cyan">
+                      <i class="bi bi-people"></i>
+                    </span>
+                    <span class="item-list__text">{{ item }}</span>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="empty-text">No mentorship info added.</p>
+            }
+          </div>
+        </div>
+
+        <div class="section-card" id="course-content">
+          <div class="section-card__header">
+            <div class="section-card__title-wrap">
+              <span class="section-card__icon section-card__icon--blue">
+                <i class="bi bi-list-task"></i>
+              </span>
+              <div>
+                <h3 class="section-card__title">Course Curriculum</h3>
+                <p class="section-card__subtitle">
+                  {{ courseDetail[0]?.curriculum?.length || 0 }} sections
+                  @if (totalLectures > 0) {
+                    · {{ totalLectures }} lectures
+                  }
+                </p>
+              </div>
+            </div>
+            <button
+              class="btn-soft btn-soft--ghost"
+              (click)="toggleExpandAll()"
+            >
+              <i
+                class="bi"
+                [ngClass]="
+                  expandAll ? 'bi-arrows-collapse' : 'bi-arrows-expand'
+                "
+              ></i>
+              {{ expandAll ? "Collapse all" : "Expand all" }}
+            </button>
+          </div>
+          <div class="section-card__body">
+            @if (courseDetail[0]?.curriculum?.length) {
+              <div class="accordion-list">
+                @for (
+                  item of courseDetail[0].curriculum;
+                  track item;
+                  let i = $index
+                ) {
+                  <div class="accordion-item-card">
+                    <button
+                      class="accordion-item-card__toggle"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      [attr.data-bs-target]="'#collapse' + i"
+                      [attr.aria-controls]="'collapse' + i"
+                    >
+                      <span class="accordion-item-card__number">{{
+                        i + 1
+                      }}</span>
+                      <div class="accordion-item-card__info">
+                        <span class="accordion-item-card__week">{{
+                          item?.week || "Week " + (i + 1)
+                        }}</span>
+                        <span class="accordion-item-card__topic">{{
+                          item?.topics || "Topics"
+                        }}</span>
+                      </div>
+                      @if (item?.lectures?.length) {
+                        <span class="accordion-item-card__count">
+                          {{ item.lectures.length }} lectures
+                        </span>
+                      }
+                      <i
+                        class="bi bi-chevron-down accordion-item-card__chev"
+                      ></i>
+                    </button>
+                    <div
+                      [id]="'collapse' + i"
+                      class="collapse accordion-item-card__body"
+                      [class.show]="expandAll"
+                    >
+                      <ul class="lecture-list">
+                        @for (lecture of item.lectures; track lecture) {
+                          <li class="lecture-list__row">
+                            <i class="bi bi-play-circle lecture-list__icon"></i>
+                            <span class="lecture-list__text">{{
+                              lecture
+                            }}</span>
+                          </li>
+                        }
+                        @if (item?.outcome) {
+                          <li
+                            class="lecture-list__row lecture-list__row--outcome"
+                          >
+                            <i class="bi bi-trophy lecture-list__icon"></i>
+                            <span class="lecture-list__text">
+                              <strong>Outcome:</strong> {{ item.outcome }}
+                            </span>
+                          </li>
+                        }
+                      </ul>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="empty-text">No curriculum available.</p>
+            }
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-card__header">
+            <span class="section-card__icon section-card__icon--purple">
+              <i class="bi bi-question-circle"></i>
+            </span>
+            <h3 class="section-card__title">Frequently Asked Questions</h3>
+          </div>
+          <div class="section-card__body">
+            @if (courseDetail[0]?.faq?.length) {
+              <div class="accordion-list">
+                @for (item of courseDetail[0].faq; track item; let i = $index) {
+                  <div class="accordion-item-card">
+                    <button
+                      class="accordion-item-card__toggle"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      [attr.data-bs-target]="'#faq' + i"
+                      [attr.aria-controls]="'faq' + i"
+                    >
+                      <span
+                        class="accordion-item-card__number accordion-item-card__number--purple"
+                      >
+                        Q{{ i + 1 }}
+                      </span>
+                      <span class="accordion-item-card__topic">{{
+                        item?.question
+                      }}</span>
+                      <i
+                        class="bi bi-chevron-down accordion-item-card__chev"
+                      ></i>
+                    </button>
+                    <div
+                      [id]="'faq' + i"
+                      class="collapse accordion-item-card__body"
+                    >
+                      <div class="faq-answer">
+                        <i class="bi bi-chat-square-text"></i>
+                        <p>{{ item?.answer }}</p>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="empty-text">No FAQ available.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <aside class="content-layout__sidebar">
+        <div class="price-card">
+          <div class="price-card__media">
+            <img
+              [src]="courseDetail[0]?.imagePath | imagePath"
+              [alt]="courseDetail[0]?.name"
+              class="price-card__image"
+            />
+            <span class="price-card__limited">
+              <i class="bi bi-fire"></i>
+              Limited
+            </span>
+          </div>
+
+          <div class="price-card__body">
+            <div class="price-card__label">Program Fee</div>
+
+            <div class="price-card__price-block">
+              <div class="price-card__main-price">
+                {{
+                  courseDetail[0]?.finalPrice
+                    | currency: "INR" : "symbol" : "1.0-0"
+                }}
+              </div>
+              <div class="price-card__sub-price">
+                <span class="price-card__original">
+                  {{
+                    courseDetail[0]?.price
+                      | currency: "INR" : "symbol" : "1.0-0"
+                  }}
+                </span>
+                <span class="price-card__discount">
+                  Save {{ courseDetail[0]?.discount }}%
+                </span>
+              </div>
+            </div>
+
+            @if (courseDetail[0]?.taxInclusive) {
+              <div class="price-card__tax">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>{{ courseDetail[0]?.taxInclusive }}</span>
+              </div>
+            }
+
+            <button class="price-card__cta">
+              <i class="bi bi-bag-check-fill"></i>
+              Enroll Now
+            </button>
+
+            <div class="seats-box">
+              <div class="seats-box__row">
+                <span class="seats-box__label">
+                  <i class="bi bi-fire"></i>
+                  Only
+                  <strong>{{
+                    courseDetail[0]?.openPositions?.seatsLeft
+                  }}</strong>
+                  seats left!
+                </span>
+              </div>
+              <div class="seats-box__progress">
+                <div
+                  class="seats-box__progress-fill"
+                  [style.width.%]="
+                    courseDetail[0]?.openPositions?.progress || 88
+                  "
+                ></div>
+              </div>
+              <div class="seats-box__footer">
+                <span class="seats-box__filled">
+                  <i class="bi bi-person-check-fill"></i>
+                  {{ courseDetail[0]?.openPositions?.seatsFilled }}+ booked
+                </span>
+              </div>
+              <div class="seats-box__offer">
+                <i class="bi bi-clock-history"></i>
+                <span
+                  >Offer ends soon · Starts
+                  {{ courseDetail[0]?.startDate }}</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="side-card">
+          <div class="side-card__header">
+            <span class="side-card__icon side-card__icon--green">
+              <i class="bi bi-gift-fill"></i>
+            </span>
+            <h3 class="side-card__title">Perks & Benefits</h3>
+          </div>
+          @if (courseDetail[0]?.perksAndBenefits?.length) {
+            <ul class="item-list">
+              @for (item of courseDetail[0].perksAndBenefits; track item) {
+                <li class="item-list__row">
+                  <span class="item-list__bullet"
+                    ><i class="bi bi-check-lg"></i
+                  ></span>
+                  <span class="item-list__text">{{ item }}</span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="empty-text">No perks listed.</p>
+          }
+        </div>
+
+        <div class="side-card">
+          <div class="side-card__header">
+            <span class="side-card__icon side-card__icon--blue">
+              <i class="bi bi-shield-check"></i>
+            </span>
+            <h3 class="side-card__title">Eligibility</h3>
+          </div>
+          @if (courseDetail[0]?.eligibility?.length) {
+            <ul class="item-list">
+              @for (item of courseDetail[0].eligibility; track item) {
+                <li class="item-list__row">
+                  <span class="item-list__bullet item-list__bullet--blue">
+                    <i class="bi bi-check-lg"></i>
+                  </span>
+                  <span class="item-list__text">{{ item }}</span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="empty-text">No eligibility info.</p>
+          }
+        </div>
+      </aside>
+    </div>
+  }
 </div>

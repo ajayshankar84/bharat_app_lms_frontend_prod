@@ -1,370 +1,264 @@
-<div class="container-fluid main-content">
-    <button class="hamburger" id="menuToggle">☰</button>
+<div class="dashboard">
+  <div class="hero">
+    <div class="hero__bg"></div>
+    <div class="hero__content">
+      <div class="hero__left">
+        <div class="hero__meta">
+          <span class="hero__greeting-icon">
+            <i class="bi" [ngClass]="greetingIcon"></i>
+          </span>
+          <span class="hero__greeting-text">{{ greetingText }}</span>
+          <span class="hero__time">
+            <i class="bi bi-clock"></i>
+            {{ currentTime }}
+          </span>
+        </div>
+        <h1 class="hero__title">
+          Welcome back, <span class="hero__name">{{ firstName }}</span>
+        </h1>
+        <p class="hero__subtitle">{{ heroSubtitle }}</p>
+        <div class="hero__actions">
+          <button
+            class="hero__btn hero__btn--primary"
+            (click)="continueCourse()"
+          >
+            <i class="bi bi-play-circle-fill"></i>
+            Continue
+          </button>
+          <button class="hero__btn hero__btn--ghost" (click)="exploreCourses()">
+            <i class="bi bi-compass"></i>
+            Explore
+          </button>
+        </div>
+      </div>
 
-    <div class="top-header">
-        <div class="page-title">
-            <h1>Welcome back, {{ accountData?.firstName || accountData?.mobile || 'Learner' }}</h1>
-            <p>Keep pushing forward with your learning path</p>
+      <div class="hero__profile">
+        <div class="hero__profile-avatar">
+          <img
+            *ngIf="hasProfileImage; else avatarFallback"
+            [src]="profileImage | imagePath"
+            [alt]="displayName"
+          />
+          <ng-template #avatarFallback>
+            <span>{{ avatarInitials }}</span>
+          </ng-template>
         </div>
-        <div class="header-actions">
-            <div class="notification-bell">🔔</div>
-            <div class="avatar">{{ (accountData?.firstName?.[0] || 'A') + (accountData?.lastName?.[0] || 'J') }}</div>
+        <div class="hero__profile-info">
+          <div class="hero__profile-name">{{ displayName }}</div>
+          <div class="hero__profile-row">
+            <i class="bi bi-briefcase-fill"></i>
+            <span>{{ userRole }}</span>
+          </div>
+          <div class="hero__profile-row">
+            <i class="bi bi-geo-alt-fill"></i>
+            <span>{{ userLocation }}</span>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 
-    <div class="row g-3 stats-grid">
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-            <div class="stat-card w-100 h-100">
-                <div class="stat-info">
-                    <h3>Enrolled Courses</h3>
-                    <div class="stat-number">8</div>
-                </div>
-                <div class="stat-icon">📖</div>
-            </div>
+  <div class="row g-2 g-md-3 mb-4">
+    <div class="col-6 col-lg-3" *ngFor="let stat of statsCards">
+      <div class="stat-card">
+        <div class="stat-card__icon" [ngClass]="stat.iconClass">
+          <i class="bi" [ngClass]="stat.icon"></i>
         </div>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-            <div class="stat-card w-100 h-100">
-                <div class="stat-info">
-                    <h3>Completed</h3>
-                    <div class="stat-number">5</div>
-                </div>
-                <div class="stat-icon">✅</div>
-            </div>
+        <div class="stat-card__content">
+          <span class="stat-card__label">{{ stat.label }}</span>
+          <span class="stat-card__value">{{ stat.value }}</span>
+          <div class="stat-card__trend">
+            <i class="bi bi-arrow-up-right"></i>
+            <span>{{ stat.change }}</span>
+          </div>
         </div>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-            <div class="stat-card w-100 h-100">
-                <div class="stat-info">
-                    <h3>Hours Spent</h3>
-                    <div class="stat-number">42</div>
-                </div>
-                <div class="stat-icon">⏳</div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-            <div class="stat-card w-100 h-100">
-                <div class="stat-info">
-                    <h3>Certificates</h3>
-                    <div class="stat-number">3</div>
-                </div>
-                <div class="stat-icon">🏅</div>
-            </div>
-        </div>
+      </div>
     </div>
+  </div>
 
-    <div class="section-title">
-        <h2>📚 Continue Learning</h2>
-        <span class="view-all">View all →</span>
+  <div class="dashboard__section">
+    <div class="dashboard__section-header">
+      <h2 class="dashboard__section-title">
+        <i class="bi bi-play-circle"></i>
+        Continue Learning
+      </h2>
+      <a class="dashboard__view-all" routerLink="/dashboard/my-courses">
+        View all
+        <i class="bi bi-arrow-right"></i>
+      </a>
     </div>
-    <div class="row g-3 course-grid">
-        <div class="col-12 col-md-6 col-lg-4">
-            <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('advanced-ui-ux-design')">
-                <div class="course-img-placeholder variant-1 card-img-top">
-                    <span class="placeholder-icon">🎨</span>
-                    <span class="course-badge">In Progress</span>
-                </div>
-                <div class="course-content card-body">
-                    <h3>Advanced UI/UX Design</h3>
-                    <p class="course-meta">Module 4 of 10 • 68% complete</p>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width:68%"></div>
-                    </div>
-                    <button class="btn-glass">Resume</button>
-                </div>
+    <div class="row g-3">
+      <div
+        class="col-12 col-sm-6 col-lg-4"
+        *ngFor="let course of continueCourses"
+      >
+        <div
+          class="course-card"
+          (click)="openCourseDetail(course.id)"
+          (keydown.enter)="openCourseDetail(course.id)"
+          tabindex="0"
+          role="button"
+        >
+          <div class="course-card__banner" [ngClass]="course.variant">
+            <i class="bi course-card__banner-icon" [ngClass]="course.icon"></i>
+            <span class="course-card__badge">{{ course.badge }}</span>
+          </div>
+          <div class="course-card__body">
+            <h3 class="course-card__title">{{ course.title }}</h3>
+            <p class="course-card__meta">
+              Module {{ course.currentModule }} of {{ course.totalModules }}
+            </p>
+            <div class="course-card__progress">
+              <div class="course-card__progress-bar">
+                <div
+                  class="course-card__progress-fill"
+                  [style.width.%]="course.progress"
+                ></div>
+              </div>
+              <span class="course-card__progress-text"
+                >{{ course.progress }}%</span
+              >
             </div>
+            <button class="course-card__action-btn">
+              <i
+                class="bi"
+                [ngClass]="
+                  course.progress >= 90 ? 'bi-check-circle' : 'bi-play-fill'
+                "
+              ></i>
+              {{ course.actionLabel }}
+            </button>
+          </div>
         </div>
-        <div class="col-12 col-md-6 col-lg-4">
-            <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('frontend-mastery')">
-                <div class="course-img-placeholder variant-2 card-img-top">
-                    <span class="placeholder-icon">💻</span>
-                    <span class="course-badge">New</span>
-                </div>
-                <div class="course-content card-body">
-                    <h3>Frontend Mastery</h3>
-                    <p class="course-meta">Module 2 of 12 • 22% complete</p>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width:22%"></div>
-                    </div>
-                    <button class="btn-glass">Continue</button>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-6 col-lg-4">
-            <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('design-systems')">
-                <div class="course-img-placeholder variant-3 card-img-top">
-                    <span class="placeholder-icon">🎯</span>
-                    <span class="course-badge">Almost done</span>
-                </div>
-                <div class="course-content card-body">
-                    <h3>Design Systems</h3>
-                    <p class="course-meta">Module 9 of 10 • 92% complete</p>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width:92%"></div>
-                    </div>
-                    <button class="btn-glass">Finish</button>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
+  </div>
 
-
-
-
-
-
-    <div class="mt-4">
-        <router-outlet></router-outlet>
+  <div class="dashboard__section">
+    <div class="dashboard__section-header">
+      <h2 class="dashboard__section-title">
+        <i class="bi bi-star"></i>
+        Recommended For You
+      </h2>
+      <a
+        class="dashboard__view-all"
+        routerLink="/dashboard/recommended-courses"
+      >
+        Explore more
+        <i class="bi bi-arrow-right"></i>
+      </a>
     </div>
+    <div class="row g-3">
+      <div
+        class="col-12 col-sm-6 col-lg-4"
+        *ngFor="let course of recommendedCourses"
+      >
+        <div
+          class="course-card"
+          (click)="openCourseDetail(course.id)"
+          (keydown.enter)="openCourseDetail(course.id)"
+          tabindex="0"
+          role="button"
+        >
+          <div class="course-card__banner" [ngClass]="course.variant">
+            <i class="bi course-card__banner-icon" [ngClass]="course.icon"></i>
+            <span class="course-card__badge">{{ course.badge }}</span>
+          </div>
+          <div class="course-card__body">
+            <h3 class="course-card__title">{{ course.title }}</h3>
+            <div class="course-card__rating">
+              <div class="course-card__stars">
+                <i
+                  class="bi"
+                  [ngClass]="i < course.fullStars ? 'bi-star-fill' : 'bi-star'"
+                  *ngFor="let i of [0, 1, 2, 3, 4]"
+                ></i>
+              </div>
+              <span class="course-card__rating-value"
+                >({{ course.rating }})</span
+              >
+            </div>
+            <div class="course-card__instructor">
+              <div class="course-card__instructor-avatar">
+                <i class="bi bi-person-fill"></i>
+              </div>
+              <span>{{ course.instructor }}</span>
+            </div>
+            <p class="course-card__meta">
+              {{ course.modules }} modules
+              <span class="course-card__meta-dot"></span>
+              {{ course.hours }} hours
+            </p>
+            <button class="course-card__action-btn">
+              <i class="bi bi-box-arrow-in-right"></i>
+              {{ course.actionLabel }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard__section">
+    <div class="dashboard__section-header">
+      <h2 class="dashboard__section-title">
+        <i class="bi bi-journal-bookmark"></i>
+        My Courses
+      </h2>
+      <a class="dashboard__view-all" routerLink="/dashboard/my-courses">
+        Explore more
+        <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+    <div class="row g-3">
+      <div class="col-12 col-sm-6 col-lg-4" *ngFor="let course of myCourses">
+        <div
+          class="course-card"
+          (click)="openCourseDetail(course.id)"
+          (keydown.enter)="openCourseDetail(course.id)"
+          tabindex="0"
+          role="button"
+        >
+          <div class="course-card__banner" [ngClass]="course.variant">
+            <i class="bi course-card__banner-icon" [ngClass]="course.icon"></i>
+            <span class="course-card__badge">{{ course.badge }}</span>
+          </div>
+          <div class="course-card__body">
+            <h3 class="course-card__title">{{ course.title }}</h3>
+            <div class="course-card__rating">
+              <div class="course-card__stars">
+                <i
+                  class="bi"
+                  [ngClass]="i < course.fullStars ? 'bi-star-fill' : 'bi-star'"
+                  *ngFor="let i of [0, 1, 2, 3, 4]"
+                ></i>
+              </div>
+              <span class="course-card__rating-value"
+                >({{ course.rating }})</span
+              >
+            </div>
+            <div class="course-card__instructor">
+              <div class="course-card__instructor-avatar">
+                <i class="bi bi-person-fill"></i>
+              </div>
+              <span>{{ course.instructor }}</span>
+            </div>
+            <p class="course-card__meta">
+              {{ course.modules }} modules
+              <span class="course-card__meta-dot"></span>
+              {{ course.hours }} hours
+            </p>
+            <button class="course-card__action-btn">
+              <i class="bi bi-box-arrow-in-right"></i>
+              {{ course.actionLabel }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <router-outlet></router-outlet>
+  </div>
 </div>
-<!-- <div class="container-fluid dashboard-layout">
-    <div class="row">
-        <aside class="sidebar col-12 col-md-3 col-lg-2" id="sidebar">
-            <div class="logo">
-                <span>📘</span> <span>LearnDash</span>
-            </div>
-            <ul class="nav-menu">
-                <li class="nav-item active"><i>🏠</i> <span>Dashboard</span></li>
-                <li class="nav-item"><i>📚</i> <span>My Courses</span></li>
-                <li class="nav-item"><i>📊</i> <span>Progress</span></li>
-                <li class="nav-item"><i>📅</i> <span>Schedule</span></li>
-                <li class="nav-item"><i>💬</i> <span>Messages</span></li>
-                <li class="nav-item"><i>⚙️</i> <span>Settings</span></li>
-            </ul>
-            <div class="theme-toggle">
-                <button id="lightModeBtn" class="theme-btn active-mode">☀️ Light</button>
-                <button id="darkModeBtn" class="theme-btn">🌙 Dark</button>
-            </div>
-        </aside>
-
-        <main class="main-content col-12 col-md-9 col-lg-10">
-            <div class="container-fluid">
-                <button class="hamburger" id="menuToggle">☰</button>
-
-                <div class="top-header">
-                    <div class="page-title">
-                        <h1>Welcome back, {{ accountData?.firstName || accountData?.mobile || 'Learner' }}</h1>
-                        <p>Keep pushing forward with your learning path</p>
-                    </div>
-                    <div class="header-actions">
-                        <div class="notification-bell">🔔</div>
-                        <div class="avatar">{{ (accountData?.firstName?.[0] || 'A') + (accountData?.lastName?.[0] || 'J') }}</div>
-                    </div>
-                </div>
-
-                <div class="row g-3 stats-grid">
-                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                        <div class="stat-card w-100 h-100">
-                            <div class="stat-info">
-                                <h3>Enrolled Courses</h3>
-                                <div class="stat-number">8</div>
-                            </div>
-                            <div class="stat-icon">📖</div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                        <div class="stat-card w-100 h-100">
-                            <div class="stat-info">
-                                <h3>Completed</h3>
-                                <div class="stat-number">5</div>
-                            </div>
-                            <div class="stat-icon">✅</div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                        <div class="stat-card w-100 h-100">
-                            <div class="stat-info">
-                                <h3>Hours Spent</h3>
-                                <div class="stat-number">42</div>
-                            </div>
-                            <div class="stat-icon">⏳</div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                        <div class="stat-card w-100 h-100">
-                            <div class="stat-info">
-                                <h3>Certificates</h3>
-                                <div class="stat-number">3</div>
-                            </div>
-                            <div class="stat-icon">🏅</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="section-title">
-                    <h2>📚 Continue Learning</h2>
-                    <span class="view-all">View all →</span>
-                </div>
-                <div class="row g-3 course-grid">
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('advanced-ui-ux-design')">
-                            <div class="course-img-placeholder variant-1 card-img-top">
-                                <span class="placeholder-icon">🎨</span>
-                                <span class="course-badge">In Progress</span>
-                            </div>
-                            <div class="course-content card-body">
-                                <h3>Advanced UI/UX Design</h3>
-                                <p class="course-meta">Module 4 of 10 • 68% complete</p>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width:68%"></div>
-                                </div>
-                                <button class="btn-glass">Resume</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('frontend-mastery')">
-                            <div class="course-img-placeholder variant-2 card-img-top">
-                                <span class="placeholder-icon">💻</span>
-                                <span class="course-badge">New</span>
-                            </div>
-                            <div class="course-content card-body">
-                                <h3>Frontend Mastery</h3>
-                                <p class="course-meta">Module 2 of 12 • 22% complete</p>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width:22%"></div>
-                                </div>
-                                <button class="btn-glass">Continue</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('design-systems')">
-                            <div class="course-img-placeholder variant-3 card-img-top">
-                                <span class="placeholder-icon">🎯</span>
-                                <span class="course-badge">Almost done</span>
-                            </div>
-                            <div class="course-content card-body">
-                                <h3>Design Systems</h3>
-                                <p class="course-meta">Module 9 of 10 • 92% complete</p>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width:92%"></div>
-                                </div>
-                                <button class="btn-glass">Finish</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="section-title">
-                    <h2>⭐ Recommended For You</h2>
-                    <a class="view-all text-decoration-none" [routerLink]="['recommended-courses']">Explore more →</a>
-                </div>
-                <div class="row g-3 course-grid">
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('mobile-app-design')">
-                            <div class="course-img-placeholder variant-4 card-img-top">
-                                <span class="placeholder-icon">📱</span>
-                                <span class="course-badge">Popular</span>
-                            </div>
-                            <div class="course-content card-body">
-                                <h3>Mobile App Design</h3>
-                                <div class="rating">★★★★★ <span>(4.9)</span></div>
-                                <div class="instructor-row">
-                                    <span class="instructor-avatar">👩</span> Sarah Chen
-                                </div>
-                                <p class="course-meta">12 modules • 8 hours</p>
-                                <button class="btn-glass">Enroll Now</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('ai-for-designers')">
-                            <div class="course-img-placeholder variant-5 card-img-top">
-                                <span class="placeholder-icon">🧠</span>
-                                <span class="course-badge">Trending</span>
-                            </div>
-                            <div class="course-content card-body">
-                                <h3>AI for Designers</h3>
-                                <div class="rating">★★★★☆ <span>(4.7)</span></div>
-                                <div class="instructor-row">
-                                    <span class="instructor-avatar">👨</span> Marcus Rivera
-                                </div>
-                                <p class="course-meta">8 modules • 6 hours</p>
-                                <button class="btn-glass">Explore</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('web-performance')">
-                            <div class="course-img-placeholder variant-6 card-img-top">
-                                <span class="placeholder-icon">⚡</span>
-                                <span class="course-badge">New</span>
-                            </div>
-                            <div class="course-content card-body">
-                                <h3>Web Performance</h3>
-                                <div class="rating">★★★★★ <span>(5.0)</span></div>
-                                <div class="instructor-row">
-                                    <span class="instructor-avatar">👩</span> Emily Watson
-                                </div>
-                                <p class="course-meta">6 modules • 4.5 hours</p>
-                                <button class="btn-glass">Start Free</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="section-title">
-                    <h2>⭐ My Courses</h2>
-                    <span class="view-all">Explore more →</span>
-                </div>
-                <div class="row g-3 course-grid">
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('mobile-app-design')">
-                            <div class="course-img-placeholder variant-4 card-img-top">
-                                <span class="placeholder-icon">📱</span>
-                                <span class="course-badge">Popular</span>
-                            </div>
-                            <div class="course-content card-body">
-                                <h3>Mobile App Design</h3>
-                                <div class="rating">★★★★★ <span>(4.9)</span></div>
-                                <div class="instructor-row">
-                                    <span class="instructor-avatar">👩</span> Sarah Chen
-                                </div>
-                                <p class="course-meta">12 modules • 8 hours</p>
-                                <button class="btn-glass">Enroll Now</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('ai-for-designers')">
-                            <div class="course-img-placeholder variant-5 card-img-top">
-                                <span class="placeholder-icon">🧠</span>
-                                <span class="course-badge">Trending</span>
-                            </div>
-                            <div class="course-content card-body">
-                                <h3>AI for Designers</h3>
-                                <div class="rating">★★★★☆ <span>(4.7)</span></div>
-                                <div class="instructor-row">
-                                    <span class="instructor-avatar">👨</span> Marcus Rivera
-                                </div>
-                                <p class="course-meta">8 modules • 6 hours</p>
-                                <button class="btn-glass">Explore</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('web-performance')">
-                            <div class="course-img-placeholder variant-6 card-img-top">
-                                <span class="placeholder-icon">⚡</span>
-                                <span class="course-badge">New</span>
-                            </div>
-                            <div class="course-content card-body">
-                                <h3>Web Performance</h3>
-                                <div class="rating">★★★★★ <span>(5.0)</span></div>
-                                <div class="instructor-row">
-                                    <span class="instructor-avatar">👩</span> Emily Watson
-                                </div>
-                                <p class="course-meta">6 modules • 4.5 hours</p>
-                                <button class="btn-glass">Start Free</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-              
-                <div class="mt-4">
-                    <router-outlet></router-outlet>
-                </div>
-            </div>
-        </main>
-    </div>
-</div> -->

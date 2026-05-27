@@ -1,259 +1,494 @@
-<div class="assigned-course-page">
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
-        <div class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true" [class.show]="toastVisible" [class.fade]="true" [class.bg-success]="toastVariant === 'success'" [class.bg-danger]="toastVariant === 'danger'">
-            <div class="d-flex">
-                <div class="toast-body text-white">
-                    {{ toastMessage }}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Close" (click)="toastVisible = false"></button>
-            </div>
-        </div>
+<div class="assigned-course">
+  <div
+    class="toast-container position-fixed top-0 end-0 p-3"
+    style="z-index: 1100"
+  >
+    <div
+      class="toast align-items-center border-0"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+      [class.show]="toastVisible"
+      [class.fade]="true"
+      [class.bg-success]="toastVariant === 'success'"
+      [class.bg-danger]="toastVariant === 'danger'"
+    >
+      <div class="d-flex">
+        <div class="toast-body text-white">{{ toastMessage }}</div>
+        <button
+          type="button"
+          class="btn-close btn-close-white me-2 m-auto"
+          aria-label="Close"
+          (click)="toastVisible = false"
+        ></button>
+      </div>
     </div>
-    <div class="page-header d-flex flex-column flex-lg-row justify-content-between gap-3">
+  </div>
+
+  <div class="page-hero">
+    <div class="page-hero__bg"></div>
+    <div class="page-hero__content">
+      <div class="page-hero__left">
+        <div class="page-hero__meta">
+          <span class="page-hero__eyebrow">
+            <i class="bi bi-shield-lock-fill"></i>
+            Admin workspace
+          </span>
+          <span class="page-hero__chip">
+            <span class="page-hero__chip-dot"></span>
+            Live
+          </span>
+        </div>
+        <h1 class="page-hero__title">Assigned Course</h1>
+        <p class="page-hero__subtitle">
+          Review the courses assigned to learners, monitor progress, and keep
+          follow-ups in one place.
+        </p>
+      </div>
+      <div class="page-hero__stat">
+        <div class="page-hero__stat-icon">
+          <i class="bi bi-people-fill"></i>
+        </div>
         <div>
-            <p class="eyebrow mb-2">Admin workspace</p>
-            <h1 class="page-title mb-1">Assigned Course</h1>
-            <p class="page-subtitle mb-0">
-                Review the courses assigned to learners, monitor progress, and keep follow-ups in one place.
-            </p>
+          <div class="page-hero__stat-value">{{ selectedStudentsCount }}</div>
+          <div class="page-hero__stat-label">Students selected</div>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <div class="header-chip-wrapper">
-            <span class="status-chip">Live</span>
+  <div class="row g-2 g-md-3 mb-3">
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <div class="stat-card__icon stat-card__icon--blue">
+          <i class="bi bi-journal-bookmark-fill"></i>
         </div>
+        <div class="stat-card__content">
+          <span class="stat-card__label">Courses assigned</span>
+          <span class="stat-card__value">12</span>
+          <span class="stat-card__trend">
+            <i class="bi bi-arrow-up-right"></i>+3 this week
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <div class="stat-card__icon stat-card__icon--green">
+          <i class="bi bi-person-check-fill"></i>
+        </div>
+        <div class="stat-card__content">
+          <span class="stat-card__label">Active learners</span>
+          <span class="stat-card__value">48</span>
+          <span class="stat-card__trend stat-card__trend--warn">
+            <i class="bi bi-hourglass-split"></i>7 pending
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <div class="stat-card__icon stat-card__icon--orange">
+          <i class="bi bi-graph-up-arrow"></i>
+        </div>
+        <div class="stat-card__content">
+          <span class="stat-card__label">Completion rate</span>
+          <span class="stat-card__value">74%</span>
+          <span class="stat-card__trend">
+            <i class="bi bi-arrow-up-right"></i>+6% this month
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <div class="stat-card__icon stat-card__icon--red">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+        <div class="stat-card__content">
+          <span class="stat-card__label">Needs attention</span>
+          <span class="stat-card__value">5</span>
+          <span class="stat-card__trend stat-card__trend--danger">
+            <i class="bi bi-person-exclamation"></i>Follow-up
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="panel">
+    <div class="panel__header">
+      <div>
+        <span class="panel__kicker">
+          <i class="bi bi-funnel"></i>
+          Filters & Actions
+        </span>
+        <h3 class="panel__title">
+          Showing
+          <span class="panel__count">{{ filteredInternships.length }}</span>
+          of {{ internships.length }} learners
+        </h3>
+      </div>
+      <div class="panel__actions">
+        <button
+          class="btn-soft btn-soft--danger"
+          type="button"
+          (click)="clearAllFilters()"
+        >
+          <i class="bi bi-x-circle"></i>
+          <span>Clear</span>
+        </button>
+        <button
+          class="btn-soft btn-soft--info"
+          type="button"
+          (click)="downloadCSV()"
+          [disabled]="filteredInternships.length === 0"
+        >
+          <i class="bi bi-download"></i>
+          <span>CSV</span>
+        </button>
+      </div>
     </div>
 
-    <div class="summary-grid row g-3 mt-3">
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="summary-card">
-                <p class="summary-label">Courses assigned</p>
-                <h2 class="summary-value">12</h2>
-                <small class="summary-caption">+3 this week</small>
-            </div>
-        </div>
-
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="summary-card">
-                <p class="summary-label">Active learners</p>
-                <h2 class="summary-value">48</h2>
-                <small class="summary-caption">7 pending reviews</small>
-            </div>
-        </div>
-
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="summary-card">
-                <p class="summary-label">Completion rate</p>
-                <h2 class="summary-value">74%</h2>
-                <small class="summary-caption">Up by 6% this month</small>
-            </div>
-        </div>
-
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="summary-card">
-                <p class="summary-label">Needs attention</p>
-                <h2 class="summary-value">5</h2>
-                <small class="summary-caption">Require mentor follow-up</small>
-            </div>
-        </div>
-    </div>
-    <div class="content-grid row g-4 mt-1">
-        <div class="col-12 col-xl-9">
-            <section class="panel">
-                <div class="panel-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="panel-kicker">Assignments</p>
-                        <h3 class="panel-title mb-0">Showing {{ filteredInternships.length }} of {{ internships.length }}
-                        </h3>
-                    </div>
-                </div>
-            </section>
-        </div>
-        <div class="col-12 col-xl-3">
-            <button class="btn btn-outline-danger rounded-pill px-4 me-2 text-end" type="button" (click)="clearAllFilters()">
-                <i class="bi bi-x-circle me-2"></i>Clear Filters
+    <div class="filters">
+      <div class="filters__group filters__group--date">
+        <label class="filters__label">
+          <i class="bi bi-calendar3"></i>
+          Date
+        </label>
+        <div class="filters__input-wrap">
+          <input
+            type="date"
+            class="filters__input"
+            [(ngModel)]="selectedDateTimeStr"
+            (ngModelChange)="onSelectedDateTimeChange($event)"
+            aria-label="Filter by date"
+          />
+          @if (selectedDateTimeStr) {
+            <button
+              class="filters__clear-btn"
+              type="button"
+              (click)="clearDateFilter()"
+              aria-label="Clear date"
+            >
+              <i class="bi bi-x-lg"></i>
             </button>
+          }
+        </div>
+      </div>
 
-            <button class="btn btn-outline-primary rounded-pill px-4 me-2 text-end" (click)="downloadCSV()" [disabled]="filteredInternships.length === 0">
-                <i class="bi bi-download me-2"></i>Download CSV
+      <div class="filters__group filters__group--search">
+        <label class="filters__label">
+          <i class="bi bi-search"></i>
+          Search
+        </label>
+        <div class="filters__input-wrap">
+          <input
+            type="text"
+            class="filters__input"
+            placeholder="Search name, mobile, college..."
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onFiltersChanged()"
+          />
+        </div>
+      </div>
+
+      <div class="filters__group">
+        <label class="filters__label">
+          <i class="bi bi-mortarboard"></i>
+          Course
+        </label>
+        <select
+          class="filters__select"
+          aria-label="Course"
+          [(ngModel)]="selectedCourseId"
+          (ngModelChange)="onFiltersChanged()"
+        >
+          <option value="">All courses</option>
+          @for (course of courses; track course.id) {
+            <option [value]="course.id">{{ course.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filters__group">
+        <label class="filters__label">
+          <i class="bi bi-collection"></i>
+          Batch
+        </label>
+        <select
+          class="filters__select"
+          aria-label="Batch"
+          [(ngModel)]="selectedBatchId"
+          (ngModelChange)="onFiltersChanged()"
+        >
+          <option value="">All batches</option>
+          @for (batch of batches; track batch.id) {
+            <option [value]="batch.id">{{ batch.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filters__group filters__group--action">
+        <button
+          class="btn-primary-grad"
+          type="button"
+          (click)="assignedCourseHandler()"
+          [disabled]="
+            !selectedCourseId || !selectedBatchId || selectedStudentsCount === 0
+          "
+        >
+          <i class="bi bi-send-check-fill"></i>
+          <span>Assign ({{ selectedStudentsCount }})</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel mt-3">
+    <div class="panel__header">
+      <div>
+        <span class="panel__kicker">
+          <i class="bi bi-people"></i>
+          Learners
+        </span>
+        <h3 class="panel__title">Assignment list</h3>
+      </div>
+    </div>
+
+    <div class="learner-table-wrap">
+      <table class="learner-table">
+        <thead>
+          <tr>
+            <th class="learner-table__check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                [checked]="allVisibleSelected"
+                [indeterminate]="someVisibleSelected"
+                (change)="toggleAllVisible($any($event.target).checked)"
+                aria-label="Select all students"
+              />
+            </th>
+            <th class="learner-table__num">#</th>
+            <th>Learner</th>
+            <th>Contact</th>
+            <th>Program</th>
+            <th>University</th>
+            <th class="text-center">Assigned</th>
+            <th class="text-center">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (
+            internship of pagedInternships;
+            track internship._id;
+            let i = $index
+          ) {
+            <tr
+              class="learner-row"
+              [class.learner-row--selected]="isStudentSelected(internship._id)"
+            >
+              <td class="learner-table__check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  [checked]="isStudentSelected(internship._id)"
+                  (change)="
+                    toggleStudent(internship._id, $any($event.target).checked)
+                  "
+                  aria-label="Select student"
+                />
+              </td>
+              <td class="learner-table__num">
+                {{ (currentPage - 1) * pageSize + i + 1 }}
+              </td>
+              <td>
+                <div class="learner-cell">
+                  <div class="learner-avatar">
+                    {{ internship.name?.charAt(0)?.toUpperCase() || "?" }}
+                  </div>
+                  <div class="learner-info">
+                    <div class="learner-info__name">{{ internship.name }}</div>
+                    <div class="learner-info__email">
+                      <i class="bi bi-envelope"></i>
+                      {{ internship.email }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="contact-cell">
+                  <span class="contact-cell__phone">
+                    <i class="bi bi-telephone"></i>
+                    {{ internship.mobile }}
+                  </span>
+                  <span *ngIf="internship.city" class="contact-cell__city">
+                    <i class="bi bi-geo-alt"></i>
+                    {{ internship.city }}
+                  </span>
+                </div>
+              </td>
+              <td>
+                <div class="program-cell">
+                  <div class="program-cell__name">{{ internship.program }}</div>
+                  <span class="program-cell__type">
+                    {{ internship.internshipType }}
+                  </span>
+                </div>
+              </td>
+              <td>
+                <div class="college-cell">
+                  <i class="bi bi-building"></i>
+                  <span>{{ internship.college }}</span>
+                </div>
+              </td>
+              <td class="text-center">
+                <span
+                  class="status-pill"
+                  [ngClass]="
+                    internship.assignedStatus === 'Assigned'
+                      ? 'status-pill--success'
+                      : internship.assignedStatus === 'Un Assigned'
+                        ? 'status-pill--muted'
+                        : 'status-pill--warn'
+                  "
+                >
+                  <i
+                    class="bi"
+                    [ngClass]="
+                      internship.assignedStatus === 'Assigned'
+                        ? 'bi-check-circle-fill'
+                        : internship.assignedStatus === 'Un Assigned'
+                          ? 'bi-dash-circle'
+                          : 'bi-hourglass-split'
+                    "
+                  ></i>
+                  {{ internship.assignedStatus }}
+                </span>
+              </td>
+              <td class="text-center">
+                <div class="date-cell">
+                  {{ internship.createdAt | date: "mediumDate" }}
+                </div>
+                <span
+                  class="status-pill status-pill--xs"
+                  [ngClass]="
+                    internship.active
+                      ? 'status-pill--success'
+                      : 'status-pill--danger'
+                  "
+                >
+                  <span class="status-pill__dot"></span>
+                  {{ internship.active ? "Active" : "Inactive" }}
+                </span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="learner-empty">
+                <div class="learner-empty__inner">
+                  <i class="bi bi-inbox"></i>
+                  <p>No learners found matching the current filters.</p>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <nav class="pagination-bar" aria-label="Assigned course pagination">
+      <div class="pagination-bar__info">
+        Page {{ currentPage }} of {{ totalPages }}
+      </div>
+      <ul class="pagination-bar__list">
+        <li>
+          <button
+            class="pagination-bar__btn"
+            type="button"
+            (click)="prevPage()"
+            [disabled]="currentPage === 1"
+          >
+            <i class="bi bi-chevron-left"></i>
+          </button>
+        </li>
+        @for (p of pages; track p) {
+          <li>
+            <button
+              class="pagination-bar__btn"
+              type="button"
+              [class.pagination-bar__btn--active]="p === currentPage"
+              (click)="goToPage(p)"
+            >
+              {{ p }}
             </button>
-        </div>
-        <div class="row mt-2 mb-4 py-3 align-items-center shadow-sm rounded">
-            <div class="col-md-2">
-                <div class="input-group input-group-sm bg-white shadow-sm overflow-hidden border date-timepicker">
-                    <span class="input-group-text bg-white border-0"><i class="bi bi-calendar3 text-muted"></i></span>
-                    <input type="date" class="form-control border-0 shadow-none" [(ngModel)]="selectedDateTimeStr" (ngModelChange)="onSelectedDateTimeChange($event)" aria-label="Filter by date" /> @if (selectedDateTimeStr) {
-                    <button class="btn btn-sm btn-outline-secondary border-0" type="button" (click)="clearDateFilter()">
-                        <i class="bi bi-x-lg"></i>
-                    </button> }
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="input-group input-group-sm bg-white rounded-pill shadow-sm overflow-hidden border">
-                    <span class="input-group-text bg-white border-0"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" class="form-control border-0 shadow-none" placeholder="Search name, mobile, college..." [(ngModel)]="searchTerm" (ngModelChange)="onFiltersChanged()">
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="d-flex gap-2">
-                    <select class="form-select form-select-sm rounded-pill shadow-sm border" aria-label="Course" [(ngModel)]="selectedCourseId" (ngModelChange)="onFiltersChanged()">
-                        <option value="">All courses</option>
-                        @for (course of courses; track course.id) {
-                        <option [value]="course.id">{{ course.name }}</option>
-                        }
-                    </select>
+          </li>
+        }
+        <li>
+          <button
+            class="pagination-bar__btn"
+            type="button"
+            (click)="nextPage()"
+            [disabled]="currentPage === totalPages"
+          >
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </li>
+      </ul>
+    </nav>
+  </section>
 
-                    <select class="form-select form-select-sm rounded-pill shadow-sm border" aria-label="Batch" [(ngModel)]="selectedBatchId" (ngModelChange)="onFiltersChanged()">
-                        <option value="">All batches</option>
-                        @for (batch of batches; track batch.id) {
-                        <option [value]="batch.id">{{ batch.name }}</option>
-                        }
-                    </select>
-                </div>
-                <!-- <div class="input-group input-group-sm bg-white rounded-pill shadow-sm overflow-hidden border">
-                     <span class="input-group-text bg-white border-0"><i class="bi bi-x-circle text-danger"></i></span>
-                     <input type="text" class="form-control border-0 shadow-none" placeholder="Exclude: College A, College B..." [(ngModel)]="excludeSearch">
-                 </div> -->
-
-            </div>
-
-
-
-            <div class="col-md-2 text-md-end py-1">
-
-                <button class="btn btn-primary rounded-pill px-4 me-2" (click)="assignedCourseHandler()" [disabled]="!selectedCourseId || !selectedBatchId || selectedStudentsCount === 0">
-                    <i class="bi bi-download me-2"></i>Assigned Course
-                </button>
-
-            </div>
-        </div>
+  <section class="panel mt-3">
+    <div class="panel__header">
+      <div>
+        <span class="panel__kicker">
+          <i class="bi bi-flag"></i>
+          Milestones
+        </span>
+        <h3 class="panel__title">Upcoming checkpoints</h3>
+      </div>
     </div>
-    <div class="content-grid row g-4 mt-1">
-        <div class="col-12 col-xl-12">
-            <section class="panel">
-                <div class="table-responsive mt-3">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light">
-                            <tr>
-                                <th style="width: 44px;" class="text-center">
-                                    <input class="form-check-input" type="checkbox" [checked]="allVisibleSelected" [indeterminate]="someVisibleSelected" (change)="toggleAllVisible($any($event.target).checked)" aria-label="Select all students" />
-                                </th>
-                                <td>#</td>
-                                <th>Name</th>
-                                <th class="text-center">Mobile</th>
-                                <th class="text-center">Program</th>
-                                <th class="text-center">University</th>
-                                <th class="text-center">Assigned</th>
-                                <th class="text-center">Date</th>
-                                <!-- <th class="text-center">Type</th> -->
-                                <!-- <th class="text-end pe-4">Actions</th> -->
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @for (internship of pagedInternships; track internship._id;let i = $index) {
-                            <tr class="shadow-sm rounded">
-                                <td class="text-center">
-                                    <input class="form-check-input" type="checkbox" [checked]="isStudentSelected(internship._id)" (change)="toggleStudent(internship._id, $any($event.target).checked)" aria-label="Select student" />
-                                </td>
-                                <td class="ps-4 fw-bold text-muted">{{ ((currentPage - 1) * pageSize) + i + 1 }}</td>
-                                <td class="text-left">
-                                    <div class="text-dark">{{ internship.name }}</div>
-                                    <div class="text-primary small fw-bold">{{ internship.email }}</div>
-                                </td>
-                                <td class="text-center">
-                                    <div class="text-dark"> {{ internship.mobile }}</div>
-                                    <div class="text-muted small">{{ internship.city }}</div>
-                                </td>
-                                <td class="text-center">
-                                    <div class="text-dark">{{ internship.program }}</div>
-                                    <div class="text-primary small">({{ internship.internshipType}})</div>
-                                </td>
-                                <td class="text-center">
-                                    <div class="text-dark">{{ internship.college }}</div>
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge rounded-pill px-3 py-1" [ngClass]="internship.assignedStatus === 'Assigned' ? 'bg-danger' : 'bg-success'">
-                                         {{ internship.assignedStatus }}
-                                     </span>
-                                </td>
-                                <td class="text-center">
-                                    <div class="small mb-1">{{ internship.createdAt | date:'mediumDate' }}</div>
-                                    <span class="badge rounded-pill px-3 py-1" [ngClass]="internship.active ? 'text-success' : 'text-danger'">
-                                         {{ internship.active ? 'Active' : 'Inactive' }}
-                                     </span>
-                                </td>
-                                <!-- <td class="text-center">
-                                <span class="badge rounded-pill px-3 py-1 bg-primary">{{ internship.internshipType
-                                    }}</span>
-                            </td> -->
-                                <!-- <td class="pe-4 text-end">
-                                    <button class="btn btn-sm btn-outline-secondary rounded-pill" (click)="navigateToEdit(internship._id)">View</button>
-                                </td> -->
-                            </tr>
-                            } @empty {
-                            <tr>
-                                <td colspan="6" class="text-center py-5 text-muted">No internships found for this filter.
-                                </td>
-                            </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-                <nav class="d-flex justify-content-end mt-3" aria-label="Assigned course pagination">
-                    <ul class="pagination pagination-sm mb-0">
-                        <li class="page-item" [class.disabled]="currentPage === 1">
-                            <button class="page-link" type="button" (click)="prevPage()">Prev</button>
-                        </li>
 
-                        @for (p of pages; track p) {
-                        <li class="page-item" [class.active]="p === currentPage">
-                            <button class="page-link" type="button" (click)="goToPage(p)">{{ p }}</button>
-                        </li>
-                        }
-
-                        <li class="page-item" [class.disabled]="currentPage === totalPages">
-                            <button class="page-link" type="button" (click)="nextPage()">Next</button>
-                        </li>
-                    </ul>
-                </nav>
-            </section>
+    <div class="milestones">
+      <div class="milestone">
+        <div class="milestone__icon milestone__icon--warn">
+          <i class="bi bi-file-earmark-text"></i>
         </div>
-    </div>
-    <div class="content-grid row g-4 mt-1">
-        <div class="col-12 col-xl-12">
-            <section class="panel">
-                <div class="panel-header">
-                    <div>
-                        <p class="panel-kicker">Milestones</p>
-                        <h3 class="panel-title mb-0">Upcoming checkpoints</h3>
-                    </div>
-                </div>
-
-                <div class="milestone-list mt-3">
-                    <div class="milestone-row">
-                        <div>
-                            <h4>Module 2 submission</h4>
-                            <p>Due in 2 days</p>
-                        </div>
-                        <span class="status-pill status-review">High priority</span>
-                    </div>
-
-                    <div class="milestone-row">
-                        <div>
-                            <h4>Live mentoring session</h4>
-                            <p>Friday, 11:00 AM</p>
-                        </div>
-                        <span class="status-pill status-on-track">Scheduled</span>
-                    </div>
-
-                    <div class="milestone-row">
-                        <div>
-                            <h4>Capstone review</h4>
-                            <p>Next week</p>
-                        </div>
-                        <span class="status-pill status-pending">Pending</span>
-                    </div>
-                </div>
-            </section>
+        <div class="milestone__body">
+          <h4 class="milestone__title">Module 2 submission</h4>
+          <p class="milestone__meta">
+            <i class="bi bi-clock"></i> Due in 2 days
+          </p>
         </div>
+        <span class="status-pill status-pill--warn">High priority</span>
+      </div>
+
+      <div class="milestone">
+        <div class="milestone__icon milestone__icon--success">
+          <i class="bi bi-camera-video"></i>
+        </div>
+        <div class="milestone__body">
+          <h4 class="milestone__title">Live mentoring session</h4>
+          <p class="milestone__meta">
+            <i class="bi bi-calendar-event"></i> Friday, 11:00 AM
+          </p>
+        </div>
+        <span class="status-pill status-pill--success">Scheduled</span>
+      </div>
+
+      <div class="milestone">
+        <div class="milestone__icon milestone__icon--info">
+          <i class="bi bi-trophy"></i>
+        </div>
+        <div class="milestone__body">
+          <h4 class="milestone__title">Capstone review</h4>
+          <p class="milestone__meta">
+            <i class="bi bi-calendar3"></i> Next week
+          </p>
+        </div>
+        <span class="status-pill status-pill--muted">Pending</span>
+      </div>
     </div>
+  </section>
 </div>

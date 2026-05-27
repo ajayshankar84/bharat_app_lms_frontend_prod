@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 import { MyCoursesComponent } from './my-courses.component';
@@ -8,6 +9,7 @@ import { MyCoursesComponent } from './my-courses.component';
   declarations: [MyCoursesComponent],
   imports: [
     CommonModule,
+    FormsModule,
     RouterModule.forChild([
       {
         path: '',
