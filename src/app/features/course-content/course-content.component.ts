@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CourseDetailService } from '../../core/services/course-detail.service';
+import { UploadVideoService } from '../../core/services/upload-video.service';
 import { CdkDragDrop, moveItemInArray, DragDropModule } from '@angular/cdk/drag-drop';
 import { ImagePathPipe } from '../../shared/pipes/image-path.pipe';
 import { CommonModule } from '@angular/common';
-
+import { HttpEventType, HttpResponse } from '@angular/common/http';
+import * as uuid from 'uuid';
 @Component({
   selector: 'app-course-content',
   templateUrl: './course-content.component.html',
@@ -35,13 +37,16 @@ export class CourseContentComponent implements OnInit {
   isEditingSeatsFilled: boolean = false; // Added property for Seats Filled
   isEditingProgress: boolean = false; // Added property for Progress
   addingSubItemIndex: number | null = null; // Added property to track sub-item index
+  selectedVideoFile: File | null = null;
+  uploadProgress: number = 0;
   showDeleteModal: boolean = false;
   itemToDelete: { type: string, idx1: number, idx2: number | null } | null = null;
   error: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
-    private courseDetailService: CourseDetailService
+    private courseDetailService: CourseDetailService,
+    private uploadVideoService: UploadVideoService
   ) {
     this.courseId = this.route.snapshot.queryParamMap.get('course');
   }
@@ -80,9 +85,14 @@ export class CourseContentComponent implements OnInit {
       if (!this.courseDetail || !this.courseDetail[0] || !this.courseId) return;
 
       const newEntry = {
+        topicId: uuid.v4(),
         week: `Week ${(this.courseDetail[0].curriculum?.length || 0) + 1}`,
         topics: item.trim(),
-        lectures: ['Introduction to Module', 'Hands-on Exercise'],
+        lectures: [{
+          lectureId: uuid.v4(),
+          lecture: 'Introduction to Module',
+        }
+        ],
         outcome: 'Completed Module Milestone'
       };
 
@@ -578,36 +588,84 @@ export class CourseContentComponent implements OnInit {
     this.isAddingFaq = false;
   }
 
+  /**
+   * Handles the video file selection for a curriculum sub-item.
+   */
+  onVideoSelected(event: Event): void {
+    const element = event.target as HTMLInputElement;
+    this.selectedVideoFile = element.files?.length ? element.files[0] : null;
+  }
+
   // New method to handle adding sub-items (lectures/details) to a specific curriculum section
   addCurriculumSubItem(index: number, content: string): void {
     if (content && content.trim() !== '') {
       if (!this.courseDetail || !this.courseDetail[0] || !this.courseId) return;
 
-      const updatedCurriculum = [...(this.courseDetail[0].curriculum || [])];
-      const currentLectures = updatedCurriculum[index].lectures || [];
-      
-      updatedCurriculum[index] = {
-        ...updatedCurriculum[index],
-        lectures: [...currentLectures, content.trim()]
-      };
-
-      const updatedDetail = {
-        ...this.courseDetail[0],
-        curriculum: updatedCurriculum
-      };
-
       this.isLoading = true;
-      this.courseDetailService.updateCourseDetail(this.courseId, updatedDetail).subscribe({
-        next: () => {
-          this.courseDetail[0] = updatedDetail;
-          this.isLoading = false;
-        },
-        error: (err: any) => {
-          this.isLoading = false;
-        }
-      });
+      this.error = null;
+
+      if (this.selectedVideoFile) {
+        this.uploadProgress = 0;
+        const payload = {
+          video: this.selectedVideoFile,
+          courseId: this.courseId,
+          title: content.trim()
+        };
+
+        this.uploadVideoService.uploadVideo(payload).subscribe({
+          next: (event: any) => {
+            if (event.type === HttpEventType.UploadProgress && event.total) {
+              this.uploadProgress = Math.round((100 * event.loaded) / event.total);
+            } else if (event instanceof HttpResponse) {
+              const videoPath = event.body?.videoPath || event.body?.path;
+              this.saveCurriculumText(index, content, videoPath);
+            }
+          },
+          error: (err: any) => {
+            console.error('Video upload failed:', err);
+            this.error = 'Failed to upload video. Sub-item not saved.';
+            this.isLoading = false;
+          }
+        });
+      } else {
+        this.saveCurriculumText(index, content);
+      }
     }
-    this.addingSubItemIndex = null;
+  }
+
+  private saveCurriculumText(index: number, content: string, videoPath?: string): void {
+    const updatedCurriculum = [...(this.courseDetail[0].curriculum || [])];
+    const currentLectures = updatedCurriculum[index].lectures || [];
+
+    const newLecture = {
+      lectureId: uuid.v4(),
+      lecture: content.trim(),
+      videoUrl: videoPath || ''
+    };
+
+    updatedCurriculum[index] = {
+      ...updatedCurriculum[index],
+      lectures: [...currentLectures, newLecture]
+    };
+
+    const updatedDetail = {
+      ...this.courseDetail[0],
+      curriculum: updatedCurriculum
+    };
+
+    this.courseDetailService.updateCourseDetail(this.courseId!, updatedDetail).subscribe({
+      next: () => {
+        this.courseDetail[0] = updatedDetail;
+        this.isLoading = false;
+        this.uploadProgress = 0;
+        this.selectedVideoFile = null;
+        this.addingSubItemIndex = null;
+      },
+      error: (err: any) => {
+        this.error = 'Failed to update curriculum metadata.';
+        this.isLoading = false;
+      }
+    });
   }
 
   openDeleteModal(type: string, idx1: number, idx2: number | null = null): void {
@@ -678,13 +736,13 @@ export class CourseContentComponent implements OnInit {
       next: () => {
         this.courseDetail[0] = updatedDetail;
         this.isLoading = false;
-          this.closeDeleteModal();
+        this.closeDeleteModal();
       },
       error: (err: any) => {
         console.error('Error deleting lecture:', err);
         this.error = 'Failed to delete lecture. Please try again.';
         this.isLoading = false;
-          this.closeDeleteModal();
+        this.closeDeleteModal();
       }
     });
   }
@@ -692,7 +750,7 @@ export class CourseContentComponent implements OnInit {
   /**
    * Handles the reordering of curriculum sections via drag and drop.
    */
- drop(event: CdkDragDrop<any[]>) { 
+  drop(event: CdkDragDrop<any[]>) {
     if (!this.courseDetail || !this.courseDetail[0] || !this.courseId) return;
 
     const curriculum = [...(this.courseDetail[0].curriculum || [])];

@@ -1,0 +1,125 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white py-3 border-bottom-0">
+          <h5 class="mb-0 fw-bold text-dark">Upload New Video</h5>
+          <p class="text-muted small mb-0">Link a video file to a specific course and topic.</p>
+        </div>
+        <div class="card-body p-4">
+          <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
+            
+            <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessage">
+              {{ errorMessage }}
+              <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
+            </div>
+
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Select Course</label>
+                <select formControlName="courseId" class="form-select"
+                  [class.is-invalid]="uploadForm.get('courseId')?.invalid && uploadForm.get('courseId')?.touched">
+                  <option value="">-- Choose Course --</option>
+                  <option *ngFor="let course of courses" [value]="course.id || course._id">
+                    {{ course.name }}
+                  </option>
+                </select>
+                <div class="invalid-feedback">A course selection is required.</div>
+
+                <!-- Section to display existing videos for the selected course -->
+                <div *ngIf="existingVideoPaths.length > 0" class="mt-3">
+                  <label class="form-label text-muted small fw-bold">Existing videos in this course:</label>
+                  <div class="list-group list-group-flush border rounded shadow-sm overflow-auto" style="max-height: 150px;">
+                    <div *ngFor="let path of existingVideoPaths" class="list-group-item py-2 small d-flex align-items-center bg-light bg-opacity-10">
+                      <span class="text-primary me-2">
+                        <i class="bi bi-play-circle"></i>
+                      </span>
+                      <span class="text-truncate" [title]="path">
+                        {{ path }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Select Topic</label>
+                <select formControlName="topicId" class="form-select"
+                  [class.is-invalid]="uploadForm.get('topicId')?.invalid && uploadForm.get('topicId')?.touched">
+                  <option value="">-- Choose Topic --</option>
+                  <option *ngFor="let topic of topics" [value]="topic.id || topic._id">
+                    {{ topic.title }}
+                  </option>
+                </select>
+                <div class="invalid-feedback">A topic selection is required.</div>
+              </div>
+
+              <div class="col-md-12 mt-4">
+                <label class="form-label fw-semibold">Select Lecture</label>
+                <select formControlName="lectureId" class="form-select"
+                  [class.is-invalid]="uploadForm.get('lectureId')?.invalid && uploadForm.get('lectureId')?.touched">
+                  <option value="">-- Choose Lecture --</option>
+                  <option *ngFor="let lecture of lectures" [value]="lecture.lectureId || lecture._id">
+                    {{ lecture.lecture }}
+                  </option>
+                </select>
+                <div class="invalid-feedback">A lecture selection is required.</div>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Video Title</label>
+              <input type="text" formControlName="title" class="form-control" placeholder="e.g. Introduction to Angular"
+                [class.is-invalid]="uploadForm.get('title')?.invalid && uploadForm.get('title')?.touched">
+              <div class="invalid-feedback">Title is required.</div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Description (Optional)</label>
+              <textarea formControlName="description" class="form-control" rows="3" 
+                placeholder="Briefly describe what this video covers..."></textarea>
+            </div>
+
+            <div class="mb-5">
+              <label class="form-label fw-semibold">Video File</label>
+              <input type="file" class="form-control" (change)="onFileSelected($event)" accept="video/*"
+                [class.is-invalid]="!selectedFile && uploadForm.touched">
+              <div class="invalid-feedback" *ngIf="!selectedFile && uploadForm.touched">
+                Please select a video file.
+              </div>
+              <small class="text-muted mt-2 d-block" *ngIf="selectedFile">
+                Selected: <strong>{{ selectedFile.name }}</strong> ({{ (selectedFile.size / 1024 / 1024) | number:'1.2-2' }} MB)
+              </small>
+            </div>
+
+            <div class="mb-4" *ngIf="isSubmitting">
+              <div class="d-flex justify-content-between mb-1">
+                <span class="text-primary fw-semibold small">Uploading...</span>
+                <span class="text-muted small">{{ uploadProgress }}%</span>
+              </div>
+              <div class="progress" style="height: 10px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                     role="progressbar" 
+                     [style.width.%]="uploadProgress" 
+                     [attr.aria-valuenow]="uploadProgress" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-3 border-top pt-4">
+              <button type="button" class="btn btn-light px-4" [disabled]="isSubmitting" (click)="uploadForm.reset()">Clear</button>
+              
+              <button *ngIf="isSubmitting" type="button" class="btn btn-outline-danger px-4" (click)="cancelUpload()">
+                Cancel Upload
+              </button>
+
+              <button type="submit" class="btn btn-primary px-5 shadow-sm" [disabled]="isSubmitting">
+                <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                {{ isSubmitting ? 'Uploading...' : 'Upload Video' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

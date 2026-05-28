@@ -18,4 +18,6 @@ export const COURSE_DETAIL_ENDPOINT = `${API_BASE_URL}/course-detail`;
 // course
 export const COURSES_ENDPOINT = `${API_BASE_URL}/course`;
 
+// upload-video
+export const UPLOAD_VIDEO_ENDPOINT = `${API_BASE_URL}/upload-video`;
 

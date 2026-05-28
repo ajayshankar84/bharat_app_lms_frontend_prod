@@ -57,6 +57,12 @@ const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['admin'] }
       },
+       {
+        path: 'upload-video',
+        loadChildren: () => import('./upload-video/upload-video.module').then((m) => m.UploadVideoModule),
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] }
+      },
     ]
   }
 
