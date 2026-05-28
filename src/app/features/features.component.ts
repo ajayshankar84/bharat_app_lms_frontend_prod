@@ -1,163 +1,40 @@
-import { Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import {
-  Router,
-  RouterLink,
-  RouterLinkActive,
-  RouterOutlet,
-} from '@angular/router';
-import { AuthService, UserInfo } from '../core/services/auth.service';
-import { ThemeService } from '../core/services/theme.service';
-import { SessionService } from '../core/services/session.service';
-import { ImagePathPipe } from '../shared/pipes/image-path.pipe';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
-interface NavItem {
-  path: string;
-  icon: string;
-  label: string;
-  adminOnly?: boolean;
-}
+import { Component } from '@angular/core';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { AccountStateService } from '../core/services/account-state.service';
 
 @Component({
   selector: 'app-features',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ImagePathPipe],
+  imports: [RouterOutlet, RouterLink],
   templateUrl: './features.component.html',
-  styleUrls: ['./features.component.scss'],
+  styleUrl: './features.component.scss'
 })
-export class FeaturesComponent implements OnInit {
-  private authService = inject(AuthService);
-  private sessionService = inject(SessionService);
-  private router = inject(Router);
-  private destroyRef = inject(DestroyRef);
-  themeService = inject(ThemeService);
-
-  isSidebarOpen = false;
-  isMobile = false;
-  isProfileMenuOpen = false;
+export class FeaturesComponent {
+  // Sidebar starts open on desktop, closed on mobile via CSS
+  isSidebarCollapsed = true;
+  accountData: any = null;
   isLoggingOut = false;
-  user: UserInfo | null = null;
 
-  readonly userNavItems: NavItem[] = [
-    {
-      path: '/dashboard/dashboard-v1',
-      icon: 'bi-speedometer2',
-      label: 'Dashboard',
-    },
-    { path: '/dashboard/my-courses', icon: 'bi-book', label: 'My Courses' },
-    {
-      path: '/dashboard/recommended-courses',
-      icon: 'bi-star',
-      label: 'Recommended',
-    },
-    {
-      path: '/dashboard/course-detail',
-      icon: 'bi-check2-circle',
-      label: 'Completed',
-    },
-  ];
-
-  readonly adminNavItems: NavItem[] = [
-    {
-      path: '/dashboard/dashboard-v2',
-      icon: 'bi-speedometer2',
-      label: 'Dashboard',
-    },
-    {
-      path: '/dashboard/assigned-course',
-      icon: 'bi-clipboard2-check',
-      label: 'Assigned Courses',
-    },
-    {
-      path: '/dashboard/create-course',
-      icon: 'bi-plus-square',
-      label: 'Create Course',
-    },
-    {
-      path: '/dashboard/courses',
-      icon: 'bi-journal-bookmark',
-      label: 'All Courses',
-    },
-    {
-      path: '/dashboard/course-content',
-      icon: 'bi-collection-play',
-      label: 'Course Content',
-    },
-  ];
-
-  get isAdmin(): boolean {
-    return this.sessionService.isAdmin();
-  }
-
-  get navItems(): NavItem[] {
-    return this.isAdmin ? this.adminNavItems : this.userNavItems;
-  }
-
-  get userInitials(): string {
-    const name = this.user?.name || this.user?.username || 'U';
-    return name.charAt(0).toUpperCase();
-  }
-
-  get displayName(): string {
-    return this.user?.name || this.user?.username || 'User';
-  }
-
-  get hasProfileImage(): boolean {
-    return !!this.user?.profileImage;
-  }
-
+  constructor(
+    private accountStateService: AccountStateService,
+    private router: Router
+  ) { }
   ngOnInit(): void {
-    this.user = this.authService.currentUser;
-    this.authService.currentUser$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((user) => {
-        this.user = user;
-      });
-    this.checkScreenSize();
+    this.accountData = this.accountStateService.getStoredAccountData();
+
+  }
+  get isAdmin(): boolean {
+    return this.accountStateService.getStoredAccountData()?.role?.toLowerCase() === 'admin';
   }
 
-  @HostListener('window:resize')
-  onResize(): void {
-    this.checkScreenSize();
+  toggleSidebar() {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
 
-  private checkScreenSize(): void {
-    this.isMobile = window.innerWidth < 992;
-    if (!this.isMobile) {
-      this.isSidebarOpen = true;
-    } else {
-      this.isSidebarOpen = false;
-    }
-  }
-
-  toggleSidebar(): void {
-    this.isSidebarOpen = !this.isSidebarOpen;
-  }
-
-  closeSidebarOnMobile(): void {
-    if (this.isMobile) {
-      this.isSidebarOpen = false;
-    }
-  }
-
-  toggleProfileMenu(): void {
-    this.isProfileMenuOpen = !this.isProfileMenuOpen;
-  }
-
-  closeProfileMenu(): void {
-    this.isProfileMenuOpen = false;
-  }
-
-  toggleTheme(): void {
-    this.themeService.toggle();
-  }
-
-  logout(): void {
+  logout() {
+    if (this.isLoggingOut) return;
     this.isLoggingOut = true;
-    setTimeout(() => {
-      this.authService.logout();
-      this.router.navigate(['/auth/login']);
-    }, 400);
+    this.accountStateService.clearAccountData();
+    this.router.navigate(['/auth/login']);
   }
 }

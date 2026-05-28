@@ -1,214 +1,402 @@
-<div class="dashboard">
-  <div class="hero">
-    <div class="hero__bg"></div>
-    <div class="hero__content">
-      <div class="hero__left">
-        <div class="hero__meta">
-          <span class="hero__greeting-icon">
-            <i class="bi" [ngClass]="greetingIcon"></i>
-          </span>
-          <span class="hero__greeting-text">{{ greetingText }}</span>
-          <span class="hero__time">
-            <i class="bi bi-clock"></i>
-            {{ currentTime }}
-          </span>
-        </div>
-        <h1 class="hero__title">
-          Welcome back, <span class="hero__name">{{ firstName }}</span>
-        </h1>
-        <p class="hero__subtitle">{{ heroSubtitle }}</p>
-        <div class="hero__actions">
-          <button
-            class="hero__btn hero__btn--primary"
-            (click)="continueCourse()"
-          >
-            <i class="bi bi-play-circle-fill"></i>
-            Continue Learning
-          </button>
-          <button class="hero__btn hero__btn--ghost" (click)="exploreCourses()">
-            <i class="bi bi-compass"></i>
-            Explore
-          </button>
-        </div>
-      </div>
+<div class="container">
+    <button class="hamburger" id="menuToggle">☰</button>
 
-      <div class="hero__profile">
-        <div class="hero__profile-avatar">
-          <img
-            *ngIf="hasProfileImage; else avatarFallback"
-            [src]="profileImage | imagePath"
-            [alt]="displayName"
-          />
-          <ng-template #avatarFallback>
-            <span>{{ avatarInitials }}</span>
-          </ng-template>
+    <div class="top-header">
+        <div class="page-title">
+            <h1>Welcome back, {{ accountData?.firstName || accountData?.mobile || 'Learner' }}</h1>
+            <p>Keep pushing forward with your learning path</p>
         </div>
-        <div class="hero__profile-info">
-          <div class="hero__profile-name">{{ displayName }}</div>
-          <div class="hero__profile-row">
-            <i class="bi bi-mortarboard-fill"></i>
-            <span>{{ userProgram }}</span>
-          </div>
-          <div class="hero__profile-row">
-            <i class="bi bi-building-fill"></i>
-            <span>{{ userCollege }}</span>
-          </div>
+        <div class="header-actions">
+            <div class="notification-bell">🔔</div>
+            <div class="avatar">{{ (accountData?.firstName?.[0] || 'A') + (accountData?.lastName?.[0] || 'J') }}</div>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-2 g-md-3 mb-4">
-    <div class="col-6 col-lg-3" *ngFor="let stat of statsCards">
-      <div class="stat-card">
-        <div class="stat-card__icon" [ngClass]="stat.iconClass">
-          <i class="bi" [ngClass]="stat.icon"></i>
-        </div>
-        <div class="stat-card__content">
-          <span class="stat-card__label">{{ stat.label }}</span>
-          <span class="stat-card__value">{{ stat.value }}</span>
-          <div class="stat-card__trend">
-            <i class="bi bi-arrow-up-right"></i>
-            <span>{{ stat.change }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="dashboard__section">
-    <div class="dashboard__section-header">
-      <h2 class="dashboard__section-title">
-        <i class="bi bi-journal-bookmark-fill"></i>
-        My Courses
-      </h2>
-      <span class="dashboard__count-pill">
-        {{ myAssignedCourses.length }}
-        {{ myAssignedCourses.length === 1 ? "course" : "courses" }}
-      </span>
     </div>
 
-    @if (isLoadingMyCourses) {
-      <div class="loading-state">
-        <div class="loading-state__spinner">
-          <i class="bi bi-arrow-clockwise spin"></i>
-        </div>
-        <p>Loading your courses...</p>
-      </div>
-    } @else {
-      <div class="row g-3">
-        @for (
-          course of myAssignedCourses;
-          track course.courseId;
-          let i = $index
-        ) {
-          <div class="col-12 col-sm-6 col-lg-4">
-            <div
-              class="course-card"
-              (click)="courseDetailHandler(course.courseId)"
-              tabindex="0"
-              role="button"
-              (keydown.enter)="courseDetailHandler(course.courseId)"
-            >
-              <div class="course-card__media">
-                <img
-                  [src]="course.imagePath | imagePath"
-                  [alt]="course.courseName"
-                  class="course-card__img"
-                />
-                <div class="course-card__overlay"></div>
-                <div class="course-card__top">
-                  <span
-                    class="course-card__pill"
-                    [ngClass]="
-                      course.active
-                        ? 'course-card__pill--success'
-                        : 'course-card__pill--muted'
-                    "
-                  >
-                    <span class="course-card__pill-dot"></span>
-                    {{ course.active ? "Active" : "Inactive" }}
-                  </span>
-                  <span
-                    class="course-card__pill"
-                    [ngClass]="
-                      course.isPaid
-                        ? 'course-card__pill--info'
-                        : 'course-card__pill--warn'
-                    "
-                  >
-                    <i
-                      class="bi"
-                      [ngClass]="
-                        course.isPaid
-                          ? 'bi-check-circle-fill'
-                          : 'bi-hourglass-split'
-                      "
-                    ></i>
-                    {{ course.isPaid ? "Paid" : "Unpaid" }}
-                  </span>
+    <div class="row g-3 stats-grid">
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="stat-card w-100 h-100">
+                <div class="stat-info">
+                    <h3>Enrolled Courses</h3>
+                    <div class="stat-number">8</div>
                 </div>
-                <div class="course-card__bottom">
-                  <span class="course-card__batch">
-                    <i class="bi bi-collection"></i>
-                    {{ course.batchName }}
-                  </span>
+                <div class="stat-icon">📖</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="stat-card w-100 h-100">
+                <div class="stat-info">
+                    <h3>Completed</h3>
+                    <div class="stat-number">5</div>
                 </div>
-              </div>
-
-              <div class="course-card__body">
-                <span class="course-card__type">{{
-                  course.internshipType
-                }}</span>
-                <h3 class="course-card__title">{{ course.courseName }}</h3>
-
-                <div class="course-card__meta">
-                  <div class="course-card__meta-row">
-                    <i class="bi bi-mortarboard"></i>
-                    <span><strong>Program:</strong> {{ course.program }}</span>
-                  </div>
-                  <div class="course-card__meta-row">
-                    <i class="bi bi-building"></i>
-                    <span><strong>College:</strong> {{ course.college }}</span>
-                  </div>
-                  @if (course.tag) {
-                    <div class="course-card__meta-row">
-                      <i class="bi bi-person-check"></i>
-                      <span>{{ course.tag | titlecase }}</span>
+                <div class="stat-icon">✅</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="stat-card w-100 h-100">
+                <div class="stat-info">
+                    <h3>Hours Spent</h3>
+                    <div class="stat-number">42</div>
+                </div>
+                <div class="stat-icon">⏳</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="stat-card w-100 h-100">
+                <div class="stat-info">
+                    <h3>Certificates</h3>
+                    <div class="stat-number">3</div>
+                </div>
+                <div class="stat-icon">🏅</div>
+            </div>
+        </div>
+    </div>
+<!-- start -->
+    <!-- <div class="section-title">
+        <h2>📚 Continue Learning</h2>
+        <span class="view-all">View all →</span>
+    </div>
+    <div class="row g-3 course-grid">
+        @if (isLoadingMyCourses) {
+        <div class="col-12">
+            <div class="alert alert-info mb-0">Loading assigned courses...</div>
+        </div>
+        } @else { @for (course of myAssignedCourses; track $index) {
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden border-top border-4"
+                [ngClass]="course.active ? 'border-primary' : 'border-secondary'" role="button"
+                (click)="openCourseDetail(course.courseId)">
+                <div class="position-relative">
+                    <img class="card-img-top" [src]="course.courseImage | imagePath" [alt]="course.courseName"
+                        style="height: 160px; object-fit: cover;">
+                    <div class="position-absolute top-0 end-0 m-3">
+                        <span class="badge rounded-pill shadow-sm"
+                            [ngClass]="course.active ? 'bg-success' : 'bg-secondary'">
+                            {{ course.active ? 'Active' : 'Inactive' }}
+                        </span>
                     </div>
-                  }
+                    <div class="position-absolute bottom-0 start-0 m-3">
+                        <span class="badge bg-dark bg-opacity-75 text-white px-2 py-1 shadow-sm">{{ course.batchName
+                            }}</span>
+                    </div>
+                </div>
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="mb-1">
+                        <small class="text-primary fw-bold text-uppercase">{{ course.internshipType }}</small>
+                    </div>
+                    <h5 class="fw-bold mb-2 text-dark">{{ course.courseName }}</h5>
+                    <div class="small text-muted mb-3">
+                        <div class="d-flex align-items-center mb-1">
+                            <i class="bi bi-mortarboard me-2"></i> {{ course.program }}
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-building me-2"></i> {{ course.college }}
+                        </div>
+                    </div>
+                    <div class="mt-auto">
+                        <button class="btn btn-outline-primary btn-sm rounded-pill w-100 py-2 fw-bold">
+                            Open Course
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        } @empty {
+        <div class="col-12">
+            <div class="alert alert-secondary mb-0">No assigned courses found.</div>
+        </div>
+        } }
+    </div> -->
+    <!-- end -->
+    <!-- Static mock cards (replaced by API-driven myAssignedCourses)
+        Static mock cards (replaced by API-driven myAssignedCourses)
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('advanced-ui-ux-design')">
+                <div class="course-img-placeholder variant-1 card-img-top">
+                    <span class="placeholder-icon">🎨</span>
+                    <span class="course-badge">In Progress</span>
+                </div>
+                <div class="course-content card-body">
+                    <h3>Advanced UI/UX Design</h3>
+                    <p class="course-meta">Module 4 of 10 • 68% complete</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width:68%"></div>
+                    </div>
+                    <button class="btn-glass">Resume</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('frontend-mastery')">
+                <div class="course-img-placeholder variant-2 card-img-top">
+                    <span class="placeholder-icon">💻</span>
+                    <span class="course-badge">New</span>
+                </div>
+                <div class="course-content card-body">
+                    <h3>Frontend Mastery</h3>
+                    <p class="course-meta">Module 2 of 12 • 22% complete</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width:22%"></div>
+                    </div>
+                    <button class="btn-glass">Continue</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('design-systems')">
+                <div class="course-img-placeholder variant-3 card-img-top">
+                    <span class="placeholder-icon">🎯</span>
+                    <span class="course-badge">Almost done</span>
+                </div>
+                <div class="course-content card-body">
+                    <h3>Design Systems</h3>
+                    <p class="course-meta">Module 9 of 10 • 92% complete</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width:92%"></div>
+                    </div>
+                    <button class="btn-glass">Finish</button>
+                </div>
+            </div>
+        </div>
+        -->
+
+
+    <!-- start -->
+    <!-- <div class="section-title">
+        <h2>⭐ Recommended For You</h2>
+        <a class="view-all text-decoration-none" [routerLink]="['recommended-courses']">Explore more →</a>
+    </div>
+    <div class="row g-3 course-grid">
+        @if (isLoadingMyCourses) {
+        <div class="col-12">
+            <div class="alert alert-info mb-0">Loading assigned courses...</div>
+        </div>
+        } @else { @for (course of myAssignedCourses; track $index) {
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden border-top border-4"
+                 [ngClass]="course.active ? 'border-primary' : 'border-secondary'"
+                 role="button" (click)="openCourseDetail(course.courseId)">
+                <div class="position-relative">
+                    <img class="card-img-top" [src]="course.courseImage | imagePath" [alt]="course.courseName" style="height: 160px; object-fit: cover;">
+                    <div class="position-absolute top-0 end-0 m-3">
+                        <span class="badge rounded-pill shadow-sm" [ngClass]="course.active ? 'bg-success' : 'bg-secondary'">
+                            {{ course.active ? 'Active' : 'Inactive' }}
+                        </span>
+                    </div>
+                    <div class="position-absolute bottom-0 start-0 m-3">
+                        <span class="badge bg-dark bg-opacity-75 text-white px-2 py-1 shadow-sm">{{ course.batchName }}</span>
+                    </div>
+                </div>
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="mb-1">
+                        <small class="text-primary fw-bold text-uppercase">{{ course.internshipType }}</small>
+                    </div>
+                    <h5 class="fw-bold mb-2 text-dark">{{ course.courseName }}</h5>
+                    <div class="small text-muted mb-3">
+                        <div class="d-flex align-items-center mb-1">
+                            <i class="bi bi-mortarboard me-2"></i> {{ course.program }}
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-building me-2"></i> {{ course.college }}
+                        </div>
+                    </div>
+                    <div class="mt-auto">
+                        <button class="btn btn-outline-primary btn-sm rounded-pill w-100 py-2 fw-bold">
+                            Open Course
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        } @empty {
+        <div class="col-12">
+            <div class="alert alert-secondary mb-0">No assigned courses found.</div>
+        </div>
+        } }
+  </div> -->
+    <!-- end -->
+    <!-- Static mock cards (replaced by API-driven myAssignedCourses)
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('mobile-app-design')">
+                <div class="course-img-placeholder variant-4 card-img-top">
+                    <span class="placeholder-icon">📱</span>
+                    <span class="course-badge">Popular</span>
+                </div>
+                <div class="course-content card-body">
+                    <h3>Mobile App Design</h3>
+                    <div class="rating">★★★★★ <span>(4.9)</span></div>
+                    <div class="instructor-row">
+                        <span class="instructor-avatar">👩</span> Sarah Chen
+                    </div>
+                    <p class="course-meta">12 modules • 8 hours</p>
+                    <button class="btn-glass">Enroll Now</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('ai-for-designers')">
+                <div class="course-img-placeholder variant-5 card-img-top">
+                    <span class="placeholder-icon">🧠</span>
+                    <span class="course-badge">Trending</span>
+                </div>
+                <div class="course-content card-body">
+                    <h3>AI for Designers</h3>
+                    <div class="rating">★★★★☆ <span>(4.7)</span></div>
+                    <div class="instructor-row">
+                        <span class="instructor-avatar">👨</span> Marcus Rivera
+                    </div>
+                    <p class="course-meta">8 modules • 6 hours</p>
+                    <button class="btn-glass">Explore</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('web-performance')">
+                <div class="course-img-placeholder variant-6 card-img-top">
+                    <span class="placeholder-icon">⚡</span>
+                    <span class="course-badge">New</span>
+                </div>
+                <div class="course-content card-body">
+                    <h3>Web Performance</h3>
+                    <div class="rating">★★★★★ <span>(5.0)</span></div>
+                    <div class="instructor-row">
+                        <span class="instructor-avatar">👩</span> Emily Watson
+                    </div>
+                    <p class="course-meta">6 modules • 4.5 hours</p>
+                    <button class="btn-glass">Start Free</button>
+                </div>
+            </div>
+        </div>
+        -->
+
+
+    <div class="section-title">
+        <h2>⭐ My Courses</h2>
+        <span class="view-all">Explore more →</span>
+    </div>
+    <div class="row g-3 course-grid">
+        @if (isLoadingMyCourses) {
+        <div class="col-12">
+            <div class="alert alert-info mb-0">Loading assigned courses...</div>
+        </div>
+        } @else { @for (course of myAssignedCourses; track $index) {
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden position-relative border-top border-4"
+                [ngClass]="course.active ? 'border-primary' : 'border-secondary'">
+
+                <div class="position-relative">
+                    <img class="card-img-top" [src]="course.imagePath | imagePath" [alt]="course.courseName"
+                        style="height: 300px; object-fit: fill;">
+                    <div class="position-absolute top-0 end-0 bottom-0 m-3 d-flex flex-column gap-2">
+                        <span class="badge rounded-pill shadow-sm"
+                            [ngClass]="course.active ? 'bg-success' : 'bg-secondary'">
+                            {{ course.active ? 'Active' : 'Inactive' }}
+                        </span>
+                        <span class="badge rounded-pill shadow-sm"
+                            [ngClass]="course.isPaid ? 'bg-info' : 'bg-warning text-dark'">
+                            {{ course.isPaid ? 'Paid' : 'Unpaid' }}
+                        </span>
+                    </div>
+                    <div class="position-absolute bottom-0 start-0 m-3">
+                        <span class="badge bg-dark bg-opacity-75 text-white px-2 py-1 shadow-sm">{{ course.batchName
+                            }}</span>
+                    </div>
                 </div>
 
-                <button class="course-card__btn">
-                  <span>Go to Classroom</span>
-                  <i class="bi bi-arrow-right"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        } @empty {
-          <div class="col-12">
-            <div class="empty-state">
-              <div class="empty-state__icon">
-                <i class="bi bi-journal-x"></i>
-              </div>
-              <h3 class="empty-state__title">No courses yet</h3>
-              <p class="empty-state__text">
-                You haven't been assigned any courses. Explore our catalog to
-                get started!
-              </p>
-              <button class="empty-state__btn" (click)="exploreCourses()">
-                <i class="bi bi-compass"></i>
-                <span>Explore Courses</span>
-              </button>
-            </div>
-          </div>
-        }
-      </div>
-    }
-  </div>
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="mb-2">
+                        <span class="badge bg-primary-subtle text-primary text-uppercase px-2 py-1">
+                            {{ course.internshipType }}
+                        </span>
+                    </div>
 
-  <div class="mt-4">
-    <router-outlet></router-outlet>
-  </div>
+                    <h5 class="card-title fw-bold mb-3 text-dark lh-sm">{{ course.courseName }}</h5>
+
+                    <div class="course-meta small text-muted mb-4 mt-auto">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-mortarboard me-2 text-primary"></i>
+                            <span><strong>Program:</strong> {{ course.program }}</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-building me-2 text-primary"></i>
+                            <span><strong>College:</strong> {{ course.college }}</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-person-check me-2 text-primary"></i>
+                            <span>{{ course.tag |titlecase }}</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-outline-primary rounded-pill py-2 fw-bold w-100 shadow-sm"
+                        (click)="courseDetailHandler(course.courseId)">
+                        Go to Classroom <i class="bi bi-arrow-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        } @empty {
+        <div class="col-12">
+            <div class="alert alert-secondary mb-0">No assigned courses found.</div>
+        </div>
+        } }
+
+        <!-- Static mock cards (replaced by API-driven myAssignedCourses)
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('mobile-app-design')">
+                <div class="course-img-placeholder variant-4 card-img-top">
+                    <span class="placeholder-icon">📱</span>
+                    <span class="course-badge">Popular</span>
+                </div>
+                <div class="course-content card-body">
+                    <h3>Mobile App Design</h3>
+                    <div class="rating">★★★★★ <span>(4.9)</span></div>
+                    <div class="instructor-row">
+                        <span class="instructor-avatar">👩</span> Sarah Chen
+                    </div>
+                    <p class="course-meta">12 modules • 8 hours</p>
+                    <button class="btn-glass">Enroll Now</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('ai-for-designers')">
+                <div class="course-img-placeholder variant-5 card-img-top">
+                    <span class="placeholder-icon">🧠</span>
+                    <span class="course-badge">Trending</span>
+                </div>
+                <div class="course-content card-body">
+                    <h3>AI for Designers</h3>
+                    <div class="rating">★★★★☆ <span>(4.7)</span></div>
+                    <div class="instructor-row">
+                        <span class="instructor-avatar">👨</span> Marcus Rivera
+                    </div>
+                    <p class="course-meta">8 modules • 6 hours</p>
+                    <button class="btn-glass">Explore</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="course-card card h-100 shadow-sm" role="button" tabindex="0" (click)="openCourseDetail('web-performance')">
+                <div class="course-img-placeholder variant-6 card-img-top">
+                    <span class="placeholder-icon">⚡</span>
+                    <span class="course-badge">New</span>
+                </div>
+                <div class="course-content card-body">
+                    <h3>Web Performance</h3>
+                    <div class="rating">★★★★★ <span>(5.0)</span></div>
+                    <div class="instructor-row">
+                        <span class="instructor-avatar">👩</span> Emily Watson
+                    </div>
+                    <p class="course-meta">6 modules • 4.5 hours</p>
+                    <button class="btn-glass">Start Free</button>
+                </div>
+            </div>
+        </div>
+        -->
+    </div>
+
+
+    <div class="mt-4">
+        <router-outlet></router-outlet>
+    </div>
 </div>

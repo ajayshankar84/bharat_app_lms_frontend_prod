@@ -1,866 +1,875 @@
-<div class="course-content-page">
-  <div class="page-hero">
-    <div class="page-hero__bg"></div>
-    <div class="page-hero__content">
-      <div class="page-hero__left">
-        <span class="page-hero__eyebrow">
-          <i class="bi bi-collection-play-fill"></i>
-          Course Builder
-        </span>
-        @if (isEditingPageTitle) {
-          <div class="inline-editor inline-editor--hero">
-            <input
-              type="text"
-              class="inline-editor__input inline-editor__input--lg"
-              [value]="courseDetail?.[0]?.pageTitle"
-              #titleInput
-              placeholder="Enter page title"
-            />
-            <div class="inline-editor__actions">
-              <button class="btn-mini btn-mini--ghost" (click)="isEditingPageTitle = false">
-                <i class="bi bi-x-lg"></i>
-              </button>
-              <button class="btn-mini btn-mini--primary" (click)="updatePageTitle(titleInput.value)">
-                <i class="bi bi-check-lg"></i>
-              </button>
+<div class="container-fluid course-detail-page py-4">
+    <div class="row justify-content-center mb-4">
+        <div class="col-12">
+            @if (isEditingPageTitle) {
+            <div class="mb-3 p-3 border rounded-4 bg-light shadow-sm animate-fade-in">
+                <label class="form-label fw-semibold small text-primary">Edit Page Title</label>
+                <input type="text" class="form-control form-control-sm rounded-3 shadow-none"
+                    [value]="courseDetail[0]?.pageTitle" #titleInput>
+                <div class="d-flex justify-content-end mt-2">
+                    <button class="btn btn-light btn-sm rounded-pill px-3 me-2"
+                        (click)="isEditingPageTitle = false">Cancel</button>
+                    <button class="btn btn-primary btn-sm rounded-pill px-3"
+                        (click)="updatePageTitle(titleInput.value)">Save</button>
+                </div>
             </div>
-          </div>
-        } @else {
-          <div class="page-hero__title-row">
-            <h1 class="page-hero__title">{{ courseDetail?.[0]?.pageTitle || 'Untitled Course' }}</h1>
-            <button class="hero-edit-btn" (click)="isEditingPageTitle = true" title="Edit title">
-              <i class="bi bi-pencil-square"></i>
-            </button>
-          </div>
-        }
+            } @else {
+            <h1 class="display-2 d-flex align-items-center">
+                <span class="badge bg-primary text-uppercase fs-7">{{ courseDetail[0]?.pageTitle }}</span>
 
-        @if (isEditingPageSubTitle) {
-          <div class="inline-editor inline-editor--hero">
-            <textarea
-              class="inline-editor__textarea"
-              rows="2"
-              #subTitleInput
-              placeholder="Enter sub-title"
-            >{{ courseDetail?.[0]?.pageSubTitle }}</textarea>
-            <div class="inline-editor__actions">
-              <button class="btn-mini btn-mini--ghost" (click)="isEditingPageSubTitle = false">
-                <i class="bi bi-x-lg"></i>
-              </button>
-              <button class="btn-mini btn-mini--primary" (click)="updatePageSubTitle(subTitleInput.value)">
-                <i class="bi bi-check-lg"></i>
-              </button>
-            </div>
-          </div>
-        } @else {
-          <div class="page-hero__subtitle-row">
-            <p class="page-hero__subtitle">{{ courseDetail?.[0]?.pageSubTitle || 'Add a sub-title to describe your course' }}</p>
-            <button class="hero-edit-btn hero-edit-btn--sm" (click)="isEditingPageSubTitle = true" title="Edit sub-title">
-              <i class="bi bi-pencil-square"></i>
+            </h1>
+            <button class="btn btn-sm btn-outline-primary rounded-pill" (click)="isEditingPageTitle = true">
+                <i class="bi bi-pencil-square"></i>
+                Update Page Title
             </button>
-          </div>
-        }
-      </div>
-      <div class="page-hero__badge">
-        <i class="bi bi-mortarboard-fill"></i>
-      </div>
+            }
+
+            @if (isEditingPageSubTitle) {
+            <div class="mb-3 p-3 border rounded-4 bg-light shadow-sm animate-fade-in">
+                <label class="form-label fw-semibold small text-primary">Edit Page Sub-title</label>
+                <textarea class="form-control form-control-sm rounded-3 shadow-none" rows="2"
+                    #subTitleInput>{{ courseDetail[0]?.pageSubTitle }}</textarea>
+                <div class="d-flex justify-content-end mt-2">
+                    <button class="btn btn-light btn-sm rounded-pill px-3 me-2"
+                        (click)="isEditingPageSubTitle = false">Cancel</button>
+                    <button class="btn btn-primary btn-sm rounded-pill px-3"
+                        (click)="updatePageSubTitle(subTitleInput.value)">Save</button>
+                </div>
+            </div>
+            } @else {
+            <p class="mb-2 fw-semibold d-flex align-items-center">
+                {{ courseDetail[0]?.pageSubTitle }}
+
+            </p>
+            <button class="btn btn-sm btn-outline-primary rounded-pill" (click)="isEditingPageSubTitle = true">
+                <i class="bi bi-pencil-square"></i>
+                Update SubTitle
+            </button>
+            }
+
+        </div>
     </div>
-  </div>
 
-  @if (error) {
-    <div class="alert-banner alert-banner--danger">
-      <i class="bi bi-exclamation-triangle-fill"></i>
-      <span>{{ error }}</span>
-      <button (click)="error = null"><i class="bi bi-x-lg"></i></button>
-    </div>
-  }
-
-  <div class="content-layout">
-    <div class="content-layout__main">
-      <div class="info-card">
-        <div class="info-card__header">
-          <div class="info-card__breadcrumb">
-            <span><i class="bi bi-briefcase"></i> Business</span>
-            <i class="bi bi-chevron-right"></i>
-            <span>Business Analytics & Intelligence</span>
-            <i class="bi bi-chevron-right"></i>
-            <span>Prompt Engineering</span>
-          </div>
-          <h2 class="info-card__title">{{ courseDetail?.[0]?.name }}</h2>
-          <div class="info-card__meta">
-            <div class="info-card__meta-item">
-              <i class="bi bi-star-fill text-warning"></i>
-              <strong>4.4</strong>
-              <span>(626 ratings)</span>
-            </div>
-            <div class="info-card__meta-item">
-              <i class="bi bi-people-fill"></i>
-              <strong>2,242</strong>
-              <span>learners</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="info-grid">
-          <div class="info-tile">
-            <div class="info-tile__icon info-tile__icon--blue">
-              <i class="bi bi-clock-history"></i>
-            </div>
-            <div class="info-tile__body">
-              <div class="info-tile__label">Duration</div>
-              @if (isEditingDuration) {
-                <div class="inline-editor inline-editor--compact">
-                  <input
-                    type="text"
-                    class="inline-editor__input"
-                    [value]="courseDetail?.[0]?.duration"
-                    #durationInput
-                  />
-                  <div class="inline-editor__actions">
-                    <button class="btn-mini btn-mini--ghost" (click)="isEditingDuration = false"><i class="bi bi-x-lg"></i></button>
-                    <button class="btn-mini btn-mini--primary" (click)="updateDuration(durationInput.value)"><i class="bi bi-check-lg"></i></button>
-                  </div>
-                </div>
-              } @else {
-                <div class="info-tile__value">
-                  {{ courseDetail?.[0]?.duration || 'Not set' }}
-                  <button class="edit-icon-btn" (click)="isEditingDuration = true">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                </div>
-              }
-            </div>
-          </div>
-
-          <div class="info-tile">
-            <div class="info-tile__icon info-tile__icon--green">
-              <i class="bi bi-geo-alt-fill"></i>
-            </div>
-            <div class="info-tile__body">
-              <div class="info-tile__label">Location</div>
-              <div class="info-tile__value">{{ courseDetail?.[0]?.location || 'Online' }}</div>
-            </div>
-          </div>
-
-          <div class="info-tile">
-            <div class="info-tile__icon info-tile__icon--orange">
-              <i class="bi bi-calendar-event-fill"></i>
-            </div>
-            <div class="info-tile__body">
-              <div class="info-tile__label">Start Date</div>
-              <div class="info-tile__value">{{ courseDetail?.[0]?.startDate || 'TBA' }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row g-3 mt-1">
-        <div class="col-lg-6">
-          <div class="section-card">
-            <div class="section-card__header">
-              <div class="section-card__title-wrap">
-                <span class="section-card__icon section-card__icon--green">
-                  <i class="bi bi-check2-circle"></i>
-                </span>
-                <h3 class="section-card__title">What you'll learn</h3>
-              </div>
-            </div>
-            <div class="section-card__body">
-              @if (courseDetail?.[0]?.whatYouWillLearn?.length) {
-                <ul class="item-list">
-                  @for (item of courseDetail[0].whatYouWillLearn; track item; let i = $index) {
-                    <li class="item-list__row">
-                      <span class="item-list__bullet"><i class="bi bi-check-lg"></i></span>
-                      <span class="item-list__text">{{ item }}</span>
-                      <button class="item-list__delete" (click)="openDeleteModal('learning', i)" title="Delete">
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </li>
-                  }
-                </ul>
-              } @else {
-                <p class="empty-text">No learning outcomes added yet.</p>
-              }
-
-              @if (isAddingLearning) {
-                <div class="add-editor">
-                  <input
-                    type="text"
-                    class="inline-editor__input"
-                    placeholder="e.g. Master the basics of Business Analytics"
-                    #learningInput
-                  />
-                  <div class="add-editor__actions">
-                    <button class="btn-soft btn-soft--ghost" (click)="isAddingLearning = false">Cancel</button>
-                    <button class="btn-soft btn-soft--primary" (click)="addLearningItem(learningInput.value)">
-                      <i class="bi bi-check-lg"></i> Save
-                    </button>
-                  </div>
-                </div>
-              } @else {
-                <button class="add-btn" (click)="isAddingLearning = true">
-                  <i class="bi bi-plus-circle-fill"></i>
-                  <span>Add Learning Outcome</span>
-                </button>
-              }
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-6">
-          <div class="section-card">
-            <div class="section-card__header">
-              <div class="section-card__title-wrap">
-                <span class="section-card__icon section-card__icon--blue">
-                  <i class="bi bi-file-text"></i>
-                </span>
-                <h3 class="section-card__title">Course description</h3>
-              </div>
-              <button class="btn-soft btn-soft--ghost" (click)="isEditingDescription = true">
-                <i class="bi bi-pencil-square"></i> Edit
-              </button>
-            </div>
-            <div class="section-card__body">
-              @if (isEditingDescription) {
-                <div class="add-editor">
-                  <textarea
-                    class="inline-editor__textarea"
-                    rows="3"
-                    #descInput
-                  >{{ courseDetail?.[0]?.description }}</textarea>
-                  <div class="add-editor__actions">
-                    <button class="btn-soft btn-soft--ghost" (click)="isEditingDescription = false">Cancel</button>
-                    <button class="btn-soft btn-soft--primary" (click)="updateDescription(descInput.value)">
-                      <i class="bi bi-check-lg"></i> Save
-                    </button>
-                  </div>
-                </div>
-              } @else {
-                <p class="body-text">{{ courseDetail?.[0]?.description || 'No description added.' }}</p>
-              }
-            </div>
-          </div>
-
-          <div class="section-card mt-3">
-            <div class="section-card__header">
-              <div class="section-card__title-wrap">
-                <span class="section-card__icon section-card__icon--purple">
-                  <i class="bi bi-info-circle-fill"></i>
-                </span>
-                <h3 class="section-card__title">About this course</h3>
-              </div>
-              <button class="btn-soft btn-soft--ghost" (click)="isEditingAbout = true">
-                <i class="bi bi-pencil-square"></i> Edit
-              </button>
-            </div>
-            <div class="section-card__body">
-              @if (isEditingAbout) {
-                <div class="add-editor">
-                  <textarea
-                    class="inline-editor__textarea"
-                    rows="4"
-                    #aboutInput
-                  >{{ courseDetail?.[0]?.about }}</textarea>
-                  <div class="add-editor__actions">
-                    <button class="btn-soft btn-soft--ghost" (click)="isEditingAbout = false">Cancel</button>
-                    <button class="btn-soft btn-soft--primary" (click)="updateAbout(aboutInput.value)">
-                      <i class="bi bi-check-lg"></i> Save
-                    </button>
-                  </div>
-                </div>
-              } @else {
-                <p class="body-text">{{ courseDetail?.[0]?.about || 'No about info added.' }}</p>
-              }
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section-card mt-3">
-        <div class="section-card__header">
-          <div class="section-card__title-wrap">
-            <span class="section-card__icon section-card__icon--orange">
-              <i class="bi bi-tools"></i>
-            </span>
-            <h3 class="section-card__title">Hands-on Projects</h3>
-          </div>
-        </div>
-        <div class="section-card__body">
-          @if (courseDetail?.[0]?.handsOnProjects?.length) {
-            <ul class="item-list">
-              @for (item of courseDetail[0].handsOnProjects; track item; let i = $index) {
-                <li class="item-list__row">
-                  <span class="item-list__bullet item-list__bullet--orange"><i class="bi bi-rocket-takeoff"></i></span>
-                  <span class="item-list__text">{{ item }}</span>
-                  <button class="item-list__delete" (click)="openDeleteModal('project', i)" title="Delete">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </li>
-              }
-            </ul>
-          } @else {
-            <p class="empty-text">No hands-on projects added yet.</p>
-          }
-
-          @if (isAddingProject) {
-            <div class="add-editor">
-              <input
-                type="text"
-                class="inline-editor__input"
-                placeholder="e.g. Real-world case study project"
-                #projectInput
-              />
-              <div class="add-editor__actions">
-                <button class="btn-soft btn-soft--ghost" (click)="isAddingProject = false">Cancel</button>
-                <button class="btn-soft btn-soft--primary" (click)="addProjectItem(projectInput.value)">
-                  <i class="bi bi-check-lg"></i> Save
-                </button>
-              </div>
-            </div>
-          } @else {
-            <button class="add-btn" (click)="isAddingProject = true">
-              <i class="bi bi-plus-circle-fill"></i>
-              <span>Add Project</span>
-            </button>
-          }
-        </div>
-      </div>
-
-      <div class="section-card mt-3">
-        <div class="section-card__header">
-          <div class="section-card__title-wrap">
-            <span class="section-card__icon section-card__icon--cyan">
-              <i class="bi bi-person-workspace"></i>
-            </span>
-            <h3 class="section-card__title">Mentorship & Assessment</h3>
-          </div>
-        </div>
-        <div class="section-card__body">
-          @if (courseDetail?.[0]?.mentorshipAndAssessment?.length) {
-            <ul class="item-list">
-              @for (item of courseDetail[0].mentorshipAndAssessment; track item; let i = $index) {
-                <li class="item-list__row">
-                  <span class="item-list__bullet item-list__bullet--cyan"><i class="bi bi-people"></i></span>
-                  <span class="item-list__text">{{ item }}</span>
-                  <button class="item-list__delete" (click)="openDeleteModal('mentorship', i)" title="Delete">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </li>
-              }
-            </ul>
-          } @else {
-            <p class="empty-text">No mentorship info added yet.</p>
-          }
-
-          @if (isAddingMentorship) {
-            <div class="add-editor">
-              <input
-                type="text"
-                class="inline-editor__input"
-                placeholder="e.g. Weekly Q&A sessions with industry mentors"
-                #mentorshipInput
-              />
-              <div class="add-editor__actions">
-                <button class="btn-soft btn-soft--ghost" (click)="isAddingMentorship = false">Cancel</button>
-                <button class="btn-soft btn-soft--primary" (click)="addMentorshipItem(mentorshipInput.value)">
-                  <i class="bi bi-check-lg"></i> Save
-                </button>
-              </div>
-            </div>
-          } @else {
-            <button class="add-btn" (click)="isAddingMentorship = true">
-              <i class="bi bi-plus-circle-fill"></i>
-              <span>Add Mentorship Item</span>
-            </button>
-          }
-        </div>
-      </div>
-
-      <div class="section-card mt-3">
-        <div class="section-card__header">
-          <div class="section-card__title-wrap">
-            <span class="section-card__icon section-card__icon--blue">
-              <i class="bi bi-list-task"></i>
-            </span>
-            <div>
-              <h3 class="section-card__title">Course Curriculum</h3>
-              <p class="section-card__subtitle">Drag to reorder sections</p>
-            </div>
-          </div>
-        </div>
-        <div class="section-card__body">
-          <div class="accordion-list" cdkDropList (cdkDropListDropped)="drop($event)">
-            @if (courseDetail?.[0]?.curriculum?.length) {
-              @for (item of courseDetail[0].curriculum; track item; let i = $index) {
-                <div class="accordion-item-card" cdkDrag>
-                  <div class="accordion-item-card__header">
-                    <span class="drag-handle" cdkDragHandle>
-                      <i class="bi bi-grip-vertical"></i>
-                    </span>
-                    <button
-                      class="accordion-item-card__toggle"
-                      type="button"
-                      data-bs-toggle="collapse"
-                      [attr.data-bs-target]="'#collapse' + i"
-                      [attr.aria-controls]="'collapse' + i"
-                    >
-                      <span class="accordion-item-card__number">{{ i + 1 }}</span>
-                      <span class="accordion-item-card__week">{{ item?.week || 'Week ' + (i + 1) }}</span>
-                      <span class="accordion-item-card__topic">{{ item?.topics || 'Untitled topic' }}</span>
-                      <i class="bi bi-chevron-down accordion-item-card__chev"></i>
-                    </button>
-                    <button
-                      class="accordion-item-card__delete"
-                      title="Delete section"
-                      (click)="$event.stopPropagation(); openDeleteModal('curriculum', i, null)"
-                    >
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  </div>
-
-                  <div [id]="'collapse' + i" class="collapse accordion-item-card__body">
-                    <ul class="lecture-list">
-                      @for (lecture of item.lectures; track lecture; let li = $index) {
-                        <li class="lecture-list__row">
-                          <i class="bi bi-play-circle lecture-list__icon"></i>
-                          <span class="lecture-list__text">{{ lecture }}</span>
-                          <button
-                            class="item-list__delete"
-                            title="Delete Lecture"
-                            (click)="openDeleteModal('curriculum', i, li)"
-                          >
-                            <i class="bi bi-trash"></i>
-                          </button>
-                        </li>
-                      }
-                    </ul>
-
-                    @if (addingSubItemIndex === i) {
-                      <div class="add-editor add-editor--nested">
-                        <input
-                          type="text"
-                          class="inline-editor__input"
-                          placeholder="e.g. 1.1 Introduction to Analytics"
-                          #subItemInput
-                        />
-                        <div class="add-editor__actions">
-                          <button class="btn-soft btn-soft--ghost" (click)="addingSubItemIndex = null">Cancel</button>
-                          <button class="btn-soft btn-soft--primary" (click)="addCurriculumSubItem(i, subItemInput.value)">
-                            <i class="bi bi-check-lg"></i> Save
-                          </button>
+    <div class="row gx-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm rounded-4 border-0 mb-4">
+                <div class="card-body p-4 p-xl-5">
+                    <div class="d-flex flex-column gap-3 mb-4">
+                        <div class="d-flex flex-wrap gap-2 align-items-center text-secondary small">
+                            <span>Business</span>
+                            <span>•</span>
+                            <span>Business Analytics & Intelligence</span>
+                            <span>•</span>
+                            <span>Prompt Engineering</span>
                         </div>
-                      </div>
-                    } @else {
-                      <button class="add-btn add-btn--sm" (click)="addingSubItemIndex = i">
-                        <i class="bi bi-plus-circle"></i>
-                        <span>Add Lecture</span>
-                      </button>
-                    }
-                  </div>
-                </div>
-              }
-            } @else {
-              <p class="empty-text">No curriculum sections added yet.</p>
-            }
-          </div>
 
-          @if (isAddingCurriculum) {
-            <div class="add-editor mt-3">
-              <input
-                type="text"
-                class="inline-editor__input"
-                placeholder="e.g. Week 1: Introduction to Business Analytics"
-                #curriculumInput
-              />
-              <div class="add-editor__actions">
-                <button class="btn-soft btn-soft--ghost" (click)="isAddingCurriculum = false">Cancel</button>
-                <button class="btn-soft btn-soft--primary" (click)="addCurriculumItem(curriculumInput.value)">
-                  <i class="bi bi-check-lg"></i> Save Section
-                </button>
-              </div>
-            </div>
-          } @else {
-            <button class="add-btn add-btn--full mt-3" (click)="isAddingCurriculum = true">
-              <i class="bi bi-plus-circle-fill"></i>
-              <span>Add New Section</span>
-            </button>
-          }
-        </div>
-      </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h1 class="display-6 fw-bold mb-0">{{ courseDetail[0]?.name }}</h1>
+                        </div>
 
-      <div class="section-card mt-3">
-        <div class="section-card__header">
-          <div class="section-card__title-wrap">
-            <span class="section-card__icon section-card__icon--purple">
-              <i class="bi bi-question-circle"></i>
-            </span>
-            <div>
-              <h3 class="section-card__title">Frequently Asked Questions</h3>
-              <p class="section-card__subtitle">Help learners understand the course better</p>
-            </div>
-          </div>
-        </div>
-        <div class="section-card__body">
-          <div class="accordion-list">
-            @if (courseDetail?.[0]?.faq?.length) {
-              @for (item of courseDetail[0].faq; track item; let i = $index) {
-                <div class="accordion-item-card">
-                  <div class="accordion-item-card__header">
-                    <button
-                      class="accordion-item-card__toggle"
-                      type="button"
-                      data-bs-toggle="collapse"
-                      [attr.data-bs-target]="'#faq' + i"
-                      [attr.aria-controls]="'faq' + i"
-                    >
-                      <span class="accordion-item-card__number accordion-item-card__number--purple">Q{{ i + 1 }}</span>
-                      <span class="accordion-item-card__topic">{{ item?.question || 'Question' }}</span>
-                      <i class="bi bi-chevron-down accordion-item-card__chev"></i>
-                    </button>
-                    <button
-                      class="accordion-item-card__delete"
-                      title="Delete FAQ"
-                      (click)="$event.stopPropagation(); openDeleteModal('faq', i)"
-                    >
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  </div>
-                  <div [id]="'faq' + i" class="collapse accordion-item-card__body">
-                    <div class="faq-answer">
-                      <i class="bi bi-chat-square-text"></i>
-                      <p>{{ item?.answer || 'No answer provided' }}</p>
+                        <div class="d-flex flex-wrap align-items-center gap-3 text-secondary">
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="text-warning">★★★★★</span>
+                                <span class="fw-semibold">4.4</span>
+                            </div>
+                            <span>626 ratings</span>
+                            <span>•</span>
+                            <span>2,242 learners</span>
+                        </div>
                     </div>
-                  </div>
-                </div>
-              }
-            } @else {
-              <p class="empty-text">No FAQs added yet.</p>
-            }
-          </div>
 
-          @if (isAddingFaq) {
-            <div class="add-editor mt-3">
-              <input
-                type="text"
-                class="inline-editor__input mb-2"
-                placeholder="Enter the question"
-                #faqQuestion
-              />
-              <textarea
-                class="inline-editor__textarea"
-                rows="2"
-                placeholder="Enter the answer"
-                #faqAnswer
-              ></textarea>
-              <div class="add-editor__actions">
-                <button class="btn-soft btn-soft--ghost" (click)="isAddingFaq = false">Cancel</button>
-                <button class="btn-soft btn-soft--primary" (click)="addFaqItem(faqQuestion.value, faqAnswer.value)">
-                  <i class="bi bi-check-lg"></i> Save FAQ
-                </button>
-              </div>
+                    <div class="row gx-3 gx-xl-4 gy-3 mb-4">
+                        <div class="col-sm-6 col-lg-4">
+                            <div class="bg-light rounded-4 p-3 h-100 position-relative">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="fw-semibold mb-1">Duration</div>
+
+                                </div>
+                                @if (isEditingDuration) {
+                                <div class="mt-1">
+                                    <input type="text" class="form-control form-control-sm rounded-3 shadow-none mb-2"
+                                        [value]="courseDetail[0]?.duration" #durationInput>
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <button class="btn btn-light btn-xs p-1" (click)="isEditingDuration = false"><i
+                                                class="bi bi-x"></i>Cancel</button>
+                                        <button class="btn btn-primary btn-xs p-1"
+                                            (click)="updateDuration(durationInput.value)"><i
+                                                class="bi bi-check"></i>Save Item</button>
+                                    </div>
+                                </div>
+                                } @else {
+                                <div>{{ courseDetail[0]?.duration }}</div>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-lg-4">
+                            <div class="bg-light rounded-4 p-3 h-100">
+                                <div class="fw-semibold mb-1">Location</div>
+                                <div>{{ courseDetail[0]?.location }}</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-lg-4">
+                            <div class="bg-light rounded-4 p-3 h-100">
+                                <div class="fw-semibold mb-1">Start Date</div>
+                                <div>{{ courseDetail[0]?.startDate }}</div>
+                            </div>
+                        </div>
+                        <div class="col-12  col-lg-4 mt-2">
+                            <button class="btn btn-sm btn-outline-primary rounded-pill"
+                                (click)="isEditingDuration = true">
+                                <i class="bi bi-pencil-square"></i>
+                                Update Duration
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row gx-4 gy-4">
+                        <div class="col-lg-6">
+                            <div class="card border-0 bg-white shadow-sm rounded-4 h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h4 class="h5 mb-0">What you'll learn</h4>
+                                        <button class="btn btn-sm btn-outline-primary rounded-pill"><i
+                                                class="bi bi-pencil-square"></i>Update</button>
+                                    </div>
+                                    @if (courseDetail[0]?.whatYouWillLearn?.length) {
+                                    <ul class="list-unstyled mt-3 lh-lg">
+                                        @for (item of courseDetail[0].whatYouWillLearn; track item; let i = $index) {
+                                        <li class="d-flex justify-content-between align-items-center mb-1">
+                                            <span>✔ {{ item }}</span>
+                                            <button class="btn btn-sm text-danger p-0 border-0"
+                                                (click)="openDeleteModal('learning', i)">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                    fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                                    <path
+                                                        d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                                    <path
+                                                        d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                                                </svg>
+                                            </button>
+                                        </li>
+                                        }
+                                    </ul>
+                                    } @else {
+                                    <p class="text-secondary mb-0 mt-3">No learning outcomes available.</p>
+                                    }
+
+                                    @if (isAddingLearning) {
+                                    <div class="mt-3 p-3 border rounded-4 bg-light shadow-sm animate-fade-in">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold small text-primary">New Learning
+                                                Outcome</label>
+                                            <input type="text"
+                                                class="form-control form-control-sm rounded-3 shadow-none"
+                                                placeholder="e.g. Master the basics of Business Analytics"
+                                                #learningInput>
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <button class="btn btn-light btn-sm rounded-pill px-3 me-2"
+                                                (click)="isAddingLearning = false">Cancel</button>
+                                            <button class="btn btn-primary btn-sm rounded-pill px-3"
+                                                (click)="addLearningItem(learningInput.value)">Save Item</button>
+                                        </div>
+                                    </div>
+                                    } @else {
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill mt-3"
+                                        (click)="isAddingLearning = true">
+                                        <i class="bi bi-plus-circle me-1"></i> Add Learning Outcome
+                                    </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card border-0 bg-white shadow-sm rounded-4 h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h4 class="h5 mb-0">Course description</h4>
+                                        <button class="btn btn-sm btn-outline-primary rounded-pill"
+                                            (click)="isEditingDescription = true">
+                                            <i class="bi bi-pencil-square"></i> Update
+                                        </button>
+                                    </div>
+                                    @if (isEditingDescription) {
+                                    <div class="mb-3 p-3 border rounded-4 bg-light shadow-sm animate-fade-in">
+                                        <textarea class="form-control form-control-sm rounded-3 shadow-none" rows="3"
+                                            #descInput>{{ courseDetail[0]?.description }}</textarea>
+                                        <div class="d-flex justify-content-end mt-2">
+                                            <button class="btn btn-light btn-sm rounded-pill px-3 me-2"
+                                                (click)="isEditingDescription = false">Cancel</button>
+                                            <button class="btn btn-primary btn-sm rounded-pill px-3"
+                                                (click)="updateDescription(descInput.value)">Save</button>
+                                        </div>
+                                    </div>
+                                    } @else {
+                                    <p class="text-secondary mb-3">{{ courseDetail[0]?.description }}</p>
+                                    }
+
+                                    <hr>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h4 class="h5 mb-0">About this course</h4>
+                                        <button class="btn btn-sm btn-outline-primary rounded-pill"
+                                            (click)="isEditingAbout = true">
+                                            <i class="bi bi-pencil-square"></i> Update
+                                        </button>
+                                    </div>
+                                    @if (isEditingAbout) {
+                                    <div class="mb-3 p-3 border rounded-4 bg-light shadow-sm animate-fade-in">
+                                        <textarea class="form-control form-control-sm rounded-3 shadow-none" rows="4"
+                                            #aboutInput>{{ courseDetail[0]?.about }}</textarea>
+                                        <div class="d-flex justify-content-end mt-2">
+                                            <button class="btn btn-light btn-sm rounded-pill px-3 me-2"
+                                                (click)="isEditingAbout = false">Cancel</button>
+                                            <button class="btn btn-primary btn-sm rounded-pill px-3"
+                                                (click)="updateAbout(aboutInput.value)">Save</button>
+                                        </div>
+                                    </div>
+                                    } @else {
+                                    <p class="text-secondary mb-0">{{courseDetail[0]?.about}}</p>
+                                    }
+                                    <hr>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h4 class="h5 mb-0">Hands On Projects</h4>
+                                        <button class="btn btn-sm btn-outline-primary rounded-pill"><i
+                                                class="bi bi-pencil-square"></i>Update</button>
+                                    </div>
+                                    @if (courseDetail[0]?.handsOnProjects?.length) {
+                                    <ul class="list-unstyled mt-3 lh-lg">
+                                        @for (item of courseDetail[0].handsOnProjects; track item; let i = $index) {
+                                        <li class="d-flex justify-content-between align-items-center mb-1">
+                                            <span>✔ {{ item }}</span>
+                                            <button class="btn btn-sm text-danger p-0 border-0"
+                                                (click)="openDeleteModal('project', i)">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                    fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                                    <path
+                                                        d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                                    <path
+                                                        d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                                                </svg>
+                                            </button>
+                                        </li>
+                                        }
+                                    </ul>
+                                    } @else {
+                                    <p class="text-secondary mb-0 mt-3">No projects available.</p>
+                                    }
+
+                                    @if (isAddingProject) {
+                                    <div class="mt-3 p-3 border rounded-4 bg-light shadow-sm animate-fade-in">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold small text-primary">New Project</label>
+                                            <input type="text"
+                                                class="form-control form-control-sm rounded-3 shadow-none"
+                                                placeholder="e.g. Real-world case study project" #projectInput>
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <button class="btn btn-light btn-sm rounded-pill px-3 me-2"
+                                                (click)="isAddingProject = false">Cancel</button>
+                                            <button class="btn btn-primary btn-sm rounded-pill px-3"
+                                                (click)="addProjectItem(projectInput.value)">Save Item</button>
+                                        </div>
+                                    </div>
+                                    } @else {
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill mt-3"
+                                        (click)="isAddingProject = true">
+                                        <i class="bi bi-plus-circle me-1"></i> Add Project
+                                    </button>
+                                    }
+
+                                    <hr>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h4 class="h5 mb-0">Mentorship and Assessment</h4>
+                                        <button class="btn btn-sm btn-outline-primary rounded-pill"><i
+                                                class="bi bi-pencil-square"></i>Update</button>
+                                    </div>
+                                    @if (courseDetail[0]?.mentorshipAndAssessment?.length) {
+                                    <ul class="list-unstyled mt-3 lh-lg">
+                                        @for (item of courseDetail[0].mentorshipAndAssessment; track item; let i =
+                                        $index) {
+                                        <li class="d-flex justify-content-between align-items-center mb-1">
+                                            <span>✔ {{ item }}</span>
+                                            <button class="btn btn-sm text-danger p-0 border-0"
+                                                (click)="openDeleteModal('mentorship', i)">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                    fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                                    <path
+                                                        d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                                    <path
+                                                        d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                                                </svg>
+                                            </button>
+                                        </li>
+                                        }
+                                    </ul>
+                                    } @else {
+                                    <p class="text-secondary mb-0 mt-3">No assessment info available.</p>
+                                    }
+
+                                    @if (isAddingMentorship) {
+                                    <div class="mt-3 p-3 border rounded-4 bg-light shadow-sm animate-fade-in">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold small text-primary">New Mentorship
+                                                Item</label>
+                                            <input type="text"
+                                                class="form-control form-control-sm rounded-3 shadow-none"
+                                                placeholder="e.g. Weekly Q&A sessions with industry mentors"
+                                                #mentorshipInput>
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <button class="btn btn-light btn-sm rounded-pill px-3 me-2"
+                                                (click)="isAddingMentorship = false">Cancel</button>
+                                            <button class="btn btn-primary btn-sm rounded-pill px-3"
+                                                (click)="addMentorshipItem(mentorshipInput.value)">Save Item</button>
+                                        </div>
+                                    </div>
+                                    } @else {
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill mt-3"
+                                        (click)="isAddingMentorship = true">
+                                        <i class="bi bi-plus-circle me-1"></i> Add Mentorship Item
+                                    </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row gx-4 gy-4">
+                        <div class="col-lg-12">
+                            <div id="course-content" class="card border-0 bg-white shadow-sm rounded-4">
+                                <div class="card-body p-4">
+                                    <div
+                                        class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+                                        <div>
+                                            <h3 class="h5 mb-1">Course content</h3>
+                                            <p class="text-secondary mb-0">7 sections • 44 lectures • 2h 39m total
+                                                length</p>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-outline-secondary btn-sm">Expand all</button>
+
+                                            <!-- <button class="btn btn-outline-primary rounded-pill btn-sm"><i
+                                                    class="bi bi-pencil-square"></i> Update Curriculum</button> -->
+                                        </div>
+                                    </div>
+
+                                    <div class="accordion" id="courseAccordion" cdkDropList
+                                        (cdkDropListDropped)="drop($event)">
+                                        @if (courseDetail?.[0]?.curriculum?.length) {
+                                        @for (item of courseDetail[0].curriculum; track item; let i = $index) {
+                                        <div class="accordion-item rounded-4 border-0 mb-3 shadow-sm position-relative"
+                                            cdkDrag>
+                                            <div class="drag-handle position-absolute start-0 top-0 mt-3 ms-2 z-3"
+                                                cdkDragHandle style="cursor: move;">
+                                                <i class="bi bi-grip-vertical fs-5 text-secondary"></i>
+                                            </div>
+                                            <h2 class="accordion-header d-flex align-items-center" [id]="'heading' + i">
+                                                <button class="accordion-button rounded-4 bg-light collapsed ps-5"
+                                                    type="button" data-bs-toggle="collapse"
+                                                    [attr.data-bs-target]="'#collapse' + i" aria-expanded="false"
+                                                    [attr.aria-controls]="'collapse' + i">
+                                                    {{ item?.week || 'Week ' + (i + 1) }} - {{ item?.topics || 'Topics'
+                                                    }}
+                                                </button>
+                                                <button
+                                                    class="btn btn-sm btn-outline-danger mt-2 me-5 position-absolute end-0  border-0 opacity-100 z-3"
+                                                    title="Delete"
+                                                    (click)="$event.stopPropagation(); openDeleteModal('curriculum', i, null)">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                        fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                                        <path
+                                                            d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                                        <path
+                                                            d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                                                    </svg>
+                                                </button>
+                                            </h2>
+
+                                            <div [id]="'collapse' + i" class="accordion-collapse collapse"
+                                                [attr.aria-labelledby]="'heading' + i"
+                                                data-bs-parent="#courseAccordion">
+                                                <div class="accordion-body">
+                                                    <ul class="list-unstyled mb-0">
+                                                        @for (lecture of item.lectures; track lecture; let li = $index)
+                                                        {
+                                                        <li
+                                                            class="py-2 border-bottom d-flex justify-content-between align-items-center">
+                                                            <span>{{ lecture }}</span>
+                                                            <button
+                                                                class="btn btn-sm btn-outline-danger border-0 p-0 ms-2 opacity-100 z-3"
+                                                                title="Delete Lecture"
+                                                                (click)="openDeleteModal('curriculum', i, li)">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="16"
+                                                                    height="16" fill="currentColor" class="bi bi-trash"
+                                                                    viewBox="0 0 16 16">
+                                                                    <path
+                                                                        d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                                                    <path
+                                                                        d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                                                                </svg>
+                                                            </button>
+                                                        </li>
+                                                        }
+                                                        <!-- <li class="py-2">{{ item?.outcome || 'Outcome' }}</li> -->
+                                                    </ul>
+
+                                                    @if (addingSubItemIndex === i) {
+                                                    <div class="mt-3 p-3 border rounded-4 bg-white shadow-sm">
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-semibold small text-primary">Add
+                                                                Section Detail</label>
+                                                            <input type="text"
+                                                                class="form-control form-control-sm rounded-3 shadow-none"
+                                                                placeholder="e.g. 1.1 Introduction to Analytics"
+                                                                #subItemInput>
+                                                        </div>
+                                                        <div class="d-flex justify-content-end">
+                                                            <button class="btn btn-light btn-sm rounded-pill px-3 me-2"
+                                                                (click)="addingSubItemIndex = null">Cancel</button>
+                                                            <button class="btn btn-primary btn-sm rounded-pill px-3"
+                                                                (click)="addCurriculumSubItem(i, subItemInput.value)">Save</button>
+                                                        </div>
+                                                    </div>
+                                                    } @else {
+                                                    <button
+                                                        class="btn btn-sm btn-outline-primary rounded-pill rounded-pill mt-2 border-0"
+                                                        (click)="addingSubItemIndex = i">
+                                                        <i class="bi bi-plus-circle me-1"></i> Add Detail
+                                                    </button>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                        }
+                                        } @else {
+                                        <div class="text-secondary">No curriculum available.</div>
+                                        }
+                                    </div>
+
+                                    @if (isAddingCurriculum) {
+                                    <div class="mt-3 mx-3 p-3 border rounded-4 bg-light shadow-sm animate-fade-in">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold small text-primary">Add New Curriculum
+                                                Topic</label>
+                                            <input type="text"
+                                                class="form-control form-control-sm rounded-3 shadow-none"
+                                                placeholder="e.g. Week 1: Introduction to Business Analytics"
+                                                #curriculumInput>
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <button class="btn btn-light btn-sm rounded-pill px-3 me-2"
+                                                (click)="isAddingCurriculum = false">Cancel</button>
+                                            <button class="btn btn-primary btn-sm rounded-pill px-3"
+                                                (click)="isAddingCurriculum = false; addCurriculumItem(curriculumInput.value)">Save
+                                                Item</button>
+                                        </div>
+                                    </div>
+                                    } @else {
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill m-3"
+                                        (click)="isAddingCurriculum = true">
+                                        <i class="bi bi-plus-circle me-1"></i> Add Item
+                                    </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12">
+                            <div id="course-content-faq" class="card border-0 bg-white shadow-sm rounded-4">
+                                <div class="card-body p-4">
+                                    <div
+                                        class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+                                        <div>
+                                            <h3 class="h5 mb-1">FAQ</h3>
+                                            <p class="text-secondary mb-0">General questions about the course</p>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="accordion" id="courseAccordionFAQ">
+                                        @if (courseDetail?.[0]?.faq?.length) {
+                                        @for (item of courseDetail[0].faq; track item; let i = $index) {
+                                        <div class="accordion-item rounded-4 border-0 mb-3 shadow-sm">
+                                            <h2 class="accordion-header d-flex align-items-center"
+                                                [id]="'heading-faq' + i">
+                                                <button class="accordion-button rounded-4 bg-light collapsed"
+                                                    type="button" data-bs-toggle="collapse"
+                                                    [attr.data-bs-target]="'#collapse-faq' + i" aria-expanded="false"
+                                                    [attr.aria-controls]="'collapse-faq' + i">
+                                                    Q. {{ item?.question || 'Topics' }}
+                                                </button>
+                                                <button
+                                                    class="btn btn-sm text-danger mx-3 border-0 position-absolute end-5 opacity-100 z-3"
+                                                    (click)="openDeleteModal('faq', i)">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                        fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                                        <path
+                                                            d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                                        <path
+                                                            d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                                                    </svg>
+                                                </button>
+                                            </h2>
+                                            <div [id]="'collapse-faq' + i" class="accordion-collapse collapse"
+                                                [attr.aria-labelledby]="'heading-faq' + i"
+                                                data-bs-parent="#courseAccordionFAQ">
+                                                <div class="accordion-body">
+                                                    <ul class="list-unstyled mb-0">
+                                                        <li class="py-2">{{ item?.answer || 'Answer' }}</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        }
+                                        } @else {
+                                        <div class="text-secondary">No FAQ available.</div>
+                                        }
+                                    </div>
+
+                                    @if (isAddingFaq) {
+                                    <div class="mt-3 mx-3 p-3 border rounded-4 bg-light shadow-sm animate-fade-in">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold small text-primary">Question</label>
+                                            <input type="text"
+                                                class="form-control form-control-sm rounded-3 shadow-none"
+                                                placeholder="Enter the question" #faqQuestion>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold small text-primary">Answer</label>
+                                            <textarea class="form-control form-control-sm rounded-3 shadow-none"
+                                                rows="2" placeholder="Enter the answer" #faqAnswer></textarea>
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <button class="btn btn-light btn-sm rounded-pill px-3 me-2"
+                                                (click)="isAddingFaq = false">Cancel</button>
+                                            <button class="btn btn-primary btn-sm rounded-pill px-3"
+                                                (click)="addFaqItem(faqQuestion.value, faqAnswer.value)">Save
+                                                FAQ</button>
+                                        </div>
+                                    </div>
+                                    } @else {
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill m-3"
+                                        (click)="isAddingFaq = true">
+                                        <i class="bi bi-plus-circle me-1"></i> Add FAQ
+                                    </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          } @else {
-            <button class="add-btn add-btn--full mt-3" (click)="isAddingFaq = true">
-              <i class="bi bi-plus-circle-fill"></i>
-              <span>Add FAQ</span>
-            </button>
-          }
         </div>
-      </div>
+
+        <div class="col-lg-4">
+            <div class="position-sticky top-4">
+                <div class="card shadow-sm rounded-4 border-0 mb-4 overflow-hidden">
+                    <div class="card-body p-0">
+                        <div class="px-4 pt-4 pb-3 position-relative">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <img [src]="courseDetail[0]?.imagePath | imagePath"
+                                    alt="Course Thumbnail" class="img-fluid rounded-4 w-100" />
+                            </div>
+                            <span class="badge rounded-pill bg-danger px-3 py-2 position-absolute top-0 end-0 m-3">🔥
+                                Limited</span>
+                            <p class="text-uppercase text-secondary small mb-2">Program fee</p>
+                            <div class="d-flex flex-column gap-2 mb-3">
+                                <div class="d-flex align-items-baseline flex-wrap gap-2">
+                                    @if (isEditingFinalPrice) {
+                                    <div class="d-flex flex-column gap-1">
+                                        <input type="number" class="form-control form-control-sm rounded-3 shadow-none"
+                                            [value]="courseDetail[0]?.finalPrice" #finalPriceInput>
+                                        <div class="d-flex gap-1 mt-1">
+                                            <button class="btn btn-light btn-xs p-1"
+                                                (click)="isEditingFinalPrice = false">Cancel</button>
+                                            <button class="btn btn-primary btn-xs p-1"
+                                                (click)="updateFinalPrice(finalPriceInput.value)">Save</button>
+                                        </div>
+                                    </div>
+                                    } @else {
+                                    <p>
+                                        <span class="display-4 fw-bold text-primary mb-0 lh-1">{{courseDetail[0]?.finalPrice | currency: 'INR'}}</span>
+                                    </p>
+                                    <p>
+                                        <button class="btn btn-sm btn-outline-primary rounded-pill"
+                                            (click)="isEditingFinalPrice = true">
+                                            <i class="bi bi-pencil-square"></i>Update finalPrice
+                                        </button>
+                                    </p>
+
+                                    }
+
+                                    @if (isEditingPrice) {
+                                    <div class="d-flex flex-column gap-1">
+                                        <input type="number" class="form-control form-control-sm rounded-3 shadow-none"
+                                            [value]="courseDetail[0]?.price" #priceInput>
+                                        <div class="d-flex gap-1 mt-1">
+                                            <button class="btn btn-light btn-xs p-1"
+                                                (click)="isEditingPrice = false">Cancel</button>
+                                            <button class="btn btn-primary btn-xs p-1"
+                                                (click)="updatePrice(priceInput.value)">Save</button>
+                                        </div>
+                                    </div>
+                                    } @else {
+                                    <span class="fs-4 text-muted text-decoration-line-through opacity-75">{{
+                                        courseDetail[0]?.price | currency: 'INR' }}</span>
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill"
+                                        (click)="isEditingPrice = true">
+                                        <i class="bi bi-pencil-square"></i>Update Price
+                                    </button>
+                                    }
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center mt-3 fs-5">
+                                @if (isEditingDiscount) {
+                                <div class="d-flex flex-column gap-1">
+                                    <input type="number" class="form-control form-control-sm rounded-3 shadow-none"
+                                        [value]="courseDetail[0]?.discount" #discountInput>
+                                    <div class="d-flex gap-1 mt-1">
+                                        <button class="btn btn-light btn-xs p-1"
+                                            (click)="isEditingDiscount = false">Cancel</button>
+                                        <button class="btn btn-primary btn-xs p-1"
+                                            (click)="updateDiscount(discountInput.value)">Save</button>
+                                    </div>
+                                </div>
+                                } @else {
+                                <span class="badge rounded-pill bg-success px-3 py-2">Save {{
+                                    courseDetail[0]?.discount }}%</span>
+                                <button class="btn btn-sm btn-outline-primary rounded-pill"
+                                    (click)="isEditingDiscount = true">
+                                    <i class="bi bi-pencil-square"></i>Update Discount
+                                </button>
+                                }
+                            </div>
+                            <div class="mt-2 fw-bold fs-5">
+                                <span class="text-success">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                        class="bi bi-check-circle" viewBox="0 0 16 16">
+                                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                        <path
+                                            d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05" />
+                                    </svg>
+                                    {{courseDetail[0]?.taxInclusive}}</span>
+                            </div>
+                        </div>
+                        <div class="px-4 pb-4 fs-4">
+                            <div class="bg-light rounded-4 p-3">
+                                <div class="d-flex align-items-end justify-content-end mb-2">
+                                    @if (isEditingSeatsLeft) {
+                                        <div class="d-flex flex-column gap-1">
+                                            <input type="number" class="form-control form-control-sm rounded-3 shadow-none"
+                                                [value]="courseDetail[0]?.openPositions?.seatsLeft" #seatsLeftInput>
+                                            <div class="d-flex gap-1 mt-1 justify-content-end">
+                                                <button class="btn btn-light btn-xs p-1" (click)="isEditingSeatsLeft = false">Cancel</button>
+                                                <button class="btn btn-primary btn-xs p-1" (click)="updateSeatsLeft(seatsLeftInput.value)">Save</button>
+                                            </div>
+                                        </div>
+                                    } @else {
+                                        <span>🔥 Only <span class="badge rounded-pill bg-danger px-3 py-2"> {{
+                                            courseDetail[0]?.openPositions?.seatsLeft }} Seats Left!</span></span>
+                                        <button class="btn btn-sm btn-outline-primary rounded-pill" (click)="isEditingSeatsLeft = true">
+                                            <i class="bi bi-pencil-square"></i>Seats Left
+                                        </button>
+                                    }
+                                </div>
+                                <div class="progress rounded-pill" style="height: 10px;">
+                                    <div class="progress-bar bg-danger rounded-pill" role="progressbar"
+                                        [style.width.%]="courseDetail[0]?.openPositions?.progress || 88"
+                                        [attr.aria-valuenow]="courseDetail[0]?.openPositions?.progress || 88"
+                                        aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <div class="mt-2 text-end">
+                                    @if (isEditingProgress) {
+                                        <div class="d-flex flex-column gap-1 mt-2">
+                                            <label class="form-label small text-secondary mb-1">Update Progress %</label>
+                                            <input type="number" class="form-control form-control-sm rounded-3 shadow-none text-end"
+                                                [value]="courseDetail[0]?.openPositions?.progress || 88" #progressInput>
+                                            <div class="d-flex gap-1 mt-1 justify-content-end">
+                                                <button class="btn btn-light btn-sm rounded-pill px-3" (click)="isEditingProgress = false">Cancel</button>
+                                                <button class="btn btn-primary btn-sm rounded-pill px-3" (click)="updateProgress(progressInput.value)">Save</button>
+                                            </div>
+                                        </div>
+                                    } @else {
+                                        <button class="btn btn-sm btn-outline-primary rounded-pill" (click)="isEditingProgress = true">
+                                            <i class="bi bi-pencil-square"></i> Update Progress ({{ courseDetail[0]?.openPositions?.progress || 88 }}%)
+                                        </button>
+                                    }
+                                </div>
+                                <div class="mt-3 fw-bold fs-5">
+                                    @if (isEditingSeatsFilled) {
+                                        <div class="d-flex flex-column gap-1 mb-2">
+                                            <label class="form-label small text-secondary mb-1 text-end">Seats Filled</label>
+                                            <input type="text" class="form-control form-control-sm rounded-3 shadow-none text-end"
+                                                [value]="courseDetail[0]?.openPositions?.seatsFilled" #seatsFilledInput>
+                                            <div class="d-flex gap-1 mt-1 justify-content-end">
+                                                <button class="btn btn-light btn-sm rounded-pill px-3" (click)="isEditingSeatsFilled = false">Cancel</button>
+                                                <button class="btn btn-primary btn-sm rounded-pill px-3" (click)="updateSeatsFilled(seatsFilledInput.value)">Save</button>
+                                            </div>
+                                        </div>
+                                    } @else {
+                                        <p class="text-end mb-0">
+                                            <span class="text-danger">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                fill="currentColor" class="bi bi-person-fill-check" viewBox="0 0 16 16">
+                                                <path
+                                                    d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m1.679-4.493-1.335 2.226a.75.75 0 0 1-1.174.144l-.774-.773a.5.5 0 0 1 .708-.708l.547.548 1.17-1.951a.5.5 0 1 1 .858.514M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                                                <path
+                                                    d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4" />
+                                            </svg>
+                                            {{ courseDetail[0]?.openPositions?.seatsFilled}} + already booked</span>
+                                            <button class="btn btn-sm btn-outline-primary rounded-pill" (click)="isEditingSeatsFilled = true">
+                                                <i class="bi bi-pencil-square"></i> Seat Filled
+                                            </button> </p>
+                                    }
+
+                                    <p class="text-center bg-light">
+                                        <small class="text-primary px-2 py-1 rounded d-inline-block mt-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
+                                                <path
+                                                    d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976q.576.129 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69q.406.429.747.91zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .45 1.088l-.95.313a7 7 0 0 0-.179-.483m.53 2.507a7 7 0 0 0-.1-1.025l.985-.17q.1.58.116 1.17zm-.131 1.538q.05-.254.081-.51l.993.123a8 8 0 0 1-.23 1.155l-.964-.267q.069-.247.12-.501m-.952 2.379q.276-.436.486-.908l.914.405q-.24.54-.555 1.038zm-.964 1.205q.183-.183.35-.378l.758.653a8 8 0 0 1-.401.432z" />
+                                                <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z" />
+                                                <path
+                                                    d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5" />
+                                            </svg>
+                                            Offer ends soon · Batch Starts {{ courseDetail[0]?.startDate }}
+                                        </small>
+                                    </p>
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm rounded-4 border-0 mb-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="fw-semibold mb-0">Perks And Benefits</h6>
+                        </div>
+                        @if (courseDetail[0]?.perksAndBenefits?.length) {
+                        <ul class="list-unstyled mt-3 lh-lg">
+                            @for (item of courseDetail[0].perksAndBenefits; track item; let i = $index) {
+                            <li class="d-flex justify-content-between align-items-center mb-1">
+                                <span>✔ {{ item }}</span>
+                                <button class="btn btn-sm text-danger p-0 border-0"
+                                    (click)="openDeleteModal('perk', i)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                        class="bi bi-trash" viewBox="0 0 16 16">
+                                        <path
+                                            d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                        <path
+                                            d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                                    </svg>
+                                </button>
+                            </li>
+                            }
+                        </ul>
+                        } @else {
+                        <p class="text-secondary mb-0 mt-3">No outcomes available.</p>
+                        }
+
+                        @if (isAddingPerk) {
+                        <div class="mt-3 p-3 border rounded-4 bg-light shadow-sm animate-fade-in">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-primary">New Perk/Benefit</label>
+                                <input type="text" class="form-control form-control-sm rounded-3 shadow-none"
+                                    placeholder="e.g. Internship Certificate & LOR" #perkInput>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <button class="btn btn-light btn-sm rounded-pill px-3 me-2"
+                                    (click)="isAddingPerk = false">Cancel</button>
+                                <button class="btn btn-primary btn-sm rounded-pill px-3"
+                                    (click)="addPerkItem(perkInput.value)">Save Item</button>
+                            </div>
+                        </div>
+                        } @else {
+                        <button class="btn btn-sm btn-outline-primary rounded-pill mt-3" (click)="isAddingPerk = true">
+                            <i class="bi bi-plus-circle me-1"></i> Add Perk
+                        </button>
+                        }
+                    </div>
+                </div>
+
+                <div class="card shadow-sm rounded-4 border-0 mb-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="fw-semibold mb-0">Eligibility</h6>
+                        </div>
+                        @if (courseDetail[0]?.eligibility?.length) {
+                        <ul class="list-unstyled mt-3 lh-lg">
+                            @for (item of courseDetail[0].eligibility; track item; let i = $index) {
+                            <li class="d-flex justify-content-between align-items-center mb-1">
+                                <span>✔ {{ item }}</span>
+                                <button class="btn btn-sm text-danger p-0 border-0"
+                                    (click)="openDeleteModal('eligibility', i)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                        class="bi bi-trash" viewBox="0 0 16 16">
+                                        <path
+                                            d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                        <path
+                                            d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                                    </svg>
+                                </button>
+                            </li>
+                            }
+                        </ul>
+                        } @else {
+                        <p class="text-secondary mb-0 mt-3">No eligibility info available.</p>
+                        }
+
+                        @if (isAddingEligibility) {
+                        <div class="mt-3 p-3 border rounded-4 bg-light shadow-sm animate-fade-in">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-primary">New Eligibility
+                                    Criteria</label>
+                                <input type="text" class="form-control form-control-sm rounded-3 shadow-none"
+                                    placeholder="e.g. Graduates from any stream" #eligibilityInput>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <button class="btn btn-light btn-sm rounded-pill px-3 me-2"
+                                    (click)="isAddingEligibility = false">Cancel</button>
+                                <button class="btn btn-primary btn-sm rounded-pill px-3"
+                                    (click)="addEligibilityItem(eligibilityInput.value)">Save Item</button>
+                            </div>
+                        </div>
+                        } @else {
+                        <button class="btn btn-sm btn-outline-primary rounded-pill mt-3"
+                            (click)="isAddingEligibility = true">
+                            <i class="bi bi-plus-circle me-1"></i> Add Eligibility Criteria
+                        </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <aside class="content-layout__sidebar">
-      <div class="price-card">
-        <div class="price-card__media">
-          <img
-            [src]="courseDetail?.[0]?.imagePath | imagePath"
-            alt="Course Thumbnail"
-            class="price-card__image"
-          />
-          <span class="price-card__limited">
-            <i class="bi bi-fire"></i> Limited
-          </span>
-        </div>
-
-        <div class="price-card__body">
-          <div class="price-card__label">Program Fee</div>
-
-          <div class="price-card__price-block">
-            @if (isEditingFinalPrice) {
-              <div class="inline-editor inline-editor--compact">
-                <input
-                  type="number"
-                  class="inline-editor__input"
-                  [value]="courseDetail?.[0]?.finalPrice"
-                  #finalPriceInput
-                />
-                <div class="inline-editor__actions">
-                  <button class="btn-mini btn-mini--ghost" (click)="isEditingFinalPrice = false"><i class="bi bi-x-lg"></i></button>
-                  <button class="btn-mini btn-mini--primary" (click)="updateFinalPrice(finalPriceInput.value)"><i class="bi bi-check-lg"></i></button>
-                </div>
-              </div>
-            } @else {
-              <div class="price-card__main-price">
-                <span>{{ courseDetail?.[0]?.finalPrice | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
-                <button class="edit-icon-btn edit-icon-btn--lg" (click)="isEditingFinalPrice = true">
-                  <i class="bi bi-pencil"></i>
-                </button>
-              </div>
-            }
-
-            <div class="price-card__sub-price">
-              @if (isEditingPrice) {
-                <div class="inline-editor inline-editor--compact">
-                  <input
-                    type="number"
-                    class="inline-editor__input"
-                    [value]="courseDetail?.[0]?.price"
-                    #priceInput
-                  />
-                  <div class="inline-editor__actions">
-                    <button class="btn-mini btn-mini--ghost" (click)="isEditingPrice = false"><i class="bi bi-x-lg"></i></button>
-                    <button class="btn-mini btn-mini--primary" (click)="updatePrice(priceInput.value)"><i class="bi bi-check-lg"></i></button>
-                  </div>
-                </div>
-              } @else {
-                <span class="price-card__original">{{ courseDetail?.[0]?.price | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
-                <button class="edit-icon-btn" (click)="isEditingPrice = true">
-                  <i class="bi bi-pencil"></i>
-                </button>
-              }
-
-              @if (isEditingDiscount) {
-                <div class="inline-editor inline-editor--compact">
-                  <input
-                    type="number"
-                    class="inline-editor__input"
-                    [value]="courseDetail?.[0]?.discount"
-                    #discountInput
-                  />
-                  <div class="inline-editor__actions">
-                    <button class="btn-mini btn-mini--ghost" (click)="isEditingDiscount = false"><i class="bi bi-x-lg"></i></button>
-                    <button class="btn-mini btn-mini--primary" (click)="updateDiscount(discountInput.value)"><i class="bi bi-check-lg"></i></button>
-                  </div>
-                </div>
-              } @else {
-                <span class="price-card__discount-pill">
-                  Save {{ courseDetail?.[0]?.discount }}%
-                </span>
-                <button class="edit-icon-btn" (click)="isEditingDiscount = true">
-                  <i class="bi bi-pencil"></i>
-                </button>
-              }
-            </div>
-          </div>
-
-          @if (courseDetail?.[0]?.taxInclusive) {
-            <div class="price-card__tax">
-              <i class="bi bi-check-circle-fill"></i>
-              <span>{{ courseDetail[0].taxInclusive }}</span>
-            </div>
-          }
-
-          <div class="seats-box">
-            <div class="seats-box__row">
-              <span class="seats-box__label">
-                <i class="bi bi-fire"></i>
-                @if (isEditingSeatsLeft) {
-                  <div class="inline-editor inline-editor--compact">
-                    <input
-                      type="number"
-                      class="inline-editor__input"
-                      [value]="courseDetail?.[0]?.openPositions?.seatsLeft"
-                      #seatsLeftInput
-                    />
-                    <div class="inline-editor__actions">
-                      <button class="btn-mini btn-mini--ghost" (click)="isEditingSeatsLeft = false"><i class="bi bi-x-lg"></i></button>
-                      <button class="btn-mini btn-mini--primary" (click)="updateSeatsLeft(seatsLeftInput.value)"><i class="bi bi-check-lg"></i></button>
-                    </div>
-                  </div>
-                } @else {
-                  <span>Only <strong>{{ courseDetail?.[0]?.openPositions?.seatsLeft }}</strong> seats left!</span>
-                  <button class="edit-icon-btn" (click)="isEditingSeatsLeft = true">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                }
-              </span>
-            </div>
-
-            <div class="seats-box__progress">
-              <div
-                class="seats-box__progress-fill"
-                [style.width.%]="courseDetail?.[0]?.openPositions?.progress || 88"
-              ></div>
-            </div>
-
-            <div class="seats-box__footer">
-              @if (isEditingProgress) {
-                <div class="inline-editor inline-editor--compact">
-                  <input
-                    type="number"
-                    class="inline-editor__input"
-                    [value]="courseDetail?.[0]?.openPositions?.progress || 88"
-                    #progressInput
-                  />
-                  <div class="inline-editor__actions">
-                    <button class="btn-mini btn-mini--ghost" (click)="isEditingProgress = false"><i class="bi bi-x-lg"></i></button>
-                    <button class="btn-mini btn-mini--primary" (click)="updateProgress(progressInput.value)"><i class="bi bi-check-lg"></i></button>
-                  </div>
-                </div>
-              } @else {
-                <button class="link-edit-btn" (click)="isEditingProgress = true">
-                  <i class="bi bi-pencil"></i>
-                  Progress: {{ courseDetail?.[0]?.openPositions?.progress || 88 }}%
-                </button>
-              }
-
-              @if (isEditingSeatsFilled) {
-                <div class="inline-editor inline-editor--compact">
-                  <input
-                    type="text"
-                    class="inline-editor__input"
-                    [value]="courseDetail?.[0]?.openPositions?.seatsFilled"
-                    #seatsFilledInput
-                  />
-                  <div class="inline-editor__actions">
-                    <button class="btn-mini btn-mini--ghost" (click)="isEditingSeatsFilled = false"><i class="bi bi-x-lg"></i></button>
-                    <button class="btn-mini btn-mini--primary" (click)="updateSeatsFilled(seatsFilledInput.value)"><i class="bi bi-check-lg"></i></button>
-                  </div>
-                </div>
-              } @else {
-                <button class="link-edit-btn link-edit-btn--danger" (click)="isEditingSeatsFilled = true">
-                  <i class="bi bi-person-check-fill"></i>
-                  {{ courseDetail?.[0]?.openPositions?.seatsFilled }}+ booked
-                </button>
-              }
-            </div>
-
-            <div class="seats-box__offer">
-              <i class="bi bi-clock-history"></i>
-              <span>Offer ends soon · Starts {{ courseDetail?.[0]?.startDate }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="side-card">
-        <div class="side-card__header">
-          <span class="side-card__icon side-card__icon--green">
-            <i class="bi bi-gift-fill"></i>
-          </span>
-          <h3 class="side-card__title">Perks & Benefits</h3>
-        </div>
-        @if (courseDetail?.[0]?.perksAndBenefits?.length) {
-          <ul class="item-list">
-            @for (item of courseDetail[0].perksAndBenefits; track item; let i = $index) {
-              <li class="item-list__row">
-                <span class="item-list__bullet"><i class="bi bi-check-lg"></i></span>
-                <span class="item-list__text">{{ item }}</span>
-                <button class="item-list__delete" (click)="openDeleteModal('perk', i)" title="Delete">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </li>
-            }
-          </ul>
-        } @else {
-          <p class="empty-text">No perks added yet.</p>
-        }
-
-        @if (isAddingPerk) {
-          <div class="add-editor">
-            <input
-              type="text"
-              class="inline-editor__input"
-              placeholder="e.g. Internship Certificate & LOR"
-              #perkInput
-            />
-            <div class="add-editor__actions">
-              <button class="btn-soft btn-soft--ghost" (click)="isAddingPerk = false">Cancel</button>
-              <button class="btn-soft btn-soft--primary" (click)="addPerkItem(perkInput.value)">
-                <i class="bi bi-check-lg"></i> Save
-              </button>
-            </div>
-          </div>
-        } @else {
-          <button class="add-btn add-btn--full" (click)="isAddingPerk = true">
-            <i class="bi bi-plus-circle-fill"></i>
-            <span>Add Perk</span>
-          </button>
-        }
-      </div>
-
-      <div class="side-card">
-        <div class="side-card__header">
-          <span class="side-card__icon side-card__icon--blue">
-            <i class="bi bi-shield-check"></i>
-          </span>
-          <h3 class="side-card__title">Eligibility</h3>
-        </div>
-        @if (courseDetail?.[0]?.eligibility?.length) {
-          <ul class="item-list">
-            @for (item of courseDetail[0].eligibility; track item; let i = $index) {
-              <li class="item-list__row">
-                <span class="item-list__bullet item-list__bullet--blue"><i class="bi bi-check-lg"></i></span>
-                <span class="item-list__text">{{ item }}</span>
-                <button class="item-list__delete" (click)="openDeleteModal('eligibility', i)" title="Delete">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </li>
-            }
-          </ul>
-        } @else {
-          <p class="empty-text">No eligibility info added yet.</p>
-        }
-
-        @if (isAddingEligibility) {
-          <div class="add-editor">
-            <input
-              type="text"
-              class="inline-editor__input"
-              placeholder="e.g. Graduates from any stream"
-              #eligibilityInput
-            />
-            <div class="add-editor__actions">
-              <button class="btn-soft btn-soft--ghost" (click)="isAddingEligibility = false">Cancel</button>
-              <button class="btn-soft btn-soft--primary" (click)="addEligibilityItem(eligibilityInput.value)">
-                <i class="bi bi-check-lg"></i> Save
-              </button>
-            </div>
-          </div>
-        } @else {
-          <button class="add-btn add-btn--full" (click)="isAddingEligibility = true">
-            <i class="bi bi-plus-circle-fill"></i>
-            <span>Add Criteria</span>
-          </button>
-        }
-      </div>
-    </aside>
-  </div>
 </div>
 
-<div class="custom-modal" [class.custom-modal--show]="showDeleteModal">
-  <div class="custom-modal__backdrop" (click)="closeDeleteModal()"></div>
-  <div class="custom-modal__dialog">
-    <div class="custom-modal__header">
-      <div class="custom-modal__icon">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-      </div>
-      <h5 class="custom-modal__title">Confirm Deletion</h5>
-      <button class="custom-modal__close" (click)="closeDeleteModal()">
-        <i class="bi bi-x-lg"></i>
-      </button>
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" [class.show]="showDeleteModal" [style.display]="showDeleteModal ? 'block' : 'none'"
+    tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">Confirm Deletion</h5>
+                <button type="button" class="btn-close" (click)="closeDeleteModal()" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <p class="text-secondary mb-0">
+                    Are you sure you want to delete this {{ itemToDelete?.type === 'curriculum' && itemToDelete?.idx2
+                    !== null ? 'lecture' : 'item' }}? This action cannot be undone.
+
+                </p>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4"
+                    (click)="closeDeleteModal()">Cancel</button>
+                <button type="button" class="btn btn-danger rounded-pill px-4" (click)="deleteItem()">Delete</button>
+            </div>
+        </div>
     </div>
-    <div class="custom-modal__body">
-      <p>
-        Are you sure you want to delete this
-        {{ itemToDelete?.type === 'curriculum' && itemToDelete?.idx2 !== null ? 'lecture' : 'item' }}?
-        This action cannot be undone.
-      </p>
-    </div>
-    <div class="custom-modal__footer">
-      <button class="btn-soft btn-soft--ghost" (click)="closeDeleteModal()">Cancel</button>
-      <button class="btn-soft btn-soft--danger" (click)="deleteItem()">
-        <i class="bi bi-trash"></i> Delete
-      </button>
-    </div>
-  </div>
 </div>
+@if (showDeleteModal) {
+<div class="modal-backdrop fade show"></div>
+}

@@ -10,18 +10,21 @@ import { CommonModule } from '@angular/common';
   templateUrl: './course-detail.component.html',
   styleUrls: ['./course-detail.component.scss'],
   standalone: true,
-  imports: [CommonModule, ImagePathPipe, SplitPipe],
+  imports: [CommonModule, ImagePathPipe, SplitPipe]
 })
 export class CourseDetailComponent implements OnInit {
   courseId: string | null;
   courseDetail: any = null;
   isLoading: boolean = false;
+  isAddingLearning: boolean = false;
+  isAddingFaq: boolean = false;
+  showDeleteModal: boolean = false;
+  itemToDelete: { type: string, idx1: number, idx2: number | null } | null = null;
   error: string | null = null;
-  expandAll: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
-    private courseDetailService: CourseDetailService,
+    private courseDetailService: CourseDetailService
   ) {
     this.courseId = this.route.snapshot.queryParamMap.get('course');
   }
@@ -34,14 +37,6 @@ export class CourseDetailComponent implements OnInit {
     }
   }
 
-  get totalLectures(): number {
-    if (!this.courseDetail?.[0]?.curriculum?.length) return 0;
-    return this.courseDetail[0].curriculum.reduce(
-      (sum: number, sec: any) => sum + (sec?.lectures?.length || 0),
-      0,
-    );
-  }
-
   fetchCourseDetail(): void {
     if (!this.courseId) return;
 
@@ -51,6 +46,7 @@ export class CourseDetailComponent implements OnInit {
     this.courseDetailService.getCourseDetailById(this.courseId).subscribe({
       next: (response) => {
         this.courseDetail = response;
+        console.log('Course detail fetched successfully:', this.courseDetail);
         this.isLoading = false;
       },
       error: (error) => {
@@ -61,7 +57,108 @@ export class CourseDetailComponent implements OnInit {
     });
   }
 
-  toggleExpandAll(): void {
-    this.expandAll = !this.expandAll;
+  // Implement Update/Add logic for Learning Outcomes
+  addLearningItem(item: string): void {
+    if (item && item.trim() !== '') {
+      if (!this.courseDetail || !this.courseDetail[0] || !this.courseId) return;
+
+      const updatedDetail = {
+        ...this.courseDetail[0],
+        whatYouWillLearn: [...(this.courseDetail[0].whatYouWillLearn || []), item.trim()]
+      };
+
+      this.saveUpdate(updatedDetail);
+    }
+    this.isAddingLearning = false;
+  }
+
+  // Generic method to handle the API update
+  private saveUpdate(updatedDetail: any): void {
+    if (!this.courseId) return;
+    this.isLoading = true;
+    this.courseDetailService.updateCourseDetail(this.courseId, updatedDetail).subscribe({
+      next: () => {
+        this.courseDetail[0] = updatedDetail;
+        this.isLoading = false;
+        this.closeDeleteModal();
+      },
+      error: (err) => {
+        console.error('Error updating course:', err);
+        this.error = 'Failed to update course detail.';
+        this.isLoading = false;
+        this.closeDeleteModal();
+      }
+    });
+  }
+
+  openDeleteModal(type: string, idx1: number, idx2: number | null = null): void {
+    this.itemToDelete = { type, idx1, idx2 };
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.itemToDelete = null;
+  }
+
+  deleteItem(): void {
+    if (!this.itemToDelete || !this.courseDetail || !this.courseDetail[0] || !this.courseId) return;
+
+    const { type, idx1, idx2 } = this.itemToDelete;
+    const updatedDetail = { ...this.courseDetail[0] };
+
+    switch (type) {
+      case 'learning':
+        updatedDetail.whatYouWillLearn = [...(updatedDetail.whatYouWillLearn || [])];
+        updatedDetail.whatYouWillLearn.splice(idx1, 1);
+        break;
+      case 'faq':
+        const updatedFaq = [...(updatedDetail.faq || [])];
+        updatedFaq.splice(idx1, 1);
+        updatedDetail.faq = updatedFaq;
+        break;
+      case 'curriculum':
+        const updatedCurriculum = [...(updatedDetail.curriculum || [])];
+        if (idx2 !== null) {
+          const lectures = [...(updatedCurriculum[idx1].lectures || [])];
+          lectures.splice(idx2, 1);
+          updatedCurriculum[idx1] = { ...updatedCurriculum[idx1], lectures };
+        } else {
+          updatedCurriculum.splice(idx1, 1);
+        }
+        updatedDetail.curriculum = updatedCurriculum;
+        break;
+      case 'project':
+        updatedDetail.handsOnProjects = [...(updatedDetail.handsOnProjects || [])];
+        updatedDetail.handsOnProjects.splice(idx1, 1);
+        break;
+      case 'mentorship':
+        updatedDetail.mentorshipAndAssessment = [...(updatedDetail.mentorshipAndAssessment || [])];
+        updatedDetail.mentorshipAndAssessment.splice(idx1, 1);
+        break;
+      case 'perk':
+        updatedDetail.perksAndBenefits = [...(updatedDetail.perksAndBenefits || [])];
+        updatedDetail.perksAndBenefits.splice(idx1, 1);
+        break;
+      case 'eligibility':
+        updatedDetail.eligibility = [...(updatedDetail.eligibility || [])];
+        updatedDetail.eligibility.splice(idx1, 1);
+        break;
+    }
+
+    this.saveUpdate(updatedDetail);
+  }
+
+  addFaqItem(question: string, answer: string): void {
+    if (question?.trim() && answer?.trim()) {
+      if (!this.courseDetail || !this.courseDetail[0] || !this.courseId) return;
+      const newFaq = { question: question.trim(), answer: answer.trim() };
+      const updatedDetail = {
+        ...this.courseDetail[0],
+        faq: [...(this.courseDetail[0].faq || []), newFaq]
+      };
+      this.saveUpdate(updatedDetail);
+    }
+    this.isAddingFaq = false;
   }
 }

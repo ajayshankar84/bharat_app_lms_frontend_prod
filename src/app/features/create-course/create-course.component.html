@@ -1,344 +1,116 @@
-<div class="create-course">
-  <div class="page-hero">
-    <div class="page-hero__bg"></div>
-    <div class="page-hero__content">
-      <div class="page-hero__left">
-        <span class="page-hero__eyebrow">
-          <i
-            class="bi"
-            [ngClass]="isEditMode ? 'bi-pencil-square' : 'bi-plus-circle-fill'"
-          ></i>
-          {{ isEditMode ? "Edit mode" : "New course" }}
-        </span>
-        <h1 class="page-hero__title">
-          {{ isEditMode ? "Update Course" : "Create New Course" }}
-        </h1>
-        <p class="page-hero__subtitle">
-          Fill in the details below to
-          {{ isEditMode ? "update the existing" : "launch a brand new" }} course
-          for your learners.
-        </p>
-      </div>
-      <div class="page-hero__icon">
-        <i class="bi bi-mortarboard-fill"></i>
-      </div>
+<div class="container py-4">
+  <div class="card shadow-sm border-0 rounded-4">
+    <div class="card-header bg-white py-3 border-bottom">
+      <h2 class="h4 mb-0 fw-bold text-primary">{{ isEditMode ? 'Update Course' : 'Create New Course' }}</h2>
     </div>
-  </div>
+    <div class="card-body p-4">
+      <form [formGroup]="courseForm" (ngSubmit)="onSubmit()">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Name</label>
+            <input type="text" formControlName="name" class="form-control rounded-3" placeholder="Enter course name">
+          </div>
 
-  <form [formGroup]="courseForm" (ngSubmit)="onSubmit()" class="form-shell">
-    <div class="form-card">
-      <div class="form-card__header">
-        <span class="form-card__step">01</span>
-        <div>
-          <h3 class="form-card__title">
-            <i class="bi bi-info-circle"></i>
-            Basic Information
-          </h3>
-          <p class="form-card__subtitle">Core details about the course</p>
-        </div>
-      </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Type</label>
+            <select formControlName="type" class="form-select rounded-3">
+              <option value="" disabled>Select level</option>
+              <option value="basic">basic</option>
+              <option value="intermediate">intermediate</option>
+              <option value="advance">advance</option>
+            </select>
+          </div>
 
-      <div class="form-grid">
-        <div class="form-field form-field--lg">
-          <label class="form-field__label">
-            Course Name <span class="form-field__required">*</span>
-          </label>
-          <input
-            type="text"
-            formControlName="name"
-            class="form-field__input"
-            placeholder="e.g. Advanced UI/UX Design Mastery"
-          />
-        </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Category</label>
+            <select formControlName="category" class="form-select rounded-3">
+              <option value="" disabled>Select category</option>
+              <option value="web">web</option>
+              <option value="mobile">mobile</option>
+              <option value="backend">backend</option>
+              <option value="frontend">frontend</option>
+              <option value="full_stack">full_stack</option>
+              <option value="mean_stack">mean_stack</option>
+              <option value="mern_stack">mern_stack</option>
+              <option value="dev_ops">dev_ops</option>
+              <option value="ux/ui">ux/ui</option>
+              <option value="cyber_security">cyber_security</option>
+              <option value="internship">internship</option>
+            </select>
+          </div>
 
-        <div class="form-field">
-          <label class="form-field__label">
-            Level <span class="form-field__required">*</span>
-          </label>
-          <select formControlName="type" class="form-field__select">
-            <option value="" disabled>Select level</option>
-            <option value="basic">Basic</option>
-            <option value="intermediate">Intermediate</option>
-            <option value="advance">Advance</option>
-          </select>
-        </div>
+          <div class="col-md-12">
+            <label class="form-label fw-semibold">Description</label>
+            <textarea formControlName="description" class="form-control rounded-3" rows="2" placeholder="Enter course description"></textarea>
+          </div>
 
-        <div class="form-field">
-          <label class="form-field__label">
-            Category <span class="form-field__required">*</span>
-          </label>
-          <select formControlName="category" class="form-field__select">
-            <option value="" disabled>Select category</option>
-            <option value="web">Web</option>
-            <option value="mobile">Mobile</option>
-            <option value="backend">Backend</option>
-            <option value="frontend">Frontend</option>
-            <option value="full_stack">Full Stack</option>
-            <option value="mean_stack">MEAN Stack</option>
-            <option value="mern_stack">MERN Stack</option>
-            <option value="dev_ops">DevOps</option>
-            <option value="ux/ui">UX / UI</option>
-            <option value="cyber_security">Cyber Security</option>
-            <option value="internship">Internship</option>
-          </select>
-        </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Tag</label>
+            <input type="text" formControlName="tag" class="form-control rounded-3" placeholder="e.g. Best Seller">
+          </div>
 
-        <div class="form-field form-field--full">
-          <label class="form-field__label">
-            Description <span class="form-field__required">*</span>
-          </label>
-          <textarea
-            formControlName="description"
-            class="form-field__textarea"
-            rows="3"
-            placeholder="Write a clear, engaging description that explains what learners will achieve..."
-          ></textarea>
-        </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Rating</label>
+            <input type="number" formControlName="rating" class="form-control rounded-3" step="0.1" min="0" max="5">
+          </div>
 
-        <div class="form-field">
-          <label class="form-field__label">
-            <i class="bi bi-tag"></i>
-            Tag
-          </label>
-          <input
-            type="text"
-            formControlName="tag"
-            class="form-field__input"
-            placeholder="e.g. Best Seller"
-          />
-        </div>
+          <!-- Image upload field -->
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Course Image</label>
+            <div class="d-flex flex-column gap-2">
+              <input type="file" (change)="onFileSelected($event)" class="form-control rounded-3" accept="image/*">
+              <div *ngIf="imagePreview" class="mt-2 text-center bg-light p-2 rounded-3">
+                <img [src]="imagePreview | imagePath" class="img-thumbnail rounded-3" style="max-height: 120px;" alt="Course Preview">
+              </div>
+            </div>
+          </div>
 
-        <div class="form-field">
-          <label class="form-field__label">
-            <i class="bi bi-star-fill"></i>
-            Rating
-          </label>
-          <input
-            type="number"
-            formControlName="rating"
-            class="form-field__input"
-            step="0.1"
-            min="0"
-            max="5"
-            placeholder="0.0 - 5.0"
-          />
-        </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Price</label>
+            <input type="number" formControlName="price" class="form-control rounded-3">
+          </div>
 
-        <div class="form-field">
-          <div class="status-toggle">
-            <label class="status-toggle__label">Status</label>
-            <div class="status-toggle__switch">
-              <input
-                type="checkbox"
-                formControlName="active"
-                id="activeSwitch"
-                class="status-toggle__input"
-              />
-              <label for="activeSwitch" class="status-toggle__slider">
-                <span class="status-toggle__thumb"></span>
-              </label>
-              <span class="status-toggle__text">
-                {{ courseForm.get("active")?.value ? "Active" : "Inactive" }}
-              </span>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Discount Type</label>
+            <select formControlName="discountType" class="form-select rounded-3">
+              <option value="Percentage">Percentage</option>
+              <option value="Fixed">Fixed Amount</option>
+            </select>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Discount</label>
+            <input type="number" formControlName="discount" class="form-control rounded-3">
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Final Price</label>
+            <input type="number" formControlName="finalPrice" class="form-control rounded-3">
+          </div>
+
+          <div class="col-12">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" formControlName="active" id="activeSwitch">
+              <label class="form-check-label fw-semibold" for="activeSwitch">Active</label>
+            </div>
+          </div>
+
+          <div class="col-12 mt-4 pt-3 border-top">
+            <div class="d-flex flex-wrap gap-2 justify-content-end">
+              @if (isEditMode) {
+                <button type="button" class="btn btn-danger rounded-pill px-4 me-auto" (click)="onDelete()">
+                  <i class="bi bi-trash me-1"></i> Delete
+                </button>
+              }
+              <!-- <button type="button" class="btn btn-light rounded-pill px-4" (click)="router.navigate(['/features/courses'])">Cancel</button> -->
+              <button type="submit" class="btn btn-primary rounded-pill px-4" [disabled]="courseForm.invalid || isLoading">
+                <i class="bi" [class.bi-plus-circle]="!isEditMode" [class.bi-check-circle]="isEditMode"></i>
+                {{ isEditMode ? ' Update Course' : ' Create Course' }}
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      </form>
     </div>
-
-    <div class="form-card">
-      <div class="form-card__header">
-        <span class="form-card__step">02</span>
-        <div>
-          <h3 class="form-card__title">
-            <i class="bi bi-image"></i>
-            Course Image
-          </h3>
-          <p class="form-card__subtitle">
-            Upload an attractive cover image for the course
-          </p>
-        </div>
-      </div>
-
-      <div class="image-uploader">
-        <div class="image-uploader__preview">
-          @if (imagePreview) {
-            <img
-              [src]="imagePreview | imagePath"
-              alt="Course Preview"
-              class="image-uploader__img"
-            />
-          } @else {
-            <div class="image-uploader__placeholder">
-              <i class="bi bi-image-fill"></i>
-              <span>No image selected</span>
-            </div>
-          }
-        </div>
-
-        <div class="image-uploader__controls">
-          <label for="courseImage" class="image-uploader__btn">
-            <i class="bi bi-cloud-arrow-up-fill"></i>
-            <span>{{ imagePreview ? "Change Image" : "Upload Image" }}</span>
-          </label>
-          <input
-            id="courseImage"
-            type="file"
-            (change)="onFileSelected($event)"
-            accept="image/*"
-            class="image-uploader__input"
-          />
-          <p class="image-uploader__hint">
-            <i class="bi bi-info-circle"></i>
-            Recommended: JPG / PNG, max 2 MB, 16:9 ratio
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="form-card">
-      <div class="form-card__header">
-        <span class="form-card__step">03</span>
-        <div>
-          <h3 class="form-card__title">
-            <i class="bi bi-currency-rupee"></i>
-            Pricing
-          </h3>
-          <p class="form-card__subtitle">
-            Set the price and discount for this course
-          </p>
-        </div>
-      </div>
-
-      <div class="form-grid">
-        <div class="form-field">
-          <label class="form-field__label">
-            <i class="bi bi-currency-rupee"></i>
-            Price
-          </label>
-          <input
-            type="number"
-            formControlName="price"
-            class="form-field__input"
-            placeholder="0.00"
-            min="0"
-          />
-        </div>
-
-        <div class="form-field">
-          <label class="form-field__label">
-            <i class="bi bi-percent"></i>
-            Discount Type
-          </label>
-          <select formControlName="discountType" class="form-field__select">
-            <option value="Percentage">Percentage (%)</option>
-            <option value="Fixed">Fixed Amount</option>
-          </select>
-        </div>
-
-        <div class="form-field">
-          <label class="form-field__label">
-            <i class="bi bi-cash-coin"></i>
-            Discount
-          </label>
-          <input
-            type="number"
-            formControlName="discount"
-            class="form-field__input"
-            placeholder="0"
-            min="0"
-          />
-        </div>
-
-        <div class="form-field">
-          <label class="form-field__label form-field__label--highlight">
-            <i class="bi bi-check-circle-fill"></i>
-            Final Price
-          </label>
-          <input
-            type="number"
-            formControlName="finalPrice"
-            class="form-field__input form-field__input--highlight"
-            placeholder="0.00"
-            readonly
-          />
-        </div>
-      </div>
-
-      <div class="price-summary">
-        <div class="price-summary__row">
-          <span class="price-summary__label">Original Price</span>
-          <span class="price-summary__value">
-            ₹{{ courseForm.get("price")?.value || 0 }}
-          </span>
-        </div>
-        <div class="price-summary__row">
-          <span class="price-summary__label">Discount</span>
-          <span class="price-summary__value price-summary__value--discount">
-            -{{ courseForm.get("discount")?.value || 0
-            }}{{
-              courseForm.get("discountType")?.value === "Percentage" ? "%" : ""
-            }}
-          </span>
-        </div>
-        <div class="price-summary__divider"></div>
-        <div class="price-summary__row price-summary__row--total">
-          <span class="price-summary__label">Learner Pays</span>
-          <span class="price-summary__value price-summary__value--final">
-            ₹{{ courseForm.get("finalPrice")?.value || 0 }}
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <div class="form-actions">
-      @if (isEditMode) {
-        <button
-          type="button"
-          class="action-btn action-btn--danger"
-          (click)="onDelete()"
-          [disabled]="isLoading"
-        >
-          <i class="bi bi-trash-fill"></i>
-          <span>Delete Course</span>
-        </button>
-      }
-      <div class="form-actions__right">
-        <button
-          type="button"
-          class="action-btn action-btn--ghost"
-          (click)="router.navigate(['/dashboard/courses'])"
-          [disabled]="isLoading"
-        >
-          <i class="bi bi-x-lg"></i>
-          <span>Cancel</span>
-        </button>
-        <button
-          type="submit"
-          class="action-btn action-btn--primary"
-          [disabled]="courseForm.invalid || isLoading"
-        >
-          <i
-            class="bi"
-            [ngClass]="
-              isLoading
-                ? 'bi-arrow-clockwise spin'
-                : isEditMode
-                  ? 'bi-check2-circle'
-                  : 'bi-plus-circle-fill'
-            "
-          ></i>
-          <span>
-            {{
-              isLoading
-                ? "Saving..."
-                : isEditMode
-                  ? "Update Course"
-                  : "Create Course"
-            }}
-          </span>
-        </button>
-      </div>
-    </div>
-  </form>
+  </div>
 </div>

@@ -1,214 +1,177 @@
-<div
-  class="app-shell"
-  [class.sidebar-open]="isSidebarOpen"
-  [class.is-mobile]="isMobile"
->
-  <header class="topbar">
-    <div class="topbar__left">
-      <button
-        class="icon-btn d-lg-none"
-        (click)="toggleSidebar()"
-        aria-label="Toggle menu"
-      >
-        <i class="bi" [ngClass]="isSidebarOpen ? 'bi-x-lg' : 'bi-list'"></i>
-      </button>
-      <div class="topbar__brand">
-        <div class="topbar__brand-icon">
-          <i class="bi bi-mortarboard-fill"></i>
-        </div>
-        <div class="topbar__brand-text">
-          LearnDash
-          <span *ngIf="isAdmin" class="admin-badge">Admin</span>
-        </div>
-      </div>
-    </div>
+<div class="admin-wrapper" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <header class="top-navbar shadow-sm">
+        <div class="d-flex align-items-center px-3 h-100">
+            <button class="toggle-btn me-3" (click)="toggleSidebar()">
+                <i class="bi" [class.bi-list]="isSidebarCollapsed" [class.bi-x-lg]="!isSidebarCollapsed"></i>
+            </button>
+            <h5 class="mb-0 fw-bold text-dark">Admin Portal</h5>
 
-    <div class="topbar__right">
-      <button
-        class="icon-btn"
-        (click)="toggleTheme()"
-        aria-label="Toggle theme"
-      >
-        <i
-          class="bi"
-          [ngClass]="
-            themeService.theme() === 'light' ? 'bi-moon-stars' : 'bi-sun-fill'
-          "
-        ></i>
-      </button>
-
-      <div class="profile" [class.profile--open]="isProfileMenuOpen">
-        <button class="profile__trigger" (click)="toggleProfileMenu()">
-          <div class="profile__avatar">
-            <img
-              *ngIf="hasProfileImage; else headerAvatarFallback"
-              class="profile__avatar-image"
-              [src]="user?.profileImage | imagePath"
-              [alt]="displayName"
-            />
-            <ng-template #headerAvatarFallback>{{ userInitials }}</ng-template>
-          </div>
-          <div class="profile__info">
-            <span class="profile__name">{{ displayName }}</span>
-            <span class="profile__role">{{
-              isAdmin ? "Administrator" : "Student"
-            }}</span>
-          </div>
-          <i class="bi bi-chevron-down profile__chev"></i>
-        </button>
-
-        <div class="profile__menu" *ngIf="isProfileMenuOpen">
-          <div class="profile__menu-header">
-            <div class="profile__avatar profile__avatar--lg">
-              <img
-                *ngIf="hasProfileImage; else menuAvatarFallback"
-                class="profile__avatar-image"
-                [src]="user?.profileImage | imagePath"
-                [alt]="displayName"
-              />
-              <ng-template #menuAvatarFallback>{{ userInitials }}</ng-template>
+            <div class="ms-auto d-flex align-items-center">
+                <div class="user-profile d-flex align-items-center">
+                    <span class="me-2 small fw-medium"> Welcome, {{accountData?.role}} | {{ accountData?.firstName || accountData?.lastName}}</span>
+                    <!-- <div class="avatar">A</div> -->
+                     <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1" (click)="logout()" [disabled]="isLoggingOut">
+                        @if (isLoggingOut) {
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        }
+                        <span>Logout</span>
+                     </button>
+                </div>
             </div>
-            <div>
-              <div class="profile__menu-name">{{ displayName }}</div>
-              <div class="profile__menu-phone">+91 {{ user?.phone }}</div>
+        </div>
+    </header>
+
+    <div class="layout-container">
+        <aside class="sidebar shadow">
+            <div class="sidebar-header py-4 px-3 text-center">
+                <div class="brand-logo mb-2">
+                    <i class="bi bi-shield-check text-info fs-1"></i>
+                </div>
+                <h6 class="text-uppercase fw-bold text-info letter-spacing-1">Dashboard Panel</h6>
             </div>
-          </div>
-          <a
-            class="profile__menu-item"
-            routerLink="/dashboard/profile"
-            (click)="closeProfileMenu()"
-          >
-            <i class="bi bi-person"></i>
-            <span>My Profile</span>
-          </a>
-          <a
-            class="profile__menu-item"
-            routerLink="/dashboard/settings"
-            (click)="closeProfileMenu()"
-          >
-            <i class="bi bi-gear"></i>
-            <span>Settings</span>
-          </a>
-          <button
-            class="profile__menu-item profile__menu-item--danger"
-            (click)="logout()"
-            [disabled]="isLoggingOut"
-          >
-            <i
-              class="bi"
-              [ngClass]="
-                isLoggingOut ? 'bi-arrow-clockwise spin' : 'bi-box-arrow-right'
-              "
-            ></i>
-            <span>{{ isLoggingOut ? "Logging out..." : "Logout" }}</span>
-          </button>
-        </div>
-      </div>
+
+            <nav class="nav-menu">
+                @if (isAdmin) {
+                <a routerLink="/features/assigned-course" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-clipboard2-check"></i>
+                    <span>Assigned course</span>
+                </a>
+                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-people"></i>
+                    <span>Students</span>
+                </a>
+                  <a routerLink="/features/create-course" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-journal-bookmark"></i>
+                    <span>Create Courses</span>
+                </a>
+                <a routerLink="/features/courses" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-journal-bookmark"></i>
+                    <span>Courses</span>
+                </a>
+                 <a routerLink="/features/course-content" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-journal-bookmark"></i>
+                    <span>Course Content</span>
+                </a>
+                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-briefcase"></i>
+                    <span>Internship</span>
+                </a>
+                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-clipboard-data"></i>
+                    <span>Assigments</span>
+                </a>
+                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-question-circle"></i>
+                    <span>Quizzs</span>
+                </a>
+                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-award"></i>
+                    <span>Certificate</span>
+                </a>
+                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>Experience Letter</span>
+                </a>
+                } @else {
+                <a routerLink="/features/my-courses" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-book"></i>
+                    <span>My Courses</span>
+                </a>
+                <a routerLink="/features/dashboard-v1" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-hourglass-split"></i>
+                    <span>In Progress Courses</span>
+                </a>
+                <a routerLink="/features/recommended-courses" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-star"></i>
+                    <span>Recomended Courses</span>
+                </a>
+                <a routerLink="/features/course-detail" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-check2-circle"></i>
+                    <span>Completed Courses</span>
+                </a>
+                <a routerLink="/features/dashboard-v1" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-clipboard-data"></i>
+                    <span>Assigments</span>
+                </a>
+                <a routerLink="/features/dashboard-v1" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-question-circle"></i>
+                    <span>Quizzs</span>
+                </a>
+                <a routerLink="/features/dashboard-v1" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-award"></i>
+                    <span>Certificate</span>
+                </a>
+                <a routerLink="/features/dashboard-v1" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>Experience Letter</span>
+                </a>
+                }
+
+                <div class="nav-divider"></div>
+
+                <a routerLink="/settings" routerLinkActive="active" class="nav-item">
+                    <i class="bi bi-gear"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="javascript:void(0)" (click)="logout()" class="nav-item text-danger" 
+                   [style.pointer-events]="isLoggingOut ? 'none' : 'auto'" [class.opacity-50]="isLoggingOut">
+                    @if (isLoggingOut) {
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    } @else {
+                        <i class="bi bi-box-arrow-right"></i>
+                    }
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-wrapper rounded-4 shadow-sm bg-white p-4">
+                <router-outlet></router-outlet>
+            </div>
+        </main>
     </div>
-  </header>
 
-  <aside class="sidebar">
-    <div class="sidebar__header">
-      <div class="sidebar__brand">
-        <div class="sidebar__brand-icon">
-          <i class="bi bi-mortarboard-fill"></i>
-        </div>
-        <div class="sidebar__brand-text">
-          <span class="sidebar__brand-title">LearnDash</span>
-          <span class="sidebar__brand-sub">{{
-            isAdmin ? "Admin Portal" : "Learner Portal"
-          }}</span>
-        </div>
-      </div>
-    </div>
-
-    <nav class="sidebar__nav">
-      <div class="sidebar__section-title">Menu</div>
-
-      <a
-        *ngFor="let item of navItems"
-        [routerLink]="item.path"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="closeSidebarOnMobile()"
-      >
-        <i class="bi" [ngClass]="item.icon"></i>
-        <span>{{ item.label }}</span>
-      </a>
-
-      <div class="sidebar__divider"></div>
-
-      <div class="sidebar__section-title">Account</div>
-
-      <a
-        routerLink="/dashboard/profile"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="closeSidebarOnMobile()"
-      >
-        <i class="bi bi-person"></i>
-        <span>Profile</span>
-      </a>
-      <a
-        routerLink="/dashboard/settings"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="closeSidebarOnMobile()"
-      >
-        <i class="bi bi-gear"></i>
-        <span>Settings</span>
-      </a>
-
-      <button
-        class="sidebar__link sidebar__link--danger"
-        (click)="logout()"
-        [disabled]="isLoggingOut"
-      >
-        <i
-          class="bi"
-          [ngClass]="
-            isLoggingOut ? 'bi-arrow-clockwise spin' : 'bi-box-arrow-right'
-          "
-        ></i>
-        <span>{{ isLoggingOut ? "Logging out..." : "Logout" }}</span>
-      </button>
-    </nav>
-
-    <div class="sidebar__footer">
-      <div class="sidebar__user">
-        <div class="sidebar__user-avatar">
-          <img
-            *ngIf="hasProfileImage; else sidebarAvatarFallback"
-            class="sidebar__user-avatar-image"
-            [src]="user?.profileImage | imagePath"
-            [alt]="displayName"
-          />
-          <ng-template #sidebarAvatarFallback>{{ userInitials }}</ng-template>
-        </div>
-        <div class="sidebar__user-info">
-          <div class="sidebar__user-name">{{ displayName }}</div>
-          <div class="sidebar__user-role">
-            {{ isAdmin ? "Administrator" : "Student" }}
-          </div>
-        </div>
-      </div>
-    </div>
-  </aside>
-
-  <main class="main">
-    <div class="main__content">
-      <router-outlet></router-outlet>
-    </div>
-  </main>
-
-  <div
-    class="overlay"
-    *ngIf="isMobile && isSidebarOpen"
-    (click)="toggleSidebar()"
-  ></div>
-  <div
-    class="profile-backdrop"
-    *ngIf="isProfileMenuOpen"
-    (click)="closeProfileMenu()"
-  ></div>
+    @if (!isSidebarCollapsed) {
+    <div class="sidebar-overlay" (click)="toggleSidebar()"></div>
+    }
 </div>
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+
+
+<div class="container-fluid">
+    <div class="row">
+
+
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <div class="position-sticky">
+                <h4 class="text-center py-3 text-info">Admin Panel</h4>
+
+                <a href="javascript:void(0);" routerLink="/features/dashboard/d1" class="active"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+                <a routerLink="/features/user/list"><i class="bi bi-people me-2"></i>Users</a>
+                <a routerLink="/features/course/list"><i class="bi bi-people me-2"></i>Courses</a>
+                <a routerLink="/features/job/list"><i class="bi bi-bar-chart me-2"></i>Jobs</a>
+                <a routerLink="/settings"><i class="bi bi-gear me-2"></i>Settings</a>
+                <a routerLink="/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+            </div>
+        </nav>
+
+       
+        <main class="col-md-9 ms-sm-auto col-lg-10 overflow-auto">
+            <div>
+                <router-outlet></router-outlet>
+            </div>
+        </main>
+    </div>
+</div> -->

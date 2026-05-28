@@ -1,19 +1,22 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { lastValueFrom, Subject } from 'rxjs';
-import { finalize, takeUntil } from 'rxjs/operators';
+import { lastValueFrom, Subject, of } from 'rxjs';
+import { finalize, takeUntil } from 'rxjs/operators'; // keep for loadCourseData
 import { CourseService } from '../../core/services/course.service';
 import { ImagePathPipe } from '../../shared/pipes/image-path.pipe';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 
+interface ImageUploadResponse {
+  imagePath: string;
+}
 @Component({
   selector: 'app-create-course',
   templateUrl: './create-course.component.html',
   styleUrls: ['./create-course.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ImagePathPipe],
+  imports: [CommonModule, ReactiveFormsModule, ImagePathPipe]
 })
 export class CreateCourseComponent implements OnInit, OnDestroy {
   courseForm!: FormGroup;
@@ -27,9 +30,9 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
-    public router: Router,
-    private courseService: CourseService,
-  ) {}
+    private router: Router,
+    private courseService: CourseService
+  ) { }
 
   ngOnInit(): void {
     this.initForm();
@@ -58,9 +61,10 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
       finalPrice: [0, [Validators.min(0)]],
       rating: [0, [Validators.min(0), Validators.max(5)]],
       imagePath: [''],
-      active: [true],
+      active: [true]
     });
 
+    // Auto‑calculate final price when price/discount changes
     this.courseForm.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.calculateFinalPrice());
@@ -73,16 +77,14 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
 
     let finalPrice = price;
     if (discountType === 'Percentage') {
-      finalPrice = price - (price * discount) / 100;
+      finalPrice = price - (price * discount / 100);
     } else if (discountType === 'Fixed') {
       finalPrice = price - discount;
     }
     finalPrice = Math.max(0, finalPrice);
 
     if (this.courseForm.get('finalPrice')?.value !== finalPrice) {
-      this.courseForm
-        .get('finalPrice')
-        ?.setValue(finalPrice, { emitEvent: false });
+      this.courseForm.get('finalPrice')?.setValue(finalPrice, { emitEvent: false });
     }
   }
 
@@ -92,29 +94,28 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
     if (file) {
       this.selectedFile = file;
       const reader = new FileReader();
-      reader.onload = () => (this.imagePreview = reader.result as string);
+      reader.onload = () => this.imagePreview = reader.result as string;
       reader.readAsDataURL(file);
     }
   }
 
   loadCourseData(id: string): void {
     this.isLoading = true;
-    this.courseService
-      .getCourseById(id)
+    this.courseService.getCourseById(id)
       .pipe(
         takeUntil(this.destroy$),
-        finalize(() => (this.isLoading = false)),
+        finalize(() => this.isLoading = false)
       )
       .subscribe({
         next: (course) => {
           this.courseForm.patchValue(course);
           this.imagePreview = course.imagePath || null;
         },
-        error: (err) => console.error('Error fetching course:', err),
+        error: (err) => console.error('Error fetching course:', err)
       });
   }
 
-  async onSubmit(): Promise<void> {
+async onSubmit(): Promise<void> {
     if (this.courseForm.invalid) {
       this.courseForm.markAllAsTouched();
       return;
@@ -127,6 +128,7 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
       const formData = new FormData();
       const formValue = this.courseForm.value;
 
+      // Append all form fields to FormData safely
       Object.entries(formValue).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
           formData.append(key, value.toString());
@@ -138,13 +140,13 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
       }
 
       if (this.isEditMode && currentId) {
-        await lastValueFrom(
-          this.courseService.updateCourse(currentId, formData),
-        );
+        await lastValueFrom(this.courseService.updateCourse(currentId, formData));
+        console.log('Updated successfully');
       } else {
         await lastValueFrom(this.courseService.createCourse(formData));
+        console.log('Created successfully');
       }
-      this.router.navigate(['/dashboard/courses']);
+      this.router.navigate(['/features/courses']);
     } catch (err) {
       console.error('Error saving course:', err);
     } finally {
@@ -153,23 +155,19 @@ export class CreateCourseComponent implements OnInit, OnDestroy {
   }
 
   onDelete(): void {
-    if (
-      this.isEditMode &&
-      this.courseId &&
-      confirm('Are you sure you want to delete this course?')
-    ) {
+    if (this.isEditMode && this.courseId && confirm('Are you sure you want to delete this course?')) {
       this.isLoading = true;
-      this.courseService
-        .deleteCourse(this.courseId)
+      this.courseService.deleteCourse(this.courseId)
         .pipe(
           takeUntil(this.destroy$),
-          finalize(() => (this.isLoading = false)),
+          finalize(() => this.isLoading = false)
         )
         .subscribe({
           next: () => {
-            this.router.navigate(['/dashboard/courses']);
+            console.log('Deleted successfully');
+            this.router.navigate(['/features/courses']);
           },
-          error: (err: any) => console.error('Error deleting course:', err),
+          error: (err: any) => console.error('Error deleting course:', err)
         });
     }
   }

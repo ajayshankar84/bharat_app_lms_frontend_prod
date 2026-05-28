@@ -1,16 +1,15 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
-import { SessionService } from '../services/session.service';
+import { AccountStateService } from '../services/account-state.service';
 
 export const authGuard: CanActivateFn = (route, state) => {
-  const session = inject(SessionService);
+  const accountService = inject(AccountStateService);
   const router = inject(Router);
 
-  if (session.isLoggedIn()) {
+  if (accountService.getStoredAccountData()) {
     return true;
   }
 
-  return router.createUrlTree(['/auth/login'], {
-    queryParams: { returnUrl: state.url },
-  });
+  // Redirect to login page if no account data is found
+  return router.createUrlTree(['/auth/login']);
 };

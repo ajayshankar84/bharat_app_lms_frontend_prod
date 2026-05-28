@@ -1,19 +1,19 @@
-import { Pipe, PipeTransform, inject } from '@angular/core';
-import { UPLOAD_URL } from '../../core/config/api.config';
-import { SessionService } from '../../core/services/session.service';
+import { Pipe, PipeTransform } from '@angular/core';
+import { IMAGE_BASE_URL } from '../../core/services/course.service';
 
 @Pipe({
   name: 'imagePath',
-  standalone: true,
+  standalone: true
 })
 export class ImagePathPipe implements PipeTransform {
-  private session = inject(SessionService);
-
-  transform(fileId: string | null | undefined): string {
-    if (!fileId) {
-      return 'assets/images/placeholder.png';
+  transform(value: string | undefined, defaultImage: string = IMAGE_BASE_URL+'upload/bg.png'): string {
+    if (!value) {
+      return defaultImage;
     }
-    const token = this.session.getSessionToken() || '';
-    return `${UPLOAD_URL}/api/file/${fileId}?token=${token}`;
+    // If it's already a full URL or a data URL (base64), return it as is
+    if (value.startsWith('http') || value.startsWith('data:')) {
+      return value;
+    }
+    return `${IMAGE_BASE_URL}${value}`;
   }
 }

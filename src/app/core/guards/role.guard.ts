@@ -1,28 +1,25 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { SessionService } from '../services/session.service';
 
 export const roleGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
-  const session = inject(SessionService);
   const router = inject(Router);
 
-  const allowedRoles = ((route.data['roles'] as string[]) || []).map((role) =>
-    role.toLowerCase(),
-  );
+  const allowedRoles = route.data['roles'] as string[];
+  const currentUser = authService.currentUserValue;
 
-  if (!authService.isAuthenticated()) {
-    return router.createUrlTree(['/auth/login'], {
-      queryParams: { returnUrl: state.url },
-    });
-  }
-
-  const userRole = (session.getRole() || 'user').toLowerCase();
-
-  if (allowedRoles.includes(userRole)) {
+  // Check if user exists and has the required role
+  if (currentUser && allowedRoles.includes(currentUser.role)) {
     return true;
   }
 
-  return router.createUrlTree([session.getDashboardRoute()]);
+  if (currentUser) {
+    // User is logged in but lacks the required role (Unauthorized admin route access)
+    authService.logout();
+    return router.createUrlTree(['/login']);
+  } else {
+    // User is not logged in
+    return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
+  }
 };

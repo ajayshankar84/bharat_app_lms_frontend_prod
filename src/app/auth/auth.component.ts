@@ -5,13 +5,9 @@ import { RouterModule } from '@angular/router';
   selector: 'app-auth',
   standalone: true,
   imports: [RouterModule],
-  template: `<router-outlet />`,
-  styles: [
-    `
-      :host {
-        display: block;
-      }
-    `,
-  ],
+  templateUrl: './auth.component.html',
+  styleUrl: './auth.component.scss'
 })
-export class AuthComponent {}
+export class AuthComponent {
+
+}

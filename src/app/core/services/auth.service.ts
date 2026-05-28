@@ -1,125 +1,35 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
-import {
-  USER_LOGIN_SEND_OTP,
-  USER_LOGIN_VERIFY_OTP,
-  USER_MY_INFO,
-} from '../config/api.config';
-import { SessionService } from './session.service';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
 
-export interface SendOtpResponse {
-  message: string;
-  success: boolean;
-  isNewUser: boolean;
-  hasPasswordEnabled: boolean;
-  passwordLoginEnabled: boolean;
-  otpSession: string;
+export type UserRole = 'user' | 'admin';
+
+export interface User {
+  id: string;
+  email: string;
+  role: UserRole;
 }
 
-export interface VerifyOtpResponse {
-  message: string;
-  success: boolean;
-  passwordRequired: boolean;
-  authToken: string;
-  sessionToken: string;
-}
-
-export interface VerifyOtpPayload {
-  phone: string;
-  firebaseToken: string;
-  deviceInfo: {
-    deviceName: string;
-  };
-}
-
-export interface UserInfo {
-  _id: string;
-  username: string;
-  phone: string;
-  name?: string;
-  email?: string;
-  profileImage?: string;
-  district?: string;
-  state?: string;
-  profession?: string;
-  bio?: string;
-  gender?: string;
-  [key: string]: any;
-}
-
-const HARDCODED_OTP = '100000';
-
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class AuthService {
-  private http = inject(HttpClient);
-  private session = inject(SessionService);
+  private currentUserSubject: BehaviorSubject<User | null>;
+  public currentUser: Observable<User | null>;
 
-  private currentUserSubject = new BehaviorSubject<UserInfo | null>(
-    this.session.getUserInfo<UserInfo>(),
-  );
+  constructor() {
+    // Initialize with data from localStorage if available
+    this.currentUserSubject = new BehaviorSubject<User | null>(
+      JSON.parse(localStorage.getItem('lms-account-data') || 'null')
+    );
+    this.currentUser = this.currentUserSubject.asObservable();
+  }
 
-  currentUser$ = this.currentUserSubject.asObservable();
-
-  get currentUser(): UserInfo | null {
+  public get currentUserValue(): User | null {
     return this.currentUserSubject.value;
   }
 
-  sendOtp(phone: string): Observable<SendOtpResponse> {
-    return this.http.post<SendOtpResponse>(USER_LOGIN_SEND_OTP, { phone });
-  }
-
-  verifyOtp(
-    payload: VerifyOtpPayload,
-    otpSession: string,
-  ): Observable<VerifyOtpResponse> {
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${otpSession}`,
-    });
-
-    const finalPayload = {
-      ...payload,
-      otp: HARDCODED_OTP,
-    };
-
-    return this.http
-      .post<VerifyOtpResponse>(USER_LOGIN_VERIFY_OTP, finalPayload, { headers })
-      .pipe(
-        tap((res) => {
-          if (res.success) {
-            this.session.setAuthToken(res.authToken);
-            this.session.setSessionToken(res.sessionToken);
-          }
-        }),
-      );
-  }
-
-  fetchMyInfo(): Observable<UserInfo> {
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${this.session.getSessionToken()}`,
-    });
-    return this.http.get<UserInfo>(USER_MY_INFO, { headers }).pipe(
-      tap((info) => {
-        this.session.setUserInfo(info);
-        this.currentUserSubject.next(info);
-      }),
-    );
-  }
-
-  isAuthenticated(): boolean {
-    return this.session.isLoggedIn();
-  }
-
-  isAdmin(): boolean {
-    return this.session.isAdmin();
-  }
-
-  getDashboardRoute(): string {
-    return this.session.getDashboardRoute();
-  }
-
-  logout(): void {
-    this.session.clear();
+  public logout(): void {
+    localStorage.removeItem('lms-account-data');
     this.currentUserSubject.next(null);
   }
 }
