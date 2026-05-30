@@ -2,6 +2,7 @@ $bg: #f4f7fb;
 $radius: 1.6rem;
 $alert-bg: rgba(13, 110, 253, 0.08);
 $primary-color: #0d6efd;
+$success-color: #198754;
 $dark: #111827;
 $open-bg: #e9f2ff;
 .course-detail-page {
@@ -51,5 +52,256 @@ $open-bg: #e9f2ff;
             position: static;
             top: auto;
         }
+    }
+
+    .hero-header-container {
+        min-height: 300px; /* Ensures height is maintained during animation */
+    }
+
+    .hero-bg-zoom {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center center;
+        z-index: 0;
+        animation: heroZoomIn 3.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+    }
+
+    @keyframes heroZoomIn {
+        0% {
+            transform: scale(1.12);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .hero-parallax {
+        background-attachment: fixed;
+        background-attachment: fixed;
+        @media (max-width: 991.98px) {
+            background-attachment: scroll !important;
+            animation: none; /* Disable heavy animation on mobile for better performance */
+        }
+    }
+
+    // Utility for smooth transitions on all interactive elements
+    .transition-all {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    // Cinematic lift effect for cards and buttons
+    .hover-lift {
+        &:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+        }
+
+        &:active {
+            transform: translateY(-2px);
+        }
+    }
+
+    // Enhanced interaction for primary CTA buttons
+    .hover-lift-scale {
+        &:hover {
+            transform: translateY(-4px) scale(1.025);
+            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+        }
+        &:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+    }
+
+    // Typography and layout helpers used in the redesign
+    .letter-spacing-1 {
+        letter-spacing: 0.05em;
+    }
+
+    .fw-extrabold {
+        font-weight: 800;
+    }
+
+    // Pulse animation for the urgency badge
+    .pulse-danger {
+        animation: pulse-red 2s infinite;
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+
+    @keyframes pulse-red {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+        }
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+        }
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+        }
+    }
+
+    // Countdown Timer Styling
+    .timer-block {
+        background: #dc3545;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: baseline;
+        gap: 1px;
+        min-width: 38px;
+        justify-content: center;
+        
+        small { font-size: 0.6rem; opacity: 0.8; text-transform: uppercase; }
+    }
+
+    // Course Thumbnail and Trailer Overlay
+    .course-thumbnail-container {
+        cursor: pointer;
+        overflow: hidden;
+        
+        &:hover {
+            .thumbnail-overlay {
+                opacity: 1;
+            }
+            .play-btn-circle {
+                transform: scale(1.15);
+            }
+        }
+    }
+
+    .thumbnail-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.45);
+        opacity: 0;
+        transition: all 0.3s ease-in-out;
+        z-index: 1;
+    }
+
+    .play-btn-circle {
+        width: 54px;
+        height: 54px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: $primary-color;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        padding-left: 4px; // Optical alignment adjustment
+    }
+
+    .overlay-text {
+        color: white;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    // Glassmorphism effect for cards
+    .glass-card {
+        background-color: rgba(255, 255, 255, 0.15); // Semi-transparent white
+        backdrop-filter: blur(15px); // Blur the background behind it
+        border: 1px solid rgba(255, 255, 255, 0.2); // Subtle white border
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); // Soft shadow
+
+        // Icon animation on hover
+        &:hover {
+            .bg-primary.bg-opacity-10,
+            .bg-success.bg-opacity-10,
+            .bg-info.bg-opacity-10 {
+                transform: scale(1.1);
+            }
+        }
+    }
+
+    // Lecture list row enhancements
+    .lecture-row {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        
+        &:hover {
+            background-color: rgba($primary-color, 0.04);
+            transform: translateX(4px);
+        }
+    }
+
+    .completion-check {
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        &:hover { transform: scale(1.2); }
+    }
+
+    .lesson-pill {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid transparent !important;
+
+        &:hover {
+            background-color: $primary-color !important;
+            background-image: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.15) 50%, transparent 70%) !important;
+            background-size: 200% 100% !important;
+            animation: pillShimmer 2s infinite linear;
+            transform: scale(1.06) translateY(-1px);
+            box-shadow: 0 8px 20px rgba($primary-color, 0.3);
+            border-color: rgba(255, 255, 255, 0.1) !important;
+
+            // Invert colors of children for high-contrast on hover
+            span, i {
+                color: #fff !important;
+            }
+
+            .badge {
+                background-color: rgba(255, 255, 255, 0.2) !important;
+            }
+
+            .pill-progress-bar {
+                background-color: #fff !important;
+                height: 4px;
+                opacity: 0.9;
+            }
+
+            i {
+                transform: scale(1.1) translateX(2px);
+            }
+        }
+
+        .tiny { font-size: 0.7rem; }
+
+        .pill-progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background-color: rgba($primary-color, 0.5);
+            transition: width 0.4s ease-out;
+        }
+    }
+
+    // Learning Outcome Items
+    .learning-item {
+        padding: 0.4rem 0.6rem;
+        border-radius: 0.5rem;
+        &:hover {
+            background-color: rgba($success-color, 0.05);
+            transform: translateX(4px);
+        }
+    }
+
+    @keyframes pillShimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
     }
 }

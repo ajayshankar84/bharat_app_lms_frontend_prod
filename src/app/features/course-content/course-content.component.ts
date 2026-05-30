@@ -42,7 +42,8 @@ export class CourseContentComponent implements OnInit {
   showDeleteModal: boolean = false;
   itemToDelete: { type: string, idx1: number, idx2: number | null } | null = null;
   error: string | null = null;
-
+isEditingLocation:boolean = false; // Added property for location
+  isEditingStipend: boolean = false; // Added property for stipend
   constructor(
     private route: ActivatedRoute,
     private courseDetailService: CourseDetailService,
@@ -388,6 +389,62 @@ export class CourseContentComponent implements OnInit {
       });
     }
     this.isEditingDuration = false;
+  }
+
+  // Method to handle updating the Course Location
+  updateLocation(location: string): void {
+    if (location && location.trim() !== '') {
+      if (!this.courseDetail || !this.courseDetail[0] || !this.courseId) return;
+
+      const updatedDetail = {
+        ...this.courseDetail[0],
+        location: location.trim()
+      };
+
+      this.isLoading = true;
+      this.error = null;
+
+      this.courseDetailService.updateCourseDetail(this.courseId, updatedDetail).subscribe({
+        next: () => {
+          this.courseDetail[0] = updatedDetail;
+          this.isLoading = false;
+        },
+        error: (error: any) => {
+          console.error('Error updating location:', error);
+          this.error = error?.error?.message || 'Failed to update location.';
+          this.isLoading = false;
+        }
+      });
+    }
+    this.isEditingLocation = false;
+  }
+
+  // Method to handle updating the Course Stipend
+  updateStipend(stipend: string): void {
+    if (stipend && stipend.trim() !== '') {
+      if (!this.courseDetail || !this.courseDetail[0] || !this.courseId) return;
+
+      const updatedDetail = {
+        ...this.courseDetail[0],
+        stipend: stipend.trim()
+      };
+
+      this.isLoading = true;
+      this.error = null;
+
+      this.courseDetailService.updateCourseDetail(this.courseId, updatedDetail).subscribe({
+        next: () => {
+          this.courseDetail[0] = updatedDetail;
+          this.isLoading = false;
+        },
+        error: (error: any) => {
+          console.error('Error updating stipend:', error);
+          this.error = error?.error?.message || 'Failed to update stipend.';
+          this.isLoading = false;
+        }
+      });
+    }
+    this.isEditingStipend = false;
   }
 
   // Method to handle updating the Course Price

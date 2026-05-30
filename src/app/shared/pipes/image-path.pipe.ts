@@ -1,12 +1,12 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { IMAGE_BASE_URL } from '../../core/services/course.service';
+import { API_BASE_URL } from '../../core/config/api.config';
 
 @Pipe({
   name: 'imagePath',
   standalone: true
 })
 export class ImagePathPipe implements PipeTransform {
-  transform(value: string | undefined, defaultImage: string = IMAGE_BASE_URL+'upload/bg.png'): string {
+  transform(value: string | undefined, defaultImage: string = API_BASE_URL+'/upload/bg.png'): string {
     if (!value) {
       return defaultImage;
     }
@@ -14,6 +14,6 @@ export class ImagePathPipe implements PipeTransform {
     if (value.startsWith('http') || value.startsWith('data:')) {
       return value;
     }
-    return `${IMAGE_BASE_URL}${value}`;
+    return `${API_BASE_URL}/${value}`;
   }
 }

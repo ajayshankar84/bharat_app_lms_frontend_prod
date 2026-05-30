@@ -30,9 +30,11 @@ export class AccountComponent implements OnInit {
         lastName: ['', [Validators.required, Validators.minLength(2)]],
         email: ['', [Validators.required, Validators.email]],
         mobile: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(10), Validators.pattern(/^[1-9][0-9]{9}$/)]],
+        // role: [''],
         password: ['', [Validators.required, Validators.minLength(8)]],
         confirmPassword: ['', [Validators.required]],
       },
+      
       {
         validators: this.passwordsMatchValidator,
       }
@@ -118,6 +120,7 @@ export class AccountComponent implements OnInit {
           lastName: '',
           email: '',
           mobile: '',
+          role: '',
           password: '',
           confirmPassword: '',
         });

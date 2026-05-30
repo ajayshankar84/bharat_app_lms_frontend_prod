@@ -55,4 +55,8 @@ export class CoursesComponent implements OnInit {
       console.warn('Attempted to navigate to course content without an ID.');
     }
   }
+
+  navigateToUploadVideo(){
+     this.router.navigate(['/features/upload-video']);
+  }
 }

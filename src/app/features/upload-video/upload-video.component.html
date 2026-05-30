@@ -26,20 +26,8 @@
                 </select>
                 <div class="invalid-feedback">A course selection is required.</div>
 
-                <!-- Section to display existing videos for the selected course -->
-                <div *ngIf="existingVideoPaths.length > 0" class="mt-3">
-                  <label class="form-label text-muted small fw-bold">Existing videos in this course:</label>
-                  <div class="list-group list-group-flush border rounded shadow-sm overflow-auto" style="max-height: 150px;">
-                    <div *ngFor="let path of existingVideoPaths" class="list-group-item py-2 small d-flex align-items-center bg-light bg-opacity-10">
-                      <span class="text-primary me-2">
-                        <i class="bi bi-play-circle"></i>
-                      </span>
-                      <span class="text-truncate" [title]="path">
-                        {{ path }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                <!-- Course-wide existing videos -->
+            
               </div>
               
               <div class="col-md-6">
@@ -68,6 +56,17 @@
             </div>
 
             <div class="mb-4">
+              <label class="form-label fw-semibold d-block">Video Source</label>
+              <div class="btn-group w-100" role="group">
+                <input type="radio" class="btn-check" formControlName="uploadType" id="typeFile" value="file">
+                <label class="btn btn-outline-primary" for="typeFile"><i class="bi bi-file-earmark-play me-2"></i>Video File</label>
+
+                <input type="radio" class="btn-check" formControlName="uploadType" id="typeLink" value="link">
+                <label class="btn btn-outline-primary" for="typeLink"><i class="bi bi-youtube me-2"></i>YouTube Link</label>
+              </div>
+            </div>
+
+            <div class="mb-4">
               <label class="form-label fw-semibold">Video Title</label>
               <input type="text" formControlName="title" class="form-control" placeholder="e.g. Introduction to Angular"
                 [class.is-invalid]="uploadForm.get('title')?.invalid && uploadForm.get('title')?.touched">
@@ -80,7 +79,7 @@
                 placeholder="Briefly describe what this video covers..."></textarea>
             </div>
 
-            <div class="mb-5">
+            <div class="mb-5" *ngIf="uploadForm.get('uploadType')?.value === 'file'">
               <label class="form-label fw-semibold">Video File</label>
               <input type="file" class="form-control" (change)="onFileSelected($event)" accept="video/*"
                 [class.is-invalid]="!selectedFile && uploadForm.touched">
@@ -90,6 +89,17 @@
               <small class="text-muted mt-2 d-block" *ngIf="selectedFile">
                 Selected: <strong>{{ selectedFile.name }}</strong> ({{ (selectedFile.size / 1024 / 1024) | number:'1.2-2' }} MB)
               </small>
+            </div>
+
+            <div class="mb-5" *ngIf="uploadForm.get('uploadType')?.value === 'link'">
+              <label class="form-label fw-semibold">YouTube URL</label>
+              <input type="text" formControlName="youTubeLink" class="form-control" 
+                placeholder="https://www.youtube.com/watch?v=..."
+                [class.is-invalid]="uploadForm.get('youTubeLink')?.invalid && uploadForm.get('youTubeLink')?.touched">
+              <div class="invalid-feedback">
+                <span *ngIf="uploadForm.get('youTubeLink')?.errors?.['required']">A YouTube link is required.</span>
+                <span *ngIf="uploadForm.get('youTubeLink')?.errors?.['pattern']">Please enter a valid YouTube URL.</span>
+              </div>
             </div>
 
             <div class="mb-4" *ngIf="isSubmitting">
@@ -112,7 +122,8 @@
                 Cancel Upload
               </button>
 
-              <button type="submit" class="btn btn-primary px-5 shadow-sm" [disabled]="isSubmitting">
+              <button type="submit" class="btn btn-primary px-5 shadow-sm" 
+                [disabled]="uploadForm.invalid || isSubmitting || (uploadForm.get('uploadType')?.value === 'file' && !selectedFile)">
                 <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
                 {{ isSubmitting ? 'Uploading...' : 'Upload Video' }}
               </button>
@@ -121,5 +132,130 @@
         </div>
       </div>
     </div>
+    <div class="col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white py-3 border-bottom-0">
+          <h5 class="mb-0 fw-bold text-dark">Courses Video</h5>
+        </div>
+        <div class="card-body p-4"> 
+              <div *ngIf="existingCourseVideoPaths.length > 0" class="mt-3">
+                  <label class="form-label text-muted small fw-bold">All videos in this course:</label>
+                  <div class="list-group list-group-flush border rounded shadow-sm overflow-auto" style="max-height: 120px;">
+                    <div *ngFor="let video of existingCourseVideoPaths; let i = index" 
+                            class="list-group-item list-group-item-action py-1 small d-flex align-items-center justify-content-between bg-light bg-opacity-25 border-0">
+                      <div class="d-flex align-items-center text-truncate flex-grow-1" style="cursor: pointer;" (click)="openVideoModal(video)">
+                        <span class="text-secondary me-2">
+                          <i [class]="video.isYouTube ? 'bi bi-youtube text-danger' : 'bi bi-collection-play'"></i>
+                        </span>
+                        <span class="text-truncate" [title]="video.videoPath">
+                          {{ i + 1 }}. {{ (video.title | titlecase) || video.videoPath }}
+                          <small class="text-muted ms-1" *ngIf="video.duration">({{ video.duration }})</small>
+                        </span>
+                      </div>
+                      <i class="bi bi-trash text-danger ms-2" style="cursor: pointer;" (click)="deleteVideo(video.id); $event.stopPropagation()" title="Delete video"></i>
+                    </div>
+                  </div>
+                </div>
+        </div>
+      </div>
+       <div class="card shadow-sm">
+        <div class="card-header bg-white py-3 border-bottom-0">
+          <h5 class="mb-0 fw-bold text-dark">By Topic - Video</h5>
+        </div>
+        <div class="card-body p-4"> 
+            <!-- Section to display existing videos for the selected course and topic -->
+            <div *ngIf="existingVideoPaths.length > 0" class="mb-4">
+              <label class="form-label text-muted small fw-bold">Existing videos for this topic:</label>
+              <div class="list-group list-group-flush border rounded shadow-sm overflow-auto" style="max-height: 200px;">
+                <div *ngFor="let video of existingVideoPaths; let i = index" 
+                        class="list-group-item list-group-item-action py-2 small d-flex align-items-center justify-content-between bg-light bg-opacity-10 border-0">
+                  <div class="d-flex align-items-center text-truncate flex-grow-1" style="cursor: pointer;" (click)="openVideoModal(video)">
+                    <span class="text-primary me-2">
+                      <i [class]="video.isYouTube ? 'bi bi-youtube text-danger' : 'bi bi-play-circle'"></i>
+                    </span>
+                    <span class="text-truncate" [title]="video.videoPath">
+                      {{ i + 1 }}. {{ (video.title | titlecase) || video.videoPath }}
+                      <small class="text-muted ms-1" *ngIf="video.duration">({{ video.duration }})</small>
+                    </span>
+                  </div>
+                  <i class="bi bi-trash text-danger ms-2" style="cursor: pointer;" (click)="deleteVideo(video.id); $event.stopPropagation()" title="Delete video"></i>
+                </div>
+              </div>
+            </div>
+
+        </div>
+      </div>
+
+      <div class="card shadow-sm mt-3" *ngIf="uploadForm.get('lectureId')?.value">
+        <div class="card-header bg-white py-3 border-bottom-0">
+          <h5 class="mb-0 fw-bold text-dark">By Lecture - Video</h5>
+        </div>
+        <div class="card-body p-4"> 
+            <div *ngIf="existingLectureVideoPaths.length > 0; else noLectureVideos">
+              <label class="form-label text-muted small fw-bold">Existing videos for this lecture:</label>
+              <div class="list-group list-group-flush border rounded shadow-sm overflow-auto" style="max-height: 200px;">
+                <div *ngFor="let video of existingLectureVideoPaths; let i = index" 
+                        class="list-group-item list-group-item-action py-2 small d-flex align-items-center justify-content-between bg-light bg-opacity-10 border-0">
+                  <div class="d-flex align-items-center text-truncate flex-grow-1" style="cursor: pointer;" (click)="openVideoModal(video)">
+                    <span class="text-success me-2">
+                      <i [class]="video.isYouTube ? 'bi bi-youtube text-danger' : 'bi bi-play-btn'"></i>
+                    </span>
+                    <span class="text-truncate" [title]="video.videoPath">
+                      {{ i + 1 }}. {{ (video.title | titlecase) || video.videoPath }}
+                      <small class="text-muted ms-1" *ngIf="video.duration">({{ video.duration }})</small>
+                    </span>
+                  </div>
+                  <i class="bi bi-trash text-danger ms-2" style="cursor: pointer;" (click)="deleteVideo(video.id); $event.stopPropagation()" title="Delete video"></i>
+                </div>
+              </div>
+            </div>
+            <ng-template #noLectureVideos>
+              <p class="text-muted small mb-0">No videos uploaded for this lecture yet.</p>
+            </ng-template>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
+<!-- Video Player Modal -->
+<div class="modal fade" id="videoPlayerModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content bg-dark border-0">
+          <div class="modal-header border-0 pb-0">
+              <h5 class="modal-title text-white small text-truncate">{{ currentVideoTitle }}</h5>
+              <button type="button" class="btn-close btn-close-white" (click)="closeVideoModal()" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-0">
+              <div class="ratio ratio-16x9">
+                  <!-- YouTube Player -->
+                  <iframe *ngIf="currentVideoUrl && isYouTube" [src]="currentVideoUrl" allow="autoplay; fullscreen" allowfullscreen class="rounded-bottom"></iframe>
+
+                  <!-- HTML5 Video Player -->
+                  <video *ngIf="currentVideoUrl && !isYouTube" [src]="currentVideoUrl" controls autoplay class="rounded-bottom"></video>
+              </div>
+          </div>
+      </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" [class.show]="showDeleteConfirmModal" [style.display]="showDeleteConfirmModal ? 'block' : 'none'"
+    tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">Confirm Deletion</h5>
+                <button type="button" class="btn-close" (click)="closeDeleteConfirmModal()" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <p class="text-secondary mb-0">Are you sure you want to delete this video? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" (click)="closeDeleteConfirmModal()">Cancel</button>
+                <button type="button" class="btn btn-danger rounded-pill px-4" (click)="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div *ngIf="showDeleteConfirmModal" class="modal-backdrop fade show"></div>

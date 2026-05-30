@@ -1,22 +1,35 @@
 <div class="container-fluid course-detail-page py-4">
-    <div class="row justify-content-center">
-        <div class="col-12">
-
-            <h1 class="display-2"> <span class="badge bg-primary text-uppercase fs-7">Learn, Build & Grow - Build the
-                    Future with BharatApp !</span></h1>
-            <p class="mb-0  fw-semibold">Gain real-world industry experience by working on live projects with India's
-                own social networking platform.
-
-            </p>
-
-            <!-- <a href="#course-content" class="text-decoration-none fw-semibold">See course content →</a> -->
-
+    <!-- Modern Hero Header -->
+    <div class="row py-5 mb-4 border-bottom position-relative overflow-hidden hero-header-container">
+        
+        <!-- Animated Background Layer -->
+        <div class="hero-bg-zoom hero-parallax"
+             style="background-image: linear-gradient(135deg, rgba(0, 0, 0, 0.85) 0%, rgba(13, 110, 253, 0.45) 100%), url('https://via.placeholder.com/1920x400/000000/FFFFFF?text=Course+Hero+Image');"></div>
+        
+        <!-- Optional: Subtle dot pattern on top of the image/overlay -->
+        <div class="position-absolute w-100 h-100 top-0 start-0" 
+             style="background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1.5px, transparent 1.5px); background-size: 30px 30px; z-index: 1;"></div>
+        
+        <div class="col-12 px-4 px-md-5 position-relative text-center text-md-start text-white" style="z-index: 2;">
+            <div class="mb-3 d-flex justify-content-center justify-content-md-start"> 
+                <!-- Badge text color changed to white for contrast -->
+                <span class="badge rounded-pill bg-primary bg-opacity-25 text-white border border-white border-opacity-25 text-uppercase px-3 py-2 fw-bold small shadow-sm">
+                    {{courseDetail[0]?.pageTitle}}
+                </span>
+            </div>
+            <h1 class="display-3 fw-bold mb-3 tracking-tight text-break text-white">
+                {{courseDetail[0]?.pageSubTitle}}
+            </h1>
+            <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2 lead fs-6">
+                <i class="bi bi-patch-check-fill text-white"></i>
+                <span class="fw-medium">Verified Industry-Standard Curriculum</span>
+            </div>
         </div>
     </div>
 
     <div class="row gx-4">
         <div class="col-lg-8">
-            <div class="card shadow-sm rounded-4 border-0 mb-4">
+            <div class="card shadow-sm rounded-4 border-0 mb-4 hover-lift transition-all">
                 <div class="card-body p-4 p-xl-5">
                     <div class="d-flex flex-column gap-3 mb-4">
                         <div class="d-flex flex-wrap gap-2 align-items-center text-secondary small">
@@ -42,72 +55,127 @@
                     </div>
 
                     <div class="row gx-3 gx-xl-4 gy-3 mb-4">
+                        <!-- Duration Stat -->
                         <div class="col-sm-6 col-lg-4">
-                            <div class="bg-light rounded-4 p-3 h-100">
-                                <div class="fw-semibold mb-1">Duration</div>
-                                <div>{{ courseDetail[0]?.duration }}</div>
+                            <div class="glass-card rounded-4 p-3 h-100 d-flex align-items-center gap-3 hover-lift transition-all">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                    <i class="bi bi-clock-history fs-4"></i>
+                                </div>
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold letter-spacing-1" style="font-size: 0.7rem;">Duration</div>
+                                    <div class="fw-bold text-dark">{{ courseDetail[0]?.duration }}</div>
+                                </div>
                             </div>
                         </div>
+                        
+                        <!-- Location Stat -->
                         <div class="col-sm-6 col-lg-4">
-                            <div class="bg-light rounded-4 p-3 h-100">
-                                <div class="fw-semibold mb-1">Location</div>
-                                <div>{{ courseDetail[0]?.location }}</div>
+                            <div class="glass-card rounded-4 p-3 h-100 d-flex align-items-center gap-3 hover-lift transition-all">
+                                <div class="bg-success bg-opacity-10 text-success rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                    <i class="bi bi-geo-alt fs-4"></i>
+                                </div>
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold letter-spacing-1" style="font-size: 0.7rem;">Location</div>
+                                    <div class="fw-bold text-dark">{{ courseDetail[0]?.location }}</div>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- Start Date Stat -->
                         <div class="col-sm-6 col-lg-4">
-                            <div class="bg-light rounded-4 p-3 h-100">
-                                <div class="fw-semibold mb-1">Start Date</div>
-                                <div>{{ courseDetail[0]?.startDate }}</div>
+                            <div class="glass-card rounded-4 p-3 h-100 d-flex align-items-center gap-3 hover-lift transition-all">
+                                <div class="bg-info bg-opacity-10 text-info rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                    <i class="bi bi-calendar-check fs-4"></i>
+                                </div>
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold letter-spacing-1" style="font-size: 0.7rem;">Start Date</div>
+                                    <div class="fw-bold text-dark">{{ courseDetail[0]?.startDate }}</div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="row gx-4 gy-4">
                         <div class="col-lg-6">
-                            <div class="card border-0 bg-white shadow-sm rounded-4 h-100">
-                                <div class="card-body">
-                                    <h4 class="h5">What you'll learn</h4>
+                            <div class="card border-0 bg-white shadow-sm rounded-4 h-100 hover-lift transition-all">
+                                <div class="card-body p-4">
+                                    <h4 class="h5 fw-bold mb-4 d-flex align-items-center gap-2">
+                                        <i class="bi bi-mortarboard-fill text-primary"></i>
+                                        What you'll learn
+                                    </h4>
                                     @if (courseDetail[0]?.whatYouWillLearn?.length) {
-                                    <ul class="list-unstyled mt-3 lh-lg">
+                                    <div class="row g-3">
                                         @for (item of courseDetail[0].whatYouWillLearn; track item) {
-                                        <li>✔ {{ item }}</li>
+                                        <div class="col-12 col-md-6 col-lg-12 col-xl-6">
+                                            <div class="d-flex align-items-start gap-2 learning-item transition-all">
+                                                <i class="bi bi-check2 text-success fw-bold fs-5 mt-n1"></i>
+                                                <span class="text-secondary small fw-medium">{{ item }}</span>
+                                            </div>
+                                        </div>
                                         }
-                                    </ul>
+                                    </div>
                                     } @else {
-                                    <p class="text-secondary mb-0 mt-3">No learning outcomes available.</p>
+                                    <p class="text-muted small mb-0 mt-3 italic"><i class="bi bi-info-circle me-1"></i> No learning outcomes available.</p>
                                     }
                                 </div>
                             </div>
                         </div>
                         <div class="col-lg-6">
-                            <div class="card border-0 bg-white shadow-sm rounded-4 h-100">
-                                <div class="card-body">
-                                    <h4 class="h5">Course description</h4>
-                                    <p class="text-secondary mb-3">{{ courseDetail[0]?.description }}</p>
-                                    <p class="text-secondary mb-0">{{courseDetail[0]?.about}}</p>
-                                    <hr>
-                                    <h4 class="h5">Hands On Projects</h4>
-                                    @if (courseDetail[0]?.handsOnProjects?.length) {
-                                    <ul class="list-unstyled mt-3 lh-lg">
-                                        @for (item of courseDetail[0].handsOnProjects; track item) {
-                                        <li>✔ {{ item }}</li>
-                                        }
-                                    </ul>
-                                    } @else {
-                                    <p class="text-secondary mb-0 mt-3">No learning outcomes available.</p>
-                                    }
+                            <div class="card border-0 bg-white shadow-sm rounded-4 h-100 hover-lift transition-all">
+                                <div class="card-body p-4">
+                                    <!-- Course Overview -->
+                                    <div class="mb-4">
+                                        <h4 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
+                                            <i class="bi bi-info-circle-fill text-primary"></i>
+                                            Course Overview
+                                        </h4>
+                                        <p class="text-secondary small mb-2">{{ courseDetail[0]?.description }}</p>
+                                        <p class="text-secondary small mb-0">{{courseDetail[0]?.about}}</p>
+                                    </div>
 
-                                    <hr>
-                                    <h4 class="h5">Mentorship and Assessment</h4>
-                                    @if (courseDetail[0]?.mentorshipAndAssessment?.length) {
-                                    <ul class="list-unstyled mt-3 lh-lg">
-                                        @for (item of courseDetail[0].mentorshipAndAssessment; track item) {
-                                        <li>✔ {{ item }}</li>
+                                    <hr class="opacity-5 my-4">
+
+                                    <!-- Hands On Projects -->
+                                    <div class="mb-4">
+                                        <h4 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
+                                            <i class="bi bi-briefcase-fill text-primary"></i>
+                                            Hands-On Projects
+                                        </h4>
+                                        @if (courseDetail[0]?.handsOnProjects?.length) {
+                                            <div class="d-flex flex-column gap-2">
+                                                @for (item of courseDetail[0].handsOnProjects; track item) {
+                                                    <div class="d-flex align-items-start gap-2 learning-item transition-all">
+                                                        <i class="bi bi-check2 text-success fw-bold fs-5 mt-n1"></i>
+                                                        <span class="text-secondary small fw-medium">{{ item }}</span>
+                                                    </div>
+                                                }
+                                            </div>
+                                        } @else {
+                                            <p class="text-muted small mb-0 italic">No projects listed.</p>
                                         }
-                                    </ul>
-                                    } @else {
-                                    <p class="text-secondary mb-0 mt-3">No learning outcomes available.</p>
-                                    }
+                                    </div>
+
+                                    <hr class="opacity-5 my-4">
+
+                                    <!-- Mentorship -->
+                                    <div>
+                                        <h4 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
+                                            <i class="bi bi-person-check-fill text-primary"></i>
+                                            Mentorship & Assessment
+                                        </h4>
+                                        @if (courseDetail[0]?.mentorshipAndAssessment?.length) {
+                                            <div class="d-flex flex-column gap-2">
+                                                @for (item of courseDetail[0].mentorshipAndAssessment; track item) {
+                                                    <div class="d-flex align-items-start gap-2 learning-item transition-all">
+                                                        <i class="bi bi-check2 text-success fw-bold fs-5 mt-n1"></i>
+                                                        <span class="text-secondary small fw-medium">{{ item }}</span>
+                                                    </div>
+                                                }
+                                            </div>
+                                        } @else {
+                                            <p class="text-muted small mb-0 italic">No assessment details available.</p>
+                                        }
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -119,17 +187,39 @@
                                     <div
                                         class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
                                         <div>
-                                            <h3 class="h5 mb-1">Course content</h3>
-                                            <p class="text-secondary mb-0">19 sections • 100 lectures </p>
-                                                <!-- • 2h 39m total length -->
+                                            <h3 class="h5 mb-1 d-flex align-items-center gap-2 fw-bold">
+                                                <i class="bi bi-journal-bookmark-fill text-primary"></i>
+                                                Course content
+                                            </h3>
+                                            <p class="text-secondary mb-0">
+                                                {{ courseDetail?.[0]?.curriculum?.length || 0 }} sections • 
+                                                {{ getTotalLectures() }} lectures 
+                                                <span *ngIf="completedLectures.size > 0" class="ms-1 text-success fw-semibold">
+                                                    ({{ completedLectures.size }} completed)
+                                                </span>
+                                            </p>
                                         </div>
-                                        <button class="btn btn-outline-secondary btn-sm">Expand all sections</button>
+                                        <button class="btn btn-outline-primary btn-sm rounded-pill fw-semibold d-flex align-items-center gap-2">
+                                            <i class="bi bi-arrows-expand"></i>
+                                            Expand all sections
+                                        </button>
+                                    </div>
+
+                                    <!-- Curriculum Progress Bar -->
+                                    <div class="mb-4" *ngIf="getTotalLectures() > 0">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="small fw-bold text-muted">Overall Completion</span>
+                                            <span class="small fw-bold text-primary">{{ getCompletionPercentage() }}%</span>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" [style.width.%]="getCompletionPercentage()" [attr.aria-valuenow]="getCompletionPercentage()" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
                                     </div>
 
                                     <div class="accordion" id="courseAccordion">
                                         @if (courseDetail?.[0]?.curriculum?.length) {
                                         @for (item of courseDetail[0].curriculum; track item; let i = $index) {
-                                        <div class="accordion-item rounded-4 border-0 mb-3 shadow-sm">
+                                        <div class="accordion-item rounded-4 border-0 mb-3 shadow-sm hover-lift transition-all">
                                             <h2 class="accordion-header" [id]="'heading' + i">
                                                 <button class="accordion-button rounded-4 bg-light collapsed"
                                                     type="button" data-bs-toggle="collapse"
@@ -145,7 +235,34 @@
                                                 <div class="accordion-body">
                                                     <ul class="list-unstyled mb-0">
                                                         @for (lecture of item.lectures; track lecture) {
-                                                        <li class="py-2 border-bottom">{{ lecture }}</li>
+                                                        <li class="py-3 px-3 mb-1 d-flex justify-content-between align-items-start transition-all lecture-row rounded-3">
+                                                            <div class="d-flex align-items-center flex-grow-1">
+                                                                <button class="btn btn-link p-0 me-3 text-decoration-none border-0 shadow-none completion-check" 
+                                                                        (click)="toggleLectureCompletion(lecture.lectureId)"
+                                                                        [title]="completedLectures.has(lecture.lectureId) ? 'Mark as Incomplete' : 'Mark as Completed'">
+                                                                    <i class="bi fs-5" 
+                                                                       [ngClass]="completedLectures.has(lecture.lectureId) ? 'bi-check-circle-fill text-success' : 'bi-check-circle text-secondary opacity-50'">
+                                                                    </i>
+                                                                </button>
+                                                                <span class="fw-medium text-dark text-truncate" [title]="lecture?.lecture">{{ lecture?.lecture }}</span>
+                                                            </div>
+
+                                                            <div class="d-flex flex-column align-items-end gap-2" *ngIf="lecture?.videoList?.length">
+                                                                @for (v of lecture.videoList; track v.videoPath; let vIdx = $index) {
+                                                                    <button type="button"
+                                                                       (click)="openVideoModal(v)"
+                                                                       class="btn btn-sm border-0 bg-primary bg-opacity-10 d-flex align-items-center gap-2 px-2 py-1 rounded-pill lesson-pill position-relative overflow-hidden shadow-none"
+                                                                       data-bs-toggle="tooltip"
+                                                                       [attr.data-bs-title]="v.title || v.videoPath">
+                                                                        <div class="pill-progress-bar" [style.width.%]="v.progress || 0"></div>
+                                                                        <span class="badge rounded-circle bg-primary bg-opacity-25 text-primary p-1 d-flex align-items-center justify-content-center position-relative transition-all" style="width: 18px; height: 18px; font-size: 0.65rem; z-index: 1;">{{ vIdx + 1 }}</span>
+                                                                        <span class="small fw-semibold text-truncate d-none d-md-inline-block position-relative transition-all" style="max-width: 120px; z-index: 1;">{{ v.title | titlecase }}</span>
+                                                                        <span class="tiny text-muted ms-auto position-relative transition-all" style="z-index: 1;" *ngIf="v.duration">{{ v.duration }}</span>
+                                                                        <i [class]="v.isYouTube ? 'bi bi-youtube text-danger' : 'bi bi-play-fill'" class="position-relative transition-all" style="z-index: 1;"></i>
+                                                                    </button>
+                                                                }
+                                                            </div>
+                                                        </li>
                                                         }
                                                         <li class="py-2">{{ item?.outcome || 'Outcome' }}</li>
                                                     </ul>
@@ -167,7 +284,10 @@
                                     <div
                                         class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
                                         <div>
-                                            <h3 class="h5 mb-1">FAQ</h3>
+                                            <h3 class="h5 mb-1 d-flex align-items-center gap-2 fw-bold">
+                                                <i class="bi bi-question-circle-fill text-primary"></i>
+                                                FAQ
+                                            </h3>
                                             <p class="text-secondary mb-0">7 sections • 44 lectures • 2h 39m total
                                                 length</p>
                                         </div>
@@ -177,7 +297,7 @@
                                     <div class="accordion" id="courseAccordion1">
                                         @if (courseDetail?.[0]?.faq?.length) {
                                         @for (item of courseDetail[0].faq; track item; let i = $index) {
-                                        <div class="accordion-item rounded-4 border-0 mb-3 shadow-sm">
+                                        <div class="accordion-item rounded-4 border-0 mb-3 shadow-sm hover-lift transition-all">
                                             <h2 class="accordion-header" [id]="'heading' + i">
                                                 <button class="accordion-button rounded-4 bg-light collapsed"
                                                     type="button" data-bs-toggle="collapse"
@@ -215,117 +335,172 @@
             <div class="position-sticky top-4">
                 <!-- placeholder  -->
 
-                <div class="card shadow-sm rounded-4 border-0 mb-4 overflow-hidden">
-                    <div class="card-body p-0">
-                        <div class="px-4 pt-4 pb-3 position-relative">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <img [src]="courseDetail[0]?.imagePath | imagePath" [alt]="courseDetail[0]?.name"
-                                    alt="Course Thumbnail" class="img-fluid rounded-4 w-100" />
-                            </div>
-                            <span class="badge rounded-pill bg-danger px-3 py-2 position-absolute top-0 end-0 m-3">🔥
-                                Limited</span>
-                            <p class="text-uppercase text-secondary small mb-2">Program fee</p>
-                            <div class="d-flex align-items-baseline flex-wrap gap-2">
-                                <span class="display-4 fw-bold text-primary mb-0 lh-1">{{
-                                    courseDetail[0]?.finalPrice | currency: 'INR'}}</span>
-                                <span class="fs-4 text-muted text-decoration-line-through opacity-75">{{
-                                    courseDetail[0]?.price | currency: 'INR' }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mt-3 fs-5">
-                                <span class="badge rounded-pill bg-success px-3 py-2">Save {{
-                                    courseDetail[0]?.discount }}</span>
-                            </div>
-                            <div class="mt-2 fw-bold fs-5">
-                                <span class="text-success">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                                        class="bi bi-check-circle" viewBox="0 0 16 16">
-                                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
-                                        <path
-                                            d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05" />
-                                    </svg>
-                                    {{courseDetail[0]?.taxInclusive}}</span>
-                            </div>
-                        </div>
-                        <div class="px-4 pb-4 fs-4">
-                            <div class="bg-light rounded-4 p-3">
-                                <div class="d-flex align-items-end justify-content-end mb-2">
-                                    <span>🔥 Only <span class="badge rounded-pill bg-danger px-3 py-2"> {{
-                                            courseDetail[0]?.openPositions?.seatsLeft }} Seats Left!</span></span>
-                                </div>
-                                <div class="progress rounded-pill" style="height: 10px;">
-                                    <div class="progress-bar bg-danger rounded-pill" role="progressbar"
-                                        [style.width.%]="courseDetail[0]?.openPositions?.progress || 88"
-                                        [attr.aria-valuenow]="courseDetail[0]?.openPositions?.progress || 88"
-                                        aria-valuemin="0" aria-valuemax="100"></div>
-                                </div>
-                                <div class="mt-3 fw-bold fs-5">
-                                    <p class="text-end">
-                                        <span class="text-danger">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                                fill="currentColor" class="bi bi-person-fill-check" viewBox="0 0 16 16">
-                                                <path
-                                                    d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m1.679-4.493-1.335 2.226a.75.75 0 0 1-1.174.144l-.774-.773a.5.5 0 0 1 .708-.708l.547.548 1.17-1.951a.5.5 0 1 1 .858.514M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
-                                                <path
-                                                    d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4" />
-                                            </svg>
-                                            {{ courseDetail[0]?.openPositions?.seatsFilled}} + already booked</span>
-                                    </p>
-                                    <p class="text-center bg-light">
-                                        <small class="text-primary px-2 py-1 rounded d-inline-block mt-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                                fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
-                                                <path
-                                                    d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976q.576.129 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69q.406.429.747.91zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .45 1.088l-.95.313a7 7 0 0 0-.179-.483m.53 2.507a7 7 0 0 0-.1-1.025l.985-.17q.1.58.116 1.17zm-.131 1.538q.05-.254.081-.51l.993.123a8 8 0 0 1-.23 1.155l-.964-.267q.069-.247.12-.501m-.952 2.379q.276-.436.486-.908l.914.405q-.24.54-.555 1.038zm-.964 1.205q.183-.183.35-.378l.758.653a8 8 0 0 1-.401.432z" />
-                                                <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z" />
-                                                <path
-                                                    d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5" />
-                                            </svg>
-                                            Offer ends soon · Batch Starts {{ courseDetail[0]?.startDate }}
-                                        </small>
-                                    </p>
-
-
-                                </div>
-                            </div>
-                        </div>
+            <div class="card shadow-lg rounded-4 border-0 mb-4 overflow-hidden">
+              <div class="card-body p-0">
+                <!-- Course Header Image -->
+                <div class="position-relative course-thumbnail-container" (click)="courseDetail[0]?.trailerUrl ? openVideoModal({title: 'Course Trailer', videoPath: courseDetail[0]?.trailerUrl}) : null">
+                  <img [src]="courseDetail[0]?.imagePath | imagePath" [alt]="courseDetail[0]?.name" 
+                       class="img-fluid w-100" style="height: 200px; object-fit: cover;">
+                  
+                  <!-- Watch Trailer Overlay -->
+                  <div class="thumbnail-overlay d-flex flex-column align-items-center justify-content-center">
+                    <div class="play-btn-circle mb-2">
+                      <i class="bi bi-play-fill"></i>
                     </div>
+                    <span class="overlay-text fw-bold">Watch Trailer</span>
+                  </div>
+
+                  <span class="badge rounded-pill bg-danger px-3 py-2 position-absolute top-0 end-0 m-3 shadow-sm border border-white border-opacity-25 pulse-danger">
+                    🔥 Limited Offer
+                  </span>
                 </div>
 
+                <!-- Price and Savings Section -->
+                <div class="p-4 border-bottom bg-white">
+                  <label class="text-uppercase text-muted small fw-bold letter-spacing-1 mb-2 d-block">Investment</label>
+                  <div class="d-flex align-items-center gap-3">
+                    <h2 class="display-5 fw-extrabold text-primary mb-0">
+                      {{ courseDetail[0]?.finalPrice | currency: 'INR' }}
+                    </h2>
+                    <div class="d-flex flex-column">
+                      <span class="text-muted text-decoration-line-through fs-6">
+                        {{ courseDetail[0]?.price | currency: 'INR' }}
+                      </span>
+                      <span class="badge bg-success-subtle text-success border border-success border-opacity-10 fw-bold">
+                        Save {{ courseDetail[0]?.discount }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="mt-3 d-flex align-items-center gap-2 text-success small fw-semibold">
+                    <i class="bi bi-check-circle-fill"></i>
+                    {{courseDetail[0]?.taxInclusive}}
+                  </div>
+                </div>
+
+                <!-- Urgency and FOMO Section -->
+                <div class="p-4 bg-light">
+                  <div class="bg-white rounded-4 p-3 border border-danger border-opacity-10 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="small fw-bold text-danger">Hurry! Seats are filling fast</span>
+                      <span class="badge bg-danger rounded-pill px-2">{{ courseDetail[0]?.openPositions?.seatsLeft }} left</span>
+                    </div>
+                    <div class="progress rounded-pill mb-3" style="height: 8px;">
+                      <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated" role="progressbar"
+                        [style.width.%]="courseDetail[0]?.openPositions?.progress || 88"></div>
+                    </div>
+
+                    <!-- Countdown Timer -->
+                    <div class="d-flex align-items-center justify-content-between bg-danger bg-opacity-10 rounded-3 p-2 mb-3 border border-danger border-opacity-10" *ngIf="countdown">
+                        <span class="small fw-bold text-danger ps-1">Offer expires in:</span>
+                        <div class="d-flex gap-1 align-items-center">
+                            <div class="timer-block"><span>{{countdown.hours}}</span><small>h</small></div>
+                            <span class="text-danger fw-bold">:</span>
+                            <div class="timer-block"><span>{{countdown.minutes}}</span><small>m</small></div>
+                            <span class="text-danger fw-bold">:</span>
+                            <div class="timer-block"><span>{{countdown.seconds}}</span><small>s</small></div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex flex-column gap-2 small">
+                      <div class="d-flex align-items-center gap-2 text-secondary">
+                        <i class="bi bi-people-fill text-dark"></i>
+                        <span><strong>{{ courseDetail[0]?.openPositions?.seatsFilled}}</strong> ambitious learners already joined</span>
+                      </div>
+                      <div class="d-flex align-items-center gap-2 text-primary fw-medium">
+                        <i class="bi bi-calendar-event"></i>
+                        <span>Batch starts <strong>{{ courseDetail[0]?.startDate }}</strong></span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="text-center mt-3">
+                    <button class="btn btn-primary btn-lg w-100 rounded-pill py-3 fw-bold shadow-sm transition-all hover-lift-scale">
+                      Enroll in Course
+                    </button>
+                    <p class="text-muted tiny mt-2 mb-0">
+                      <i class="bi bi-shield-lock me-1"></i> Secure payment powered by BharatApp
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
 
-                <div class="card shadow-sm rounded-4 border-0 mb-4">
+
+                <div class="card shadow-sm rounded-4 border-0 mb-4 hover-lift transition-all">
                     <div class="card-body p-4">
-                        <h6 class="fw-semibold">Perks And Benefits</h6>
+                        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                            <i class="bi bi-gift-fill text-primary"></i>
+                            Perks & Benefits
+                        </h6>
                         @if (courseDetail[0]?.perksAndBenefits?.length) {
-                        <ul class="list-unstyled mt-3 lh-lg">
-                            @for (item of courseDetail[0].perksAndBenefits; track item) {
-                            <li>✔ {{ item }}</li>
-                            }
-                        </ul>
+                            <div class="d-flex flex-column gap-2">
+                                @for (item of courseDetail[0].perksAndBenefits; track item) {
+                                    <div class="d-flex align-items-start gap-2 learning-item transition-all">
+                                        <i class="bi bi-check2 text-success fw-bold fs-5 mt-n1"></i>
+                                        <span class="text-secondary small fw-medium">{{ item }}</span>
+                                    </div>
+                                }
+                            </div>
                         } @else {
-                        <p class="text-secondary mb-0 mt-3">No learning outcomes available.</p>
+                            <p class="text-muted small mb-0 mt-2 italic">No perks available.</p>
                         }
-
-
                     </div>
                 </div>
 
-                <div class="card shadow-sm rounded-4 border-0 mb-4">
+                <div class="card shadow-sm rounded-4 border-0 mb-4 hover-lift transition-all">
                     <div class="card-body p-4">
-                        <h6 class="fw-semibold">Eligibility</h6>
+                        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                            <i class="bi bi-person-badge-fill text-primary"></i>
+                            Eligibility
+                        </h6>
                         @if (courseDetail[0]?.eligibility?.length) {
-                        <ul class="list-unstyled mt-3 lh-lg">
-                            @for (item of courseDetail[0].eligibility; track item) {
-                            <li>✔ {{ item }}</li>
-                            }
-                        </ul>
+                            <div class="d-flex flex-column gap-2">
+                                @for (item of courseDetail[0].eligibility; track item) {
+                                    <div class="d-flex align-items-start gap-2 learning-item transition-all">
+                                        <i class="bi bi-check2 text-success fw-bold fs-5 mt-n1"></i>
+                                        <span class="text-secondary small fw-medium">{{ item }}</span>
+                                    </div>
+                                }
+                            </div>
                         } @else {
-                        <p class="text-secondary mb-0 mt-3">No learning outcomes available.</p>
+                            <p class="text-muted small mb-0 mt-2 italic">No eligibility criteria available.</p>
                         }
                     </div>
                 </div>
 
 
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Player Modal -->
+    <div class="modal fade" id="videoPlayerModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content bg-dark border-0">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title text-white small text-truncate">{{ currentVideoTitle }}</h5>
+                    <button type="button" class="btn-close btn-close-white" (click)="closeVideoModal()" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="ratio ratio-16x9">
+                        <!-- YouTube Player -->
+                        <iframe *ngIf="currentVideoUrl && isYouTube" 
+                                [src]="currentVideoUrl" 
+                                allow="autoplay; fullscreen; picture-in-picture" 
+                                allowfullscreen 
+                                class="rounded-bottom"></iframe>
+
+                        <!-- HTML5 Video Player -->
+                        <video *ngIf="currentVideoUrl && !isYouTube" 
+                               [src]="currentVideoUrl" 
+                               controls 
+                               autoplay 
+                               (loadedmetadata)="onVideoLoaded($event)"
+                               (timeupdate)="onTimeUpdate($event)"
+                               class="rounded-bottom"></video>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

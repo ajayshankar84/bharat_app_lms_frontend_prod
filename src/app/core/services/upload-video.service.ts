@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpEvent } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { UPLOAD_VIDEO_ENDPOINT } from '../config/api.config';
+import { UPLOAD_VIDEO_ENDPOINT, VIDEO_PROGRESS_ENDPOINT } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
@@ -16,6 +16,43 @@ export class UploadVideoService {
   getVideosByCourseId(courseId: string): Observable<any> {
     const endpoint = `${UPLOAD_VIDEO_ENDPOINT}/${courseId}`;
     return this.http.get(endpoint);
+  }
+
+  /**
+   * Fetches existing video records for a specific course and topic.
+   * @param courseId The ID of the course to query.
+   * @param topicId The ID of the topic to query.
+   */
+  getVideosByCourseIdTopicId(courseId: string, topicId: string): Observable<any> {
+    const endpoint = `${UPLOAD_VIDEO_ENDPOINT}/${courseId}/${topicId}`;
+    return this.http.get(endpoint);
+  }
+
+  /**
+   * Fetches existing video records for a specific course, topic, and lecture.
+   * @param courseId The ID of the course to query.
+   * @param topicId The ID of the topic to query.
+   * @param lectureId The ID of the lecture to query.
+   */
+  getVideosByCourseIdTopicIdLectureId(courseId: string, topicId: string, lectureId: string): Observable<any> {
+    const endpoint = `${UPLOAD_VIDEO_ENDPOINT}/${courseId}/${topicId}/${lectureId}`;
+    return this.http.get(endpoint);
+  }
+
+  /**
+   * Saves the current playback time for a specific video and user.
+   */
+  saveVideoProgress(payload: any): Observable<any> {
+    return this.http.post(VIDEO_PROGRESS_ENDPOINT, payload);
+  }
+
+  /**
+   * Retrieves the last saved playback time for a specific video and user.
+   */
+  getVideoProgress(userId: string, videoPath: string): Observable<any> {
+    return this.http.get(`${VIDEO_PROGRESS_ENDPOINT}`, {
+      params: { userId, videoPath }
+    });
   }
 
   /**
@@ -41,5 +78,14 @@ export class UploadVideoService {
       reportProgress: true,
       observe: 'events'
     });
+  }
+
+  /**
+   * Deletes a video record by its unique identifier.
+   * @param id The unique identifier of the video record (_id).
+   */
+  deleteVideo(id: string): Observable<any> {
+    const endpoint = `${UPLOAD_VIDEO_ENDPOINT}/${id}`;
+    return this.http.delete(endpoint);
   }
 }

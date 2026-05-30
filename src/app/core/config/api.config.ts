@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'http://localhost:2999';
+export const API_BASE_URL = `https://bharatapp-admin.praispranav.com`;//'http://localhost:2999';
 export const PROD_API_BASE_URL = `https://bharatapp-admin.praispranav.com`;
 export const LMS_INTERNSHIP_ENDPOINT = `${PROD_API_BASE_URL}/internship`;
 
@@ -21,3 +21,4 @@ export const COURSES_ENDPOINT = `${API_BASE_URL}/course`;
 // upload-video
 export const UPLOAD_VIDEO_ENDPOINT = `${API_BASE_URL}/upload-video`;
 
+export const VIDEO_PROGRESS_ENDPOINT = `${API_BASE_URL}/video-progress`;
