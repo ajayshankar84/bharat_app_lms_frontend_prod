@@ -7,6 +7,7 @@ export interface User {
   id: string;
   email: string;
   role: UserRole;
+  access_token?: string;
 }
 
 @Injectable({

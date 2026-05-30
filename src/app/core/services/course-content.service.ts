@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { SessionService } from './session.service';
@@ -73,62 +73,39 @@ export class CourseContentService {
   private http = inject(HttpClient);
   private session = inject(SessionService);
 
-  private get headers(): HttpHeaders {
-    return new HttpHeaders({
-      Authorization: `Bearer ${this.session.getSessionToken()}`,
-    });
-  }
-
   getAllCourses(): Observable<any> {
-    return this.http.get(`${COURSE_CONTENT_BASE}/courses`, {
-      headers: this.headers,
-    });
+    return this.http.get(`${COURSE_CONTENT_BASE}/courses`);
   }
 
   getCourseById(id: string): Observable<any> {
-    return this.http.get(`${COURSE_CONTENT_BASE}/courses/${id}`, {
-      headers: this.headers,
-    });
+    return this.http.get(`${COURSE_CONTENT_BASE}/courses/${id}`);
   }
 
   getCourseLessons(courseId: string): Observable<any> {
-    return this.http.get(`${COURSE_CONTENT_BASE}/courses/${courseId}/lessons`, {
-      headers: this.headers,
-    });
+    return this.http.get(`${COURSE_CONTENT_BASE}/courses/${courseId}/lessons`);
   }
 
   getLessonById(courseId: string, lessonId: string): Observable<any> {
     return this.http.get(
-      `${COURSE_CONTENT_BASE}/courses/${courseId}/lessons/${lessonId}`,
-      { headers: this.headers },
+      `${COURSE_CONTENT_BASE}/courses/${courseId}/lessons/${lessonId}`
     );
   }
 
   createCourseContent(payload: any): Observable<any> {
-    return this.http.post(`${COURSE_CONTENT_BASE}/courses`, payload, {
-      headers: this.headers,
-    });
+    return this.http.post(`${COURSE_CONTENT_BASE}/courses`, payload);
   }
 
   updateCourseContent(id: string, payload: any): Observable<any> {
-    return this.http.put(`${COURSE_CONTENT_BASE}/courses/${id}`, payload, {
-      headers: this.headers,
-    });
+    return this.http.put(`${COURSE_CONTENT_BASE}/courses/${id}`, payload);
   }
 
   deleteCourseContent(id: string): Observable<any> {
-    return this.http.delete(`${COURSE_CONTENT_BASE}/courses/${id}`, {
-      headers: this.headers,
-    });
+    return this.http.delete(`${COURSE_CONTENT_BASE}/courses/${id}`);
   }
 
   uploadMedia(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post(`${UPLOAD_URL}/api/upload`, formData, {
-      headers: new HttpHeaders({
-        Authorization: `Bearer ${this.session.getSessionToken()}`,
-      }),
-    });
+    return this.http.post(`${UPLOAD_URL}/api/upload`, formData);
   }
 }

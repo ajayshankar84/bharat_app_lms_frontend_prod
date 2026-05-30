@@ -23,3 +23,30 @@ export const roleGuard: CanActivateFn = (route, state) => {
     return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
   }
 };
+
+
+// import { Injectable } from '@angular/core';
+// import { CanActivate, ActivatedRouteSnapshot, Router } from '@angular/router';
+// import { AccountStateService } from '../services/account-state.service';
+// import { map, take } from 'rxjs/operators';
+
+// @Injectable({ providedIn: 'root' })
+// export class RoleGuard implements CanActivate {
+//   constructor(private accountService: AccountStateService, private router: Router) {}
+
+//   canActivate(route: ActivatedRouteSnapshot) {
+//     const expectedRole = route.data['expectedRole'];
+    
+//     // Assuming accountStateService has an observable for accountData
+//     return this.accountService.accountData$.pipe(
+//       take(1),
+//       map(user => {
+//         if (!user || user.role !== expectedRole) {
+//           this.router.navigate(['/auth/login']);
+//           return false;
+//         }
+//         return true;
+//       })
+//     );
+//   }
+// }

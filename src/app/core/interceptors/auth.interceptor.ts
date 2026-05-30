@@ -1,39 +1,33 @@
-import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { catchError, throwError } from 'rxjs';
 import { SessionService } from '../services/session.service';
-import { AuthService } from '../services/auth.service';
-import { USERS_URL } from '../config/api.config';
+import { LMS_AUTH_ENDPOINT } from '../config/api.config';
 
+/**
+ * Global interceptor to attach JWT/Session tokens to outgoing HTTP requests.
+ */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const session = inject(SessionService);
-  const router = inject(Router);
-  const authService = inject(AuthService);
+  const sessionService = inject(SessionService);
+  const token = sessionService.getSessionToken(); // Retrieve the authentication token
 
-  const isAuthEndpoint =
-    req.url.includes('/user/login-send-otp') ||
-    req.url.includes('/user/login-verify-otp');
+  // Define strict public endpoints to avoid partial matches
+  const publicEndpoints = [
+    `${LMS_AUTH_ENDPOINT}/login`,
+    LMS_AUTH_ENDPOINT
+  ];
 
-  const needsToken = req.url.startsWith(USERS_URL) && !isAuthEndpoint;
+  // Logic: Is this a login/register request?
+  const isPublicRequest = publicEndpoints.some(endpoint => req.url === endpoint || req.url.endsWith('/login'));
 
-  let authReq = req;
-  if (needsToken) {
-    const token = session.getSessionToken();
-    if (token) {
-      authReq = req.clone({
-        setHeaders: { Authorization: `Bearer ${token}` },
-      });
-    }
-  }
-
-  return next(authReq).pipe(
-    catchError((err: HttpErrorResponse) => {
-      if (err.status === 401 && needsToken) {
-        authService.logout();
-        router.navigate(['/auth/login']);
+  // Only attach if token is a valid non-empty string and NOT a public request
+  if (token && token !== 'null' && !isPublicRequest) {
+    const authReq = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`
       }
-      return throwError(() => err);
-    }),
-  );
+    });
+    return next(authReq);
+  }
+  // If no token is present or the endpoint is public, proceed with the original request
+  return next(req);
 };
