@@ -64,7 +64,7 @@
                     <label class="checkbox-label">
                             <input type="checkbox" formControlName="remember" /> Remember me
                         </label>
-                    <a href="#" class="forgot-link">Forgot password?</a>
+                    <a routerLink="/auth/forget-password" class="forgot-link">Forgot password?</a>
                 </div>
 
                 <div class="small text-danger" *ngIf="loginMessage">{{ loginMessage }}</div>

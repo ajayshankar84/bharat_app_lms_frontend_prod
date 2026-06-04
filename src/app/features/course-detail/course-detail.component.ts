@@ -1,11 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { DomSanitizer, SafeResourceUrl, SafeUrl } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { CourseDetailService } from '../../core/services/course-detail.service';
 import { ImagePathPipe } from '../../shared/pipes/image-path.pipe';
 import { SplitPipe } from '../../shared/pipes/split.pipe';
 import { CommonModule } from '@angular/common';
 import { UploadVideoService } from '../../core/services/upload-video.service';
+import { UploadFileService } from '../../core/services/upload-file.service';
 import { AccountStateService } from '../../core/services/account-state.service';
 import { API_BASE_URL } from '../../core/config/api.config';
 declare var bootstrap: any;
@@ -27,9 +28,13 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
   private tooltipInstances: any[] = [];
   itemToDelete: { type: string, idx1: number, idx2: number | null } | null = null;
   error: string | null = null;
-  currentVideoUrl: SafeResourceUrl | null = null;
+  currentVideoUrl: SafeResourceUrl | SafeUrl | null = null;
   currentVideoTitle: string = '';
   isYouTube: boolean = false;
+  isImage: boolean = false;
+  isPdf: boolean = false;
+  isOfficeDoc: boolean = false;
+  currentRawUrl: string = '';
   completedLectures: Set<string> = new Set();
   countdown: { hours: string, minutes: string, seconds: string } | null = null;
   private activeVideoPath: string | null = null;
@@ -42,6 +47,7 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
     private courseDetailService: CourseDetailService,
     private accountStateService: AccountStateService,
     private uploadVideoService: UploadVideoService,
+    private uploadFileService: UploadFileService,
     private sanitizer: DomSanitizer
   ) {
     this.courseId = this.route.snapshot.queryParamMap.get('course');
@@ -90,6 +96,7 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.courseDetail = response;
         this.loadVideoPaths();
+        this.loadFiles();
         console.log('Course detail fetched successfully:', this.courseDetail);
         this.isLoading = false;
       },
@@ -139,6 +146,34 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Fetches all file records for the course and attaches them to matching lectures.
+   */
+  private loadFiles(): void {
+    if (!this.courseId || !this.courseDetail?.[0]?.curriculum) return;
+
+    this.uploadFileService.getFilesByCourseId(this.courseId).subscribe({
+      next: (files: any[]) => {
+        if (!Array.isArray(files)) return;
+
+        this.courseDetail[0].curriculum.forEach((section: any) => {
+          const topicId = section.topicId;
+          section.lectures?.forEach((lecture: any) => {
+            const lectureId = lecture.lectureId;
+            lecture.fileList = files
+              .filter(f => f.topicId === topicId && f.lectureId === lectureId)
+              .map(f => ({
+                id: f._id,
+                title: f.title,
+                filePath: f.filePath ? `${API_BASE_URL}/${f.filePath}` : '',
+                fileName: f.fileName || f.title
+              }));
+          });
+        });
+      }
+    });
+  }
+
+  /**
    * Initializes Bootstrap tooltips for all elements with data-bs-toggle="tooltip"
    */
   private initializeTooltips(): void {
@@ -176,20 +211,36 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Opens the video player modal and sets the safe URL.
+   * Opens the media player modal and sets the safe URL.
    */
-  openVideoModal(video: any): void {
-    this.currentVideoTitle = video.title || 'Video Player';
-    const rawUrl = video.videoPath;
+  openVideoModal(item: any): void {
+    this.currentVideoTitle = item.title || 'Preview';
+    const rawUrl = item.videoPath || item.filePath;
     this.activeVideoPath = rawUrl;
-    const youtubeId = this.extractYouTubeId(rawUrl);
+    this.currentRawUrl = rawUrl;
 
+    // Reset flags
+    this.isYouTube = false;
+    this.isImage = false;
+    this.isPdf = false;
+    this.isOfficeDoc = false;
+
+    const youtubeId = this.extractYouTubeId(rawUrl);
     if (youtubeId) {
       this.isYouTube = true;
       const embedUrl = `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`;
       this.currentVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
+    } else if (this.isImageFile(rawUrl)) {
+      this.isImage = true;
+      this.currentVideoUrl = this.sanitizer.bypassSecurityTrustUrl(rawUrl);
+    } else if (this.isPdfFile(rawUrl)) {
+      this.isPdf = true;
+      this.currentVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl);
+    } else if (this.isOfficeFile(rawUrl)) {
+      this.isOfficeDoc = true;
+      const viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(rawUrl)}&embedded=true`;
+      this.currentVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
     } else {
-      this.isYouTube = false;
       this.currentVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl);
     }
 
@@ -280,6 +331,51 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
     this.currentVideoTitle = '';
     this.activeVideoPath = null;
     this.isYouTube = false;
+    this.isImage = false;
+    this.isPdf = false;
+    this.isOfficeDoc = false;
+    this.currentRawUrl = '';
+  }
+
+  private isImageFile(path: string): boolean {
+    return /\.(jpg|jpeg|png|gif|webp)$/i.test(path);
+  }
+
+  private isPdfFile(path: string): boolean {
+    return path.toLowerCase().endsWith('.pdf') || path.toLowerCase().endsWith('.txt');
+  }
+
+  private isOfficeFile(path: string): boolean {
+    return /\.(doc|docx|xls|xlsx|ppt|pptx|csv)$/i.test(path);
+  }
+
+  getFileIcon(filePath: string): string {
+    if (!filePath) return 'bi bi-file-earmark';
+    const ext = filePath.split('.').pop()?.toLowerCase();
+    switch (ext) {
+      case 'pdf': return 'bi bi-file-earmark-pdf text-danger';
+      case 'doc':
+      case 'docx': return 'bi bi-file-earmark-word text-primary';
+      case 'csv':
+      case 'xls':
+      case 'xlsx': return 'bi bi-file-earmark-excel text-success';
+      case 'png':
+      case 'jpg':
+      case 'jpeg': return 'bi bi-file-earmark-image text-info';
+      default: return 'bi bi-file-earmark';
+    }
+  }
+
+  downloadFile(item: any): void {
+    const url = item.filePath || item.videoPath || this.currentRawUrl;
+    if (!url) return;
+    const link = document.createElement('a');
+    link.href = url;
+    link.target = '_blank';
+    link.download = item.title || 'download';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   /**

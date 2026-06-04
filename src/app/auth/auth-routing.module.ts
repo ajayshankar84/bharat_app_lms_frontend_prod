@@ -16,6 +16,11 @@ const routes: Routes = [{
       loadChildren: () =>
         import('./account/account.module').then(m => m.AccountModule),
     },
+     {
+      path: 'forget-password',
+      loadChildren: () =>
+        import('./forget-password/forget-password.module').then(m => m.ForgetPasswordModule),
+    },
     {
       path: '',
       redirectTo: 'login',

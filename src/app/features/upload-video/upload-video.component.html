@@ -61,6 +61,9 @@
                 <input type="radio" class="btn-check" formControlName="uploadType" id="typeFile" value="file">
                 <label class="btn btn-outline-primary" for="typeFile"><i class="bi bi-file-earmark-play me-2"></i>Video File</label>
 
+                <input type="radio" class="btn-check" formControlName="uploadType" id="typeFilePath" value="filePath">
+                <label class="btn btn-outline-primary" for="typeFilePath"><i class="bi bi-file-earmark me-2"></i>Upload File</label>
+
                 <input type="radio" class="btn-check" formControlName="uploadType" id="typeLink" value="link">
                 <label class="btn btn-outline-primary" for="typeLink"><i class="bi bi-youtube me-2"></i>YouTube Link</label>
               </div>
@@ -79,12 +82,12 @@
                 placeholder="Briefly describe what this video covers..."></textarea>
             </div>
 
-            <div class="mb-5" *ngIf="uploadForm.get('uploadType')?.value === 'file'">
-              <label class="form-label fw-semibold">Video File</label>
-              <input type="file" class="form-control" (change)="onFileSelected($event)" accept="video/*"
+            <div class="mb-5" *ngIf="['file', 'filePath'].includes(uploadForm.get('uploadType')?.value)">
+              <label class="form-label fw-semibold">{{ uploadForm.get('uploadType')?.value === 'file' ? 'Video File' : 'Select File (PDF, Image, Doc)' }}</label>
+              <input type="file" class="form-control" (change)="onFileSelected($event)" [accept]="uploadForm.get('uploadType')?.value === 'file' ? 'video/*' : '.pdf,.doc,.docx,.png,.jpg,.jpeg,.csv'"
                 [class.is-invalid]="!selectedFile && uploadForm.touched">
               <div class="invalid-feedback" *ngIf="!selectedFile && uploadForm.touched">
-                Please select a video file.
+                Please select a file to upload.
               </div>
               <small class="text-muted mt-2 d-block" *ngIf="selectedFile">
                 Selected: <strong>{{ selectedFile.name }}</strong> ({{ (selectedFile.size / 1024 / 1024) | number:'1.2-2' }} MB)
@@ -123,9 +126,9 @@
               </button>
 
               <button type="submit" class="btn btn-primary px-5 shadow-sm" 
-                [disabled]="uploadForm.invalid || isSubmitting || (uploadForm.get('uploadType')?.value === 'file' && !selectedFile)">
+                [disabled]="uploadForm.invalid || isSubmitting || (['file', 'filePath'].includes(uploadForm.get('uploadType')?.value) && !selectedFile)">
                 <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
-                {{ isSubmitting ? 'Uploading...' : 'Upload Video' }}
+                {{ isSubmitting ? 'Uploading...' : (uploadForm.get('uploadType')?.value === 'filePath' ? 'Upload File' : 'Upload Video') }}
               </button>
             </div>
           </form>
@@ -152,10 +155,34 @@
                           <small class="text-muted ms-1" *ngIf="video.duration">({{ video.duration }})</small>
                         </span>
                       </div>
-                      <i class="bi bi-trash text-danger ms-2" style="cursor: pointer;" (click)="deleteVideo(video.id); $event.stopPropagation()" title="Delete video"></i>
+                      <div class="d-flex align-items-center">
+                        <i class="bi bi-download text-primary ms-2" style="cursor: pointer;" (click)="downloadFile(video); $event.stopPropagation()" title="Download"></i>
+                        <i class="bi bi-trash text-danger ms-2" style="cursor: pointer;" (click)="deleteVideo(video.id); $event.stopPropagation()" title="Delete"></i>
+                      </div>
                     </div>
                   </div>
                 </div>
+
+              <div *ngIf="existingCourseFiles.length > 0" class="mt-4">
+                <label class="form-label text-muted small fw-bold">All files in this course:</label>
+                <div class="list-group list-group-flush border rounded shadow-sm overflow-auto" style="max-height: 120px;">
+                  <div *ngFor="let file of existingCourseFiles; let i = index" 
+                          class="list-group-item list-group-item-action py-1 small d-flex align-items-center justify-content-between bg-light bg-opacity-25 border-0">
+                    <div class="d-flex align-items-center text-truncate flex-grow-1" style="cursor: pointer;" (click)="openVideoModal(file)">
+                      <span class="text-secondary me-2">
+                        <i [class]="getFileIcon(file.filePath)"></i>
+                      </span>
+                      <span class="text-truncate" [title]="file.fileName">
+                        {{ i + 1 }}. {{ file.title || file.fileName }}
+                      </span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-download text-primary ms-2" style="cursor: pointer;" (click)="downloadFile(file); $event.stopPropagation()" title="Download"></i>
+                      <i class="bi bi-trash text-danger ms-2" style="cursor: pointer;" (click)="deleteFile(file.id); $event.stopPropagation()" title="Delete"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
         </div>
       </div>
        <div class="card shadow-sm">
@@ -178,11 +205,34 @@
                       <small class="text-muted ms-1" *ngIf="video.duration">({{ video.duration }})</small>
                     </span>
                   </div>
-                  <i class="bi bi-trash text-danger ms-2" style="cursor: pointer;" (click)="deleteVideo(video.id); $event.stopPropagation()" title="Delete video"></i>
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-download text-primary ms-2" style="cursor: pointer;" (click)="downloadFile(video); $event.stopPropagation()" title="Download"></i>
+                    <i class="bi bi-trash text-danger ms-2" style="cursor: pointer;" (click)="deleteVideo(video.id); $event.stopPropagation()" title="Delete"></i>
+                  </div>
                 </div>
               </div>
             </div>
 
+            <div *ngIf="existingTopicFiles.length > 0" class="mb-4">
+              <label class="form-label text-muted small fw-bold">Existing files for this topic:</label>
+              <div class="list-group list-group-flush border rounded shadow-sm overflow-auto" style="max-height: 200px;">
+                <div *ngFor="let file of existingTopicFiles; let i = index" 
+                        class="list-group-item list-group-item-action py-2 small d-flex align-items-center justify-content-between bg-light bg-opacity-10 border-0">
+                  <div class="d-flex align-items-center text-truncate flex-grow-1" style="cursor: pointer;" (click)="openVideoModal(file)">
+                    <span class="text-primary me-2">
+                      <i [class]="getFileIcon(file.filePath)"></i>
+                    </span>
+                    <span class="text-truncate" [title]="file.fileName">
+                      {{ i + 1 }}. {{ file.title || file.fileName }}
+                    </span>
+                  </div>
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-download text-primary ms-2" style="cursor: pointer;" (click)="downloadFile(file); $event.stopPropagation()" title="Download"></i>
+                    <i class="bi bi-trash text-danger ms-2" style="cursor: pointer;" (click)="deleteFile(file.id); $event.stopPropagation()" title="Delete"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
         </div>
       </div>
 
@@ -205,7 +255,31 @@
                       <small class="text-muted ms-1" *ngIf="video.duration">({{ video.duration }})</small>
                     </span>
                   </div>
-                  <i class="bi bi-trash text-danger ms-2" style="cursor: pointer;" (click)="deleteVideo(video.id); $event.stopPropagation()" title="Delete video"></i>
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-download text-primary ms-2" style="cursor: pointer;" (click)="downloadFile(video); $event.stopPropagation()" title="Download"></i>
+                    <i class="bi bi-trash text-danger ms-2" style="cursor: pointer;" (click)="deleteVideo(video.id); $event.stopPropagation()" title="Delete"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="existingLectureFiles.length > 0" class="mt-3">
+              <label class="form-label text-muted small fw-bold">Existing files for this lecture:</label>
+              <div class="list-group list-group-flush border rounded shadow-sm overflow-auto" style="max-height: 200px;">
+                <div *ngFor="let file of existingLectureFiles; let i = index" 
+                        class="list-group-item list-group-item-action py-2 small d-flex align-items-center justify-content-between bg-light bg-opacity-10 border-0">
+                  <div class="d-flex align-items-center text-truncate flex-grow-1" style="cursor: pointer;" (click)="openVideoModal(file)">
+                    <span class="text-success me-2">
+                      <i [class]="getFileIcon(file.filePath)"></i>
+                    </span>
+                    <span class="text-truncate" [title]="file.fileName">
+                      {{ i + 1 }}. {{ file.title || file.fileName }}
+                    </span>
+                  </div>
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-download text-primary ms-2" style="cursor: pointer;" (click)="downloadFile(file); $event.stopPropagation()" title="Download"></i>
+                    <i class="bi bi-trash text-danger ms-2" style="cursor: pointer;" (click)="deleteFile(file.id); $event.stopPropagation()" title="Delete"></i>
+                  </div>
                 </div>
               </div>
             </div>
@@ -222,9 +296,14 @@
 <div class="modal fade" id="videoPlayerModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-lg modal-dialog-centered">
       <div class="modal-content bg-dark border-0">
-          <div class="modal-header border-0 pb-0">
-              <h5 class="modal-title text-white small text-truncate">{{ currentVideoTitle }}</h5>
-              <button type="button" class="btn-close btn-close-white" (click)="closeVideoModal()" data-bs-dismiss="modal" aria-label="Close"></button>
+          <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center">
+              <h5 class="modal-title text-white small text-truncate flex-grow-1">{{ currentVideoTitle }}</h5>
+              <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-light border-0" (click)="downloadFile({filePath: currentRawUrl, title: currentVideoTitle})" title="Download">
+                  <i class="bi bi-download"></i>
+                </button>
+                <button type="button" class="btn-close btn-close-white" (click)="closeVideoModal()" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
           </div>
           <div class="modal-body p-0">
               <div class="ratio ratio-16x9">
@@ -232,7 +311,13 @@
                   <iframe *ngIf="currentVideoUrl && isYouTube" [src]="currentVideoUrl" allow="autoplay; fullscreen" allowfullscreen class="rounded-bottom"></iframe>
 
                   <!-- HTML5 Video Player -->
-                  <video *ngIf="currentVideoUrl && !isYouTube" [src]="currentVideoUrl" controls autoplay class="rounded-bottom"></video>
+                  <video *ngIf="currentVideoUrl && isVideo" [src]="currentVideoUrl" controls autoplay class="rounded-bottom"></video>
+
+                  <!-- Image Viewer -->
+                  <img *ngIf="currentVideoUrl && isImage" [src]="currentVideoUrl" class="img-fluid rounded-bottom h-100 object-fit-contain bg-light">
+
+                  <!-- Document Viewer (PDF, Office, etc) -->
+                  <iframe *ngIf="currentVideoUrl && !isYouTube && !isVideo && !isImage" [src]="currentVideoUrl" class="rounded-bottom w-100 h-100 border-0"></iframe>
               </div>
           </div>
       </div>

@@ -235,8 +235,9 @@
                                                 <div class="accordion-body">
                                                     <ul class="list-unstyled mb-0">
                                                         @for (lecture of item.lectures; track lecture) {
-                                                        <li class="py-3 px-3 mb-1 d-flex justify-content-between align-items-start transition-all lecture-row rounded-3">
-                                                            <div class="d-flex align-items-center flex-grow-1">
+                                                        <li class="py-3 px-3 mb-2 d-flex flex-column align-items-start transition-all lecture-row rounded-3 border-start border-4 border-transparent">
+                                                            <!-- Top Row: Checkbox and Title -->
+                                                            <div class="d-flex align-items-center mb-2 w-100">
                                                                 <button class="btn btn-link p-0 me-3 text-decoration-none border-0 shadow-none completion-check" 
                                                                         (click)="toggleLectureCompletion(lecture.lectureId)"
                                                                         [title]="completedLectures.has(lecture.lectureId) ? 'Mark as Incomplete' : 'Mark as Completed'">
@@ -244,23 +245,56 @@
                                                                        [ngClass]="completedLectures.has(lecture.lectureId) ? 'bi-check-circle-fill text-success' : 'bi-check-circle text-secondary opacity-50'">
                                                                     </i>
                                                                 </button>
-                                                                <span class="fw-medium text-dark text-truncate" [title]="lecture?.lecture">{{ lecture?.lecture }}</span>
+                                                                <span class="fw-bold text-dark fs-6 text-truncate" [title]="lecture?.lecture">{{ lecture?.lecture }}</span>
                                                             </div>
 
-                                                            <div class="d-flex flex-column align-items-end gap-2" *ngIf="lecture?.videoList?.length">
-                                                                @for (v of lecture.videoList; track v.videoPath; let vIdx = $index) {
-                                                                    <button type="button"
-                                                                       (click)="openVideoModal(v)"
-                                                                       class="btn btn-sm border-0 bg-primary bg-opacity-10 d-flex align-items-center gap-2 px-2 py-1 rounded-pill lesson-pill position-relative overflow-hidden shadow-none"
-                                                                       data-bs-toggle="tooltip"
-                                                                       [attr.data-bs-title]="v.title || v.videoPath">
-                                                                        <div class="pill-progress-bar" [style.width.%]="v.progress || 0"></div>
-                                                                        <span class="badge rounded-circle bg-primary bg-opacity-25 text-primary p-1 d-flex align-items-center justify-content-center position-relative transition-all" style="width: 18px; height: 18px; font-size: 0.65rem; z-index: 1;">{{ vIdx + 1 }}</span>
-                                                                        <span class="small fw-semibold text-truncate d-none d-md-inline-block position-relative transition-all" style="max-width: 120px; z-index: 1;">{{ v.title | titlecase }}</span>
-                                                                        <span class="tiny text-muted ms-auto position-relative transition-all" style="z-index: 1;" *ngIf="v.duration">{{ v.duration }}</span>
-                                                                        <i [class]="v.isYouTube ? 'bi bi-youtube text-danger' : 'bi bi-play-fill'" class="position-relative transition-all" style="z-index: 1;"></i>
-                                                                    </button>
-                                                                }
+                                                            <!-- Bottom Row: Indented Resources (Left Aligned) -->
+                                                            <div class="w-100 ps-5" *ngIf="lecture?.videoList?.length || lecture?.fileList?.length">
+                                                                <!-- <div class="d-flex align-items-center gap-2 mb-2">
+                                                                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.65rem; letter-spacing: 0.05rem;">Resources</span>
+                                                                    <div class="flex-grow-1 border-bottom opacity-10"></div>
+                                                                </div> -->
+
+                                                                <div class="d-flex flex-column flex-sm-row gap-3 gap-sm-4 justify-content-start align-items-start">
+                                                                <!-- Videos Column -->
+                                                                <div class="d-flex flex-column align-items-start gap-2" *ngIf="lecture?.videoList?.length">
+                                                                    <span class="text-uppercase text-muted fw-bold mb-1" style="font-size: 0.55rem; letter-spacing: 0.03rem;">Videos</span>
+                                                                    @for (v of lecture.videoList; track v.videoPath; let vIdx = $index) {
+                                                                        <button type="button"
+                                                                           (click)="openVideoModal(v)"
+                                                                           class="btn btn-sm border-0 bg-primary bg-opacity-10 d-flex align-items-center gap-2 px-3 py-1 rounded-pill lesson-pill position-relative overflow-hidden shadow-none"
+                                                                           
+                                                                           [attr.data-bs-title]="v.title || v.videoPath">
+                                                                            <div class="pill-progress-bar" [style.width.%]="v.progress || 0"></div>
+                                                                            <span class="badge rounded-circle bg-primary bg-opacity-25 text-primary p-1 d-flex align-items-center justify-content-center position-relative transition-all" style="width: 18px; height: 18px; font-size: 0.65rem; z-index: 1;">{{ vIdx + 1 }}</span>
+                                                                            <span class="small fw-semibold text-truncate d-inline-block position-relative transition-all" style="max-width: 200px; z-index: 1;">{{ v.title | titlecase }}</span>
+                                                                            <span class="tiny text-muted position-relative transition-all" style="z-index: 1;" *ngIf="v.duration">{{ v.duration }}</span>
+                                                                            <i [class]="v.isYouTube ? 'bi bi-youtube text-danger' : 'bi bi-play-fill'" class="position-relative transition-all" style="z-index: 1;"></i>
+                                                                        </button>
+                                                                    }
+                                                                </div>
+
+                                                                <!-- Files Column -->
+                                                                <div class="d-flex flex-column align-items-start gap-2" *ngIf="lecture?.fileList?.length">
+                                                                    <span class="text-uppercase text-muted fw-bold mb-1" style="font-size: 0.55rem; letter-spacing: 0.03rem;">Files</span>
+                                                                    @for (f of lecture.fileList; track f.filePath; let fIdx = $index) {
+                                                                        <div class="d-flex align-items-center gap-1">
+                                                                            <button type="button"
+                                                                               (click)="openVideoModal(f)"
+                                                                               class="btn btn-sm border-0 bg-secondary bg-opacity-10 d-flex align-items-center gap-2 px-3 py-1 rounded-pill lesson-pill position-relative overflow-hidden shadow-none"
+                                                                             
+                                                                               [attr.data-bs-title]="f.title || f.fileName">
+                                                                                <span class="badge rounded-circle bg-secondary bg-opacity-25 text-secondary p-1 d-flex align-items-center justify-content-center position-relative transition-all" style="width: 18px; height: 18px; font-size: 0.65rem; z-index: 1;">{{ fIdx + 1 }}</span>
+                                                                                <span class="small fw-semibold text-truncate d-inline-block position-relative transition-all" style="max-width: 200px; z-index: 1;">{{ f.title | titlecase }}</span>
+                                                                                <i [class]="getFileIcon(f.filePath)" class="position-relative transition-all" style="z-index: 1;"></i>
+                                                                            </button>
+                                                                            <button type="button" (click)="downloadFile(f)" class="btn btn-sm text-secondary px-2 border-0 hover-text-primary" title="Download">
+                                                                                <i class="bi bi-download"></i>
+                                                                            </button>
+                                                                        </div>
+                                                                    }
+                                                                </div>
+                                                                </div>
                                                             </div>
                                                         </li>
                                                         }
@@ -478,9 +512,14 @@
     <div class="modal fade" id="videoPlayerModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content bg-dark border-0">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title text-white small text-truncate">{{ currentVideoTitle }}</h5>
-                    <button type="button" class="btn-close btn-close-white" (click)="closeVideoModal()" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                    <h5 class="modal-title text-white small text-truncate flex-grow-1">{{ currentVideoTitle }}</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-light border-0" (click)="downloadFile({filePath: currentRawUrl, title: currentVideoTitle})" title="Download">
+                          <i class="bi bi-download"></i>
+                        </button>
+                        <button type="button" class="btn-close btn-close-white" (click)="closeVideoModal()" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
                 </div>
                 <div class="modal-body p-0">
                     <div class="ratio ratio-16x9">
@@ -492,13 +531,19 @@
                                 class="rounded-bottom"></iframe>
 
                         <!-- HTML5 Video Player -->
-                        <video *ngIf="currentVideoUrl && !isYouTube" 
+                        <video *ngIf="currentVideoUrl && !isYouTube && !isImage && !isPdf && !isOfficeDoc" 
                                [src]="currentVideoUrl" 
                                controls 
                                autoplay 
                                (loadedmetadata)="onVideoLoaded($event)"
                                (timeupdate)="onTimeUpdate($event)"
                                class="rounded-bottom"></video>
+
+                        <!-- Image Viewer -->
+                        <img *ngIf="currentVideoUrl && isImage" [src]="currentVideoUrl" class="img-fluid rounded-bottom h-100 object-fit-contain bg-light">
+
+                        <!-- Document Viewer (PDF, Office, etc) -->
+                        <iframe *ngIf="currentVideoUrl && (isPdf || isOfficeDoc)" [src]="currentVideoUrl" class="rounded-bottom w-100 h-100 border-0"></iframe>
                     </div>
                 </div>
             </div>
