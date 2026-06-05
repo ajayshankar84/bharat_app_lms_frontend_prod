@@ -1,47 +1,49 @@
 <div class="attendance-page">
+
+  <div class="success-toast" *ngIf="showSuccessToast">
+    <div class="success-toast__icon"><i class="bi bi-check-circle-fill"></i></div>
+    <div class="success-toast__body">
+      <span class="success-toast__title">Success</span>
+      <span class="success-toast__message">{{ successMessage }}</span>
+    </div>
+    <button class="success-toast__close" (click)="closeToast()"><i class="bi bi-x-lg"></i></button>
+  </div>
+
   <div class="hero">
     <div class="hero__bg"></div>
     <div class="hero__content">
       <div class="hero__left">
         <div class="hero__meta">
-          <span class="hero__greeting-icon">
-            <i class="bi" [ngClass]="greetingIcon"></i>
-          </span>
+          <span class="hero__greeting-icon"><i class="bi" [ngClass]="greetingIcon"></i></span>
           <span class="hero__greeting-text">{{ greetingText }}</span>
-          <span class="hero__time">
-            <i class="bi bi-clock"></i>
-            {{ currentTime }}
-          </span>
+          <span class="hero__time"><i class="bi bi-clock"></i> {{ currentTime }}</span>
         </div>
         <h1 class="hero__title">
           Student <span class="hero__name">Attendance</span>
         </h1>
         <p class="hero__subtitle">{{ heroSubtitle }}</p>
         <div class="hero__actions">
-          <button class="hero__btn hero__btn--ghost" (click)="markAllPresent()">
-            <i class="bi bi-check-all"></i>
-            All Present
+          <button class="hero__btn hero__btn--primary" (click)="markAllPending()">
+            <i class="bi bi-check-all"></i> Mark All Present
+          </button>
+          <button class="hero__btn hero__btn--ghost" (click)="resetAllPending()">
+            <i class="bi bi-arrow-counterclockwise"></i> Reset All
           </button>
         </div>
       </div>
       <div class="hero__date-picker">
         <div class="hero__date-card">
-          <i class="bi bi-calendar3"></i>
+          <div class="hero__date-visual">
+            <span class="hero__date-day">{{ today | date:'dd' }}</span>
+            <span class="hero__date-month">{{ today | date:'MMM' }}</span>
+          </div>
           <div class="hero__date-info">
             <span class="hero__date-label">Attendance Date</span>
-            <input
-              type="date"
-              class="hero__date-input"
-              [(ngModel)]="selectedDate"
-              (change)="onDateChange()"
-            />
+            <span class="hero__date-display">{{ formattedSelectedDate }}</span>
+            <input type="date" class="hero__date-input" [(ngModel)]="selectedDate" (change)="onDateChange()">
           </div>
-          <button
-            class="hero__today-btn"
-            *ngIf="!isToday"
-            (click)="goToToday()"
-          >
-            Today
+          <button class="hero__today-btn" *ngIf="!isToday" (click)="goToToday()">
+            <i class="bi bi-arrow-return-left"></i> Today
           </button>
         </div>
       </div>
@@ -50,18 +52,56 @@
 
   <div class="row g-2 g-md-3 mb-4">
     <div class="col-6 col-lg-3" *ngFor="let stat of statsCards">
-      <div class="stat-card">
+      <div class="stat-card" [class.stat-card--pulse]="stat.label === 'Pending Changes' && +stat.value > 0">
         <div class="stat-card__icon" [ngClass]="stat.iconClass">
           <i class="bi" [ngClass]="stat.icon"></i>
         </div>
         <div class="stat-card__content">
           <span class="stat-card__label">{{ stat.label }}</span>
           <span class="stat-card__value">{{ stat.value }}</span>
-          <div class="stat-card__trend">
-            <span>{{ stat.change }}</span>
-          </div>
+          <div class="stat-card__trend"><span>{{ stat.change }}</span></div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div class="submit-bar" *ngIf="hasPendingChanges">
+    <div class="submit-bar__left">
+      <div class="submit-bar__icon"><i class="bi bi-exclamation-circle-fill"></i></div>
+      <div class="submit-bar__info">
+        <span class="submit-bar__title">{{ pendingChangesCount }} unsaved change{{ pendingChangesCount > 1 ? 's' : '' }}</span>
+        <span class="submit-bar__subtitle">Click Submit to save attendance for {{ formattedSelectedDate }}</span>
+      </div>
+    </div>
+    <div class="submit-bar__right">
+      <button class="submit-bar__discard" (click)="discardChanges()" [disabled]="isSubmitting">
+        <i class="bi bi-x-circle"></i> Discard
+      </button>
+      <button class="submit-bar__submit" (click)="submitAttendance()" [disabled]="isSubmitting">
+        <span *ngIf="!isSubmitting"><i class="bi bi-cloud-arrow-up-fill"></i> Submit Attendance</span>
+        <span *ngIf="isSubmitting"><i class="bi bi-arrow-clockwise spinning"></i> Submitting...</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="selection-bar" *ngIf="selectedIds.size > 0">
+    <div class="selection-bar__left">
+      <div class="selection-bar__check"><i class="bi bi-check2-square"></i></div>
+      <span class="selection-bar__count">{{ selectedIds.size }} student{{ selectedIds.size > 1 ? 's' : '' }} selected</span>
+      <button class="selection-bar__link" (click)="selectAllStudents()" *ngIf="!allFilteredSelected">
+        Select all {{ filteredStudents.length }}
+      </button>
+      <button class="selection-bar__link selection-bar__link--muted" (click)="deselectAllStudents()">
+        Clear selection
+      </button>
+    </div>
+    <div class="selection-bar__right">
+      <button class="selection-bar__action selection-bar__action--unmark" (click)="unmarkSelectedPending()">
+        <i class="bi bi-x-circle"></i> Unmark
+      </button>
+      <button class="selection-bar__action" (click)="markSelectedPending()">
+        <i class="bi bi-check-circle-fill"></i> Mark Present
+      </button>
     </div>
   </div>
 
@@ -70,91 +110,25 @@
       <div class="toolbar-row">
         <div class="toolbar-search">
           <i class="bi bi-search toolbar-search__icon"></i>
-          <input
-            type="text"
-            class="toolbar-search__input"
-            placeholder="Search by name, email, phone, course..."
-            [(ngModel)]="searchText"
-            (input)="onSearch()"
-          />
-          <button
-            class="toolbar-search__clear"
-            *ngIf="searchText"
-            (click)="clearSearch()"
-          >
+          <input type="text" class="toolbar-search__input"
+            placeholder="Search name, email, mobile, college..."
+            [(ngModel)]="searchText" (input)="onSearch()">
+          <button class="toolbar-search__clear" *ngIf="searchText" (click)="clearSearch()">
             <i class="bi bi-x-lg"></i>
           </button>
         </div>
         <div class="toolbar-filters">
-          <select
-            class="toolbar-select"
-            [(ngModel)]="filterCourse"
-            (change)="applyFilters()"
-          >
+          <select class="toolbar-select" [(ngModel)]="filterCourse" (change)="applyFilters()">
             <option value="">All Courses</option>
             <option *ngFor="let c of courses" [value]="c">{{ c }}</option>
           </select>
-          <select
-            class="toolbar-select"
-            [(ngModel)]="filterStatus"
-            (change)="applyFilters()"
-          >
+          <select class="toolbar-select" [(ngModel)]="filterStatus" (change)="applyFilters()">
             <option value="">All Status</option>
             <option value="present">Present</option>
-            <option value="absent">Absent</option>
-            <option value="late">Late</option>
             <option value="unmarked">Unmarked</option>
           </select>
-          <button
-            class="toolbar-btn toolbar-btn--ghost"
-            *ngIf="hasActiveFilters"
-            (click)="clearFilters()"
-          >
-            <i class="bi bi-funnel"></i> Clear
-          </button>
-        </div>
-      </div>
-
-      <div
-        class="toolbar-row toolbar-row--selection"
-        *ngIf="selectedIds.size > 0"
-      >
-        <div class="toolbar-selected-info">
-          <i class="bi bi-check2-square"></i>
-          <span>{{ selectedIds.size }} of {{ students.length }} selected</span>
-        </div>
-        <div class="toolbar-selection-actions">
-          <button
-            class="toolbar-btn toolbar-btn--select"
-            (click)="selectAllStudents()"
-            *ngIf="!allStudentsSelected"
-          >
-            <i class="bi bi-check-all"></i> Select All ({{ students.length }})
-          </button>
-          <button
-            class="toolbar-btn toolbar-btn--ghost-sm"
-            (click)="deselectAllStudents()"
-          >
-            <i class="bi bi-x-circle"></i> Deselect All
-          </button>
-          <div class="toolbar-divider"></div>
-          <button
-            class="toolbar-btn toolbar-btn--success"
-            (click)="markSelectedAs('present')"
-          >
-            <i class="bi bi-check-lg"></i> Present
-          </button>
-          <button
-            class="toolbar-btn toolbar-btn--danger"
-            (click)="markSelectedAs('absent')"
-          >
-            <i class="bi bi-x-lg"></i> Absent
-          </button>
-          <button
-            class="toolbar-btn toolbar-btn--warning"
-            (click)="markSelectedAs('late')"
-          >
-            <i class="bi bi-clock"></i> Late
+          <button class="toolbar-btn toolbar-btn--ghost" *ngIf="hasActiveFilters" (click)="clearFilters()">
+            <i class="bi bi-x-circle"></i> Clear
           </button>
         </div>
       </div>
@@ -162,6 +136,7 @@
   </div>
 
   <div class="table-card">
+
     <div class="loading-bar" *ngIf="isLoading">
       <div class="loading-bar__fill"></div>
     </div>
@@ -171,39 +146,38 @@
         <thead>
           <tr>
             <th class="th-checkbox">
-              <input
-                type="checkbox"
-                class="custom-checkbox"
-                [(ngModel)]="selectAll"
-                (change)="toggleSelectAll()"
-              />
+              <label class="checkbox-wrapper">
+                <input type="checkbox" class="custom-checkbox"
+                  [checked]="selectAll" [indeterminate]="someVisibleSelected"
+                  (change)="selectAll = !selectAll; toggleSelectAll()">
+                <span class="checkbox-visual"><i class="bi bi-check-lg"></i></span>
+              </label>
             </th>
             <th class="th-sno">#</th>
             <th class="th-student sortable" (click)="onSort('name')">
-              Student
-              <i class="bi sort-icon" [ngClass]="getSortIcon('name')"></i>
+              Student <i class="bi sort-icon" [ngClass]="getSortIcon('name')"></i>
             </th>
-            <th
-              class="th-course sortable d-none d-md-table-cell"
-              (click)="onSort('course')"
-            >
-              Course / Program
-              <i class="bi sort-icon" [ngClass]="getSortIcon('course')"></i>
+            <th class="th-course sortable d-none d-md-table-cell" (click)="onSort('course')">
+              Course / Program <i class="bi sort-icon" [ngClass]="getSortIcon('course')"></i>
             </th>
-            <th class="th-contact d-none d-lg-table-cell">Contact</th>
-            <th class="th-attendance">Mark Attendance</th>
-            <th class="th-status">Status</th>
-            <th class="th-actions">Actions</th>
+            <th class="th-college sortable d-none d-lg-table-cell" (click)="onSort('college')">
+              College <i class="bi sort-icon" [ngClass]="getSortIcon('college')"></i>
+            </th>
+            <th class="th-contact d-none d-xl-table-cell">Mobile</th>
+            <th class="th-mark text-center">Mark</th>
+            <th class="th-status text-center">Status</th>
+            <th class="th-actions text-center">Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngIf="isLoading">
-            <td colspan="8">
+          <tr *ngIf="isLoading && paginatedStudents.length === 0">
+            <td colspan="9">
               <div class="skeleton-rows">
-                <div class="skeleton-row" *ngFor="let i of [1, 2, 3, 4, 5]">
+                <div class="skeleton-row" *ngFor="let i of [1,2,3,4,5,6]">
+                  <div class="skeleton skeleton--check"></div>
                   <div class="skeleton skeleton--sm"></div>
-                  <div class="skeleton skeleton--md"></div>
                   <div class="skeleton skeleton--lg"></div>
+                  <div class="skeleton skeleton--md"></div>
                   <div class="skeleton skeleton--md"></div>
                   <div class="skeleton skeleton--sm"></div>
                 </div>
@@ -211,121 +185,76 @@
             </td>
           </tr>
           <tr *ngIf="!isLoading && paginatedStudents.length === 0">
-            <td colspan="8" class="empty-state">
+            <td colspan="9" class="empty-state">
               <div class="empty-state__content">
                 <i class="bi bi-inbox"></i>
                 <h4>No Students Found</h4>
                 <p>Try adjusting your search or filters</p>
-                <button
-                  class="toolbar-btn toolbar-btn--primary"
-                  (click)="clearFilters()"
-                  *ngIf="hasActiveFilters"
-                >
+                <button class="toolbar-btn toolbar-btn--primary" (click)="clearFilters()" *ngIf="hasActiveFilters">
                   Clear Filters
                 </button>
               </div>
             </td>
           </tr>
-          <tr
-            *ngFor="let student of paginatedStudents; let i = index"
-            [class.row-present]="student.attendance === 'present'"
-            [class.row-absent]="student.attendance === 'absent'"
-            [class.row-late]="student.attendance === 'late'"
+          <tr *ngFor="let student of paginatedStudents; let i = index"
+            [class.row-present]="student.pendingAttendance === 'present'"
             [class.row-selected]="selectedIds.has(student.id)"
-          >
+            [class.row-dirty]="student.isDirty">
             <td class="td-checkbox">
-              <input
-                type="checkbox"
-                class="custom-checkbox"
-                [checked]="selectedIds.has(student.id)"
-                (change)="toggleSelect(student.id)"
-              />
+              <label class="checkbox-wrapper">
+                <input type="checkbox" class="custom-checkbox"
+                  [checked]="selectedIds.has(student.id)"
+                  (change)="toggleSelect(student.id)">
+                <span class="checkbox-visual"><i class="bi bi-check-lg"></i></span>
+              </label>
             </td>
             <td class="td-sno">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
             <td class="td-student">
               <div class="student-info">
-                <div
-                  class="student-avatar"
-                  [style.background]="getAvatarColor(student.name)"
-                >
+                <div class="student-avatar" [style.background]="getAvatarColor(student.name)">
                   {{ student.avatar }}
                 </div>
                 <div class="student-details">
-                  <span class="student-name">{{ student.name }}</span>
+                  <span class="student-name">
+                    {{ student.name }}
+                    <span class="dirty-dot" *ngIf="student.isDirty" title="Unsaved change"></span>
+                  </span>
                   <span class="student-email">{{ student.email }}</span>
                 </div>
               </div>
             </td>
             <td class="td-course d-none d-md-table-cell">
-              <span class="course-badge" *ngIf="student.course">{{
-                student.course
-              }}</span>
-              <span class="program-text" *ngIf="student.program">{{
-                student.program
-              }}</span>
+              <span class="course-badge">{{ student.course }}</span>
+              <span class="program-text">{{ student.program }}</span>
             </td>
-            <td class="td-contact d-none d-lg-table-cell">
-              <div class="contact-info">
-                <span class="contact-phone"
-                  ><i class="bi bi-telephone"></i> {{ student.phone }}</span
-                >
+            <td class="td-college d-none d-lg-table-cell">
+              <span class="college-text">{{ student.college }}</span>
+            </td>
+            <td class="td-contact d-none d-xl-table-cell">
+              <span class="phone-text">{{ student.phone }}</span>
+            </td>
+            <td class="td-mark text-center">
+              <button class="mark-btn" [class.mark-btn--active]="student.pendingAttendance === 'present'"
+                (click)="togglePendingAttendance(student)">
+                <i class="bi" [ngClass]="student.pendingAttendance === 'present' ? 'bi-check-circle-fill' : 'bi-circle'"></i>
+                <span>{{ student.pendingAttendance === 'present' ? 'Present' : 'Mark' }}</span>
+              </button>
+            </td>
+            <td class="td-status text-center">
+              <div class="status-wrap">
+                <span class="status-dot" [class.status-dot--present]="student.attendance === 'present'"></span>
+                <span class="pending-badge" *ngIf="student.isDirty">
+                  <i class="bi bi-pencil-fill"></i> Pending
+                </span>
               </div>
             </td>
-            <td class="td-attendance">
-              <div class="attendance-btns">
-                <button
-                  class="att-btn att-btn--present"
-                  [class.active]="student.attendance === 'present'"
-                  (click)="markAttendance(student, 'present')"
-                >
-                  <i class="bi bi-check-lg"></i>
-                </button>
-                <button
-                  class="att-btn att-btn--absent"
-                  [class.active]="student.attendance === 'absent'"
-                  (click)="markAttendance(student, 'absent')"
-                >
-                  <i class="bi bi-x-lg"></i>
-                </button>
-                <button
-                  class="att-btn att-btn--late"
-                  [class.active]="student.attendance === 'late'"
-                  (click)="markAttendance(student, 'late')"
-                >
-                  <i class="bi bi-clock"></i>
-                </button>
-              </div>
-            </td>
-            <td class="td-status">
-              <span
-                class="status-badge"
-                [ngClass]="getAttendanceBadgeClass(student.attendance)"
-              >
-                {{ student.attendance | titlecase }}
-              </span>
-            </td>
-            <td class="td-actions">
+            <td class="td-actions text-center">
               <div class="action-btns">
-                <button
-                  class="action-btn action-btn--view"
-                  (click)="openViewModal(student)"
-                  title="View"
-                >
+                <button class="action-btn action-btn--view" (click)="openViewModal(student)" title="View">
                   <i class="bi bi-eye"></i>
                 </button>
-                <button
-                  class="action-btn action-btn--history"
-                  (click)="openHistoryModal(student)"
-                  title="History"
-                >
+                <button class="action-btn action-btn--history" (click)="openHistoryModal(student)" title="History">
                   <i class="bi bi-calendar-check"></i>
-                </button>
-                <button
-                  class="action-btn action-btn--delete"
-                  (click)="openDeleteModal(student)"
-                  title="Delete"
-                >
-                  <i class="bi bi-trash3"></i>
                 </button>
               </div>
             </td>
@@ -336,265 +265,119 @@
 
     <div class="table-footer">
       <div class="table-footer__info">
-        <select
-          class="toolbar-select toolbar-select--sm"
-          [(ngModel)]="pageSize"
-          (change)="onPageSizeChange()"
-        >
-          <option *ngFor="let size of pageSizeOptions" [value]="size">
-            {{ size }}
-          </option>
+        <select class="toolbar-select toolbar-select--sm" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
         </select>
-        <span class="table-footer__text"
-          >Showing {{ startEntry }}-{{ endEntry }} of
-          {{ filteredStudents.length }}</span
-        >
+        <span class="table-footer__text">{{ startEntry }}–{{ endEntry }} of {{ filteredStudents.length }}</span>
       </div>
       <div class="table-footer__pagination">
-        <button
-          class="page-btn"
-          [disabled]="currentPage === 1"
-          (click)="onPageChange(1)"
-        >
+        <button class="page-btn" [disabled]="currentPage === 1" (click)="onPageChange(1)">
           <i class="bi bi-chevron-double-left"></i>
         </button>
-        <button
-          class="page-btn"
-          [disabled]="currentPage === 1"
-          (click)="onPageChange(currentPage - 1)"
-        >
+        <button class="page-btn" [disabled]="currentPage === 1" (click)="onPageChange(currentPage - 1)">
           <i class="bi bi-chevron-left"></i>
         </button>
-        <button
-          class="page-btn"
-          *ngFor="let page of getPages()"
-          [class.page-btn--active]="page === currentPage"
-          (click)="onPageChange(page)"
-        >
-          {{ page }}
-        </button>
-        <button
-          class="page-btn"
-          [disabled]="currentPage === totalPages"
-          (click)="onPageChange(currentPage + 1)"
-        >
+        <button class="page-btn" *ngFor="let page of getPages()"
+          [class.page-btn--active]="page === currentPage" (click)="onPageChange(page)">{{ page }}</button>
+        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="onPageChange(currentPage + 1)">
           <i class="bi bi-chevron-right"></i>
         </button>
-        <button
-          class="page-btn"
-          [disabled]="currentPage === totalPages"
-          (click)="onPageChange(totalPages)"
-        >
+        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="onPageChange(totalPages)">
           <i class="bi bi-chevron-double-right"></i>
         </button>
       </div>
     </div>
   </div>
 
+  <div class="floating-submit" *ngIf="hasPendingChanges && !isSubmitting">
+    <button class="floating-submit__btn" (click)="submitAttendance()">
+      <i class="bi bi-cloud-arrow-up-fill"></i>
+      <span class="floating-submit__count">{{ pendingChangesCount }}</span>
+    </button>
+    <span class="floating-submit__tooltip">Submit {{ pendingChangesCount }} change{{ pendingChangesCount > 1 ? 's' : '' }}</span>
+  </div>
+
   <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()"></div>
   <div class="modal-container" *ngIf="showModal">
     <div class="modal-panel">
-      <div
-        class="modal-header"
-        [ngClass]="{
-          'modal-header--edit': modalMode === 'edit',
-          'modal-header--view': modalMode === 'view',
-        }"
-      >
+      <div class="modal-header modal-header--view">
         <div class="modal-header__title">
-          <i
-            class="bi"
-            [ngClass]="{
-              'bi-pencil-square': modalMode === 'edit',
-              'bi-person-badge': modalMode === 'view',
-            }"
-          ></i>
-          <span *ngIf="modalMode === 'edit'">Edit Student</span>
-          <span *ngIf="modalMode === 'view'">Student Profile</span>
+          <i class="bi bi-person-badge"></i>
+          <span>Student Profile</span>
         </div>
-        <button class="modal-close" (click)="closeModal()">
-          <i class="bi bi-x-lg"></i>
-        </button>
+        <button class="modal-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
       </div>
       <div class="modal-body">
-        <div *ngIf="modalMode === 'view'" class="view-profile">
+        <div class="view-profile">
           <div class="view-profile__header">
-            <div
-              class="view-profile__avatar"
-              [style.background]="getAvatarColor(modalStudent.name)"
-            >
+            <div class="view-profile__avatar" [style.background]="getAvatarColor(modalStudent.name)">
               {{ modalStudent.avatar }}
             </div>
             <h3 class="view-profile__name">{{ modalStudent.name }}</h3>
-            <span
-              class="status-badge"
-              [ngClass]="getAttendanceBadgeClass(modalStudent.attendance)"
-            >
-              {{ modalStudent.attendance | titlecase }}
+            <span class="status-badge" [ngClass]="getAttendanceBadgeClass(modalStudent.attendance)">
+              {{ modalStudent.attendance === 'present' ? 'Present' : 'Unmarked' }}
             </span>
           </div>
           <div class="view-profile__grid">
             <div class="view-profile__item">
-              <div class="view-profile__item-icon">
-                <i class="bi bi-envelope-fill"></i>
-              </div>
+              <div class="view-profile__item-icon"><i class="bi bi-envelope-fill"></i></div>
               <div>
                 <span class="view-profile__label">Email</span>
-                <span class="view-profile__value">{{
-                  modalStudent.email
-                }}</span>
+                <span class="view-profile__value">{{ modalStudent.email }}</span>
               </div>
             </div>
             <div class="view-profile__item">
-              <div class="view-profile__item-icon">
-                <i class="bi bi-telephone-fill"></i>
-              </div>
+              <div class="view-profile__item-icon"><i class="bi bi-telephone-fill"></i></div>
               <div>
-                <span class="view-profile__label">Phone</span>
-                <span class="view-profile__value">{{
-                  modalStudent.phone
-                }}</span>
+                <span class="view-profile__label">Mobile</span>
+                <span class="view-profile__value">{{ modalStudent.phone }}</span>
               </div>
             </div>
             <div class="view-profile__item">
-              <div class="view-profile__item-icon">
-                <i class="bi bi-book-fill"></i>
-              </div>
+              <div class="view-profile__item-icon"><i class="bi bi-shield-fill-check"></i></div>
               <div>
                 <span class="view-profile__label">Course</span>
-                <span class="view-profile__value">{{
-                  modalStudent.course
-                }}</span>
+                <span class="view-profile__value">{{ modalStudent.course }}</span>
               </div>
             </div>
             <div class="view-profile__item">
-              <div class="view-profile__item-icon">
-                <i class="bi bi-mortarboard-fill"></i>
-              </div>
+              <div class="view-profile__item-icon"><i class="bi bi-mortarboard-fill"></i></div>
               <div>
                 <span class="view-profile__label">Program</span>
-                <span class="view-profile__value">{{
-                  modalStudent.program
-                }}</span>
+                <span class="view-profile__value">{{ modalStudent.program }}</span>
+              </div>
+            </div>
+            <div class="view-profile__item view-profile__item--full">
+              <div class="view-profile__item-icon"><i class="bi bi-building"></i></div>
+              <div>
+                <span class="view-profile__label">College</span>
+                <span class="view-profile__value">{{ modalStudent.college }}</span>
               </div>
             </div>
             <div class="view-profile__item">
-              <div class="view-profile__item-icon">
-                <i class="bi bi-calendar-event-fill"></i>
-              </div>
+              <div class="view-profile__item-icon"><i class="bi bi-calendar-event-fill"></i></div>
               <div>
-                <span class="view-profile__label">Enrolled On</span>
-                <span class="view-profile__value">{{
-                  modalStudent.enrollmentDate
-                }}</span>
+                <span class="view-profile__label">Registered On</span>
+                <span class="view-profile__value">{{ modalStudent.enrollmentDate }}</span>
+              </div>
+            </div>
+            <div class="view-profile__item">
+              <div class="view-profile__item-icon"><i class="bi bi-activity"></i></div>
+              <div>
+                <span class="view-profile__label">Status</span>
+                <span class="view-profile__value">{{ modalStudent.active ? 'Active' : 'Inactive' }}</span>
               </div>
             </div>
           </div>
         </div>
-        <form *ngIf="modalMode === 'edit'">
-          <div class="form-group">
-            <label class="form-label"
-              ><i class="bi bi-person"></i> Full Name</label
-            >
-            <input
-              type="text"
-              class="form-input"
-              [(ngModel)]="modalStudent.name"
-              name="name"
-              placeholder="Enter full name"
-            />
-          </div>
-          <div class="form-group">
-            <label class="form-label"
-              ><i class="bi bi-envelope"></i> Email</label
-            >
-            <input
-              type="email"
-              class="form-input"
-              [(ngModel)]="modalStudent.email"
-              name="email"
-              placeholder="Enter email"
-            />
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label"
-                ><i class="bi bi-telephone"></i> Phone</label
-              >
-              <input
-                type="text"
-                class="form-input"
-                [(ngModel)]="modalStudent.phone"
-                name="phone"
-                placeholder="Enter phone"
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label"
-                ><i class="bi bi-book"></i> Course</label
-              >
-              <input
-                type="text"
-                class="form-input"
-                [(ngModel)]="modalStudent.course"
-                name="course"
-                placeholder="Enter course"
-              />
-            </div>
-          </div>
-        </form>
       </div>
       <div class="modal-footer">
-        <button class="modal-btn modal-btn--secondary" (click)="closeModal()">
-          Close
-        </button>
+        <button class="modal-btn modal-btn--secondary" (click)="closeModal()">Close</button>
       </div>
     </div>
   </div>
 
-  <div
-    class="modal-overlay"
-    *ngIf="showDeleteModal"
-    (click)="closeDeleteModal()"
-  ></div>
-  <div class="modal-container" *ngIf="showDeleteModal">
-    <div class="modal-panel modal-panel--sm">
-      <div class="modal-header modal-header--delete">
-        <div class="modal-header__title">
-          <i class="bi bi-exclamation-triangle"></i>
-          <span>Delete Student</span>
-        </div>
-        <button class="modal-close" (click)="closeDeleteModal()">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-      <div class="modal-body modal-body--center">
-        <div class="delete-illustration"><i class="bi bi-trash3"></i></div>
-        <p class="delete-text">Are you sure you want to delete</p>
-        <p class="delete-name">{{ deleteStudentName }}?</p>
-        <p class="delete-warning">
-          This will remove all attendance records for this student.
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button
-          class="modal-btn modal-btn--secondary"
-          (click)="closeDeleteModal()"
-        >
-          Cancel
-        </button>
-        <button class="modal-btn modal-btn--danger" (click)="confirmDelete()">
-          <i class="bi bi-trash3"></i> Delete
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div
-    class="modal-overlay"
-    *ngIf="showHistoryModal"
-    (click)="closeHistoryModal()"
-  ></div>
+  <div class="modal-overlay" *ngIf="showHistoryModal" (click)="closeHistoryModal()"></div>
   <div class="modal-container" *ngIf="showHistoryModal">
     <div class="modal-panel modal-panel--lg">
       <div class="modal-header modal-header--history">
@@ -602,96 +385,55 @@
           <i class="bi bi-calendar-check"></i>
           <span>Attendance History</span>
         </div>
-        <button class="modal-close" (click)="closeHistoryModal()">
-          <i class="bi bi-x-lg"></i>
-        </button>
+        <button class="modal-close" (click)="closeHistoryModal()"><i class="bi bi-x-lg"></i></button>
       </div>
       <div class="modal-body" *ngIf="historyStudent">
         <div class="history-header">
           <div class="history-student">
-            <div
-              class="student-avatar student-avatar--sm"
-              [style.background]="getAvatarColor(historyStudent.name)"
-            >
+            <div class="student-avatar student-avatar--sm" [style.background]="getAvatarColor(historyStudent.name)">
               {{ historyStudent.avatar }}
             </div>
             <div>
               <span class="student-name">{{ historyStudent.name }}</span>
-              <span class="student-email"
-                >{{ historyStudent.course }} ·
-                {{ historyStudent.program }}</span
-              >
+              <span class="student-email">{{ historyStudent.course }} · {{ historyStudent.program }}</span>
             </div>
           </div>
           <div class="history-month-picker">
-            <input
-              type="month"
-              class="form-input form-input--sm"
-              [(ngModel)]="historyMonth"
-              (change)="onHistoryMonthChange()"
-            />
+            <input type="month" class="form-input form-input--sm" [(ngModel)]="historyMonth" (change)="onHistoryMonthChange()">
           </div>
         </div>
         <div class="history-stats">
           <div class="history-stat history-stat--present">
-            <span class="history-stat__value">{{
-              getHistoryStats().present
-            }}</span>
+            <span class="history-stat__value">{{ getHistoryStats().present }}</span>
             <span class="history-stat__label">Present</span>
           </div>
-          <div class="history-stat history-stat--late">
-            <span class="history-stat__value">{{
-              getHistoryStats().late
-            }}</span>
-            <span class="history-stat__label">Late</span>
-          </div>
-          <div class="history-stat history-stat--absent">
-            <span class="history-stat__value">{{
-              getHistoryStats().absent
-            }}</span>
-            <span class="history-stat__label">Absent</span>
+          <div class="history-stat history-stat--total">
+            <span class="history-stat__value">{{ getHistoryStats().totalDays }}</span>
+            <span class="history-stat__label">Working Days</span>
           </div>
           <div class="history-stat history-stat--percentage">
-            <span class="history-stat__value"
-              >{{ getHistoryStats().percentage }}%</span
-            >
+            <span class="history-stat__value">{{ getHistoryStats().percentage }}%</span>
             <span class="history-stat__label">Attendance</span>
           </div>
         </div>
         <div class="history-list" *ngIf="historyRecords.length > 0">
           <div class="history-item" *ngFor="let record of historyRecords">
             <div class="history-item__date">
-              <span class="history-item__day">{{
-                getFormattedHistoryDate(record.date)
-              }}</span>
-              <span class="history-item__weekday">{{
-                getDayName(record.date)
-              }}</span>
+              <span class="history-item__day">{{ getFormattedHistoryDate(record.date) }}</span>
+              <span class="history-item__weekday">{{ getDayName(record.date) }}</span>
             </div>
-            <span
-              class="status-badge"
-              [ngClass]="getAttendanceBadgeClass(record.status)"
-            >
-              {{ record.status | titlecase }}
-            </span>
+            <span class="status-badge badge--present">Present</span>
           </div>
         </div>
-        <div
-          class="empty-state empty-state--sm"
-          *ngIf="historyRecords.length === 0"
-        >
+        <div class="empty-state empty-state--sm" *ngIf="historyRecords.length === 0">
           <i class="bi bi-calendar-x"></i>
           <p>No attendance records for this month</p>
         </div>
       </div>
       <div class="modal-footer">
-        <button
-          class="modal-btn modal-btn--secondary"
-          (click)="closeHistoryModal()"
-        >
-          Close
-        </button>
+        <button class="modal-btn modal-btn--secondary" (click)="closeHistoryModal()">Close</button>
       </div>
     </div>
   </div>
+
 </div>

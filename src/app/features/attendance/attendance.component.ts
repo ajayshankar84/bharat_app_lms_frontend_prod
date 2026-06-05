@@ -10,15 +10,19 @@ interface Student {
   phone: string;
   course: string;
   program: string;
+  college: string;
   avatar: string;
   enrollmentDate: string;
-  attendance: 'present' | 'absent' | 'late' | 'unmarked';
+  active: boolean;
+  attendance: 'present' | 'unmarked';
+  pendingAttendance: 'present' | 'unmarked';
+  isDirty: boolean;
 }
 
 interface AttendanceRecord {
   studentId: string;
   date: string;
-  status: 'present' | 'absent' | 'late';
+  status: 'present';
 }
 
 interface StatCard {
@@ -43,6 +47,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   attendanceHistory: AttendanceRecord[] = [];
 
   isLoading = false;
+  isSubmitting = false;
 
   searchText = '';
   sortColumn = 'name';
@@ -53,9 +58,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   filterStatus = '';
 
   currentPage = 1;
-  pageSize = 8;
+  pageSize = 10;
   totalPages = 1;
-  pageSizeOptions = [5, 8, 10, 20, 50];
+  pageSizeOptions = [10, 20, 50, 100];
 
   selectedDate = '';
   today = new Date();
@@ -65,32 +70,29 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   heroSubtitle = '';
 
   showModal = false;
-  modalMode: 'add' | 'edit' | 'view' = 'add';
   modalStudent: Student = this.getEmptyStudent();
-
-  showDeleteModal = false;
-  deleteStudentId: string | null = null;
-  deleteStudentName = '';
 
   showHistoryModal = false;
   historyStudent: Student | null = null;
   historyRecords: AttendanceRecord[] = [];
   historyMonth = '';
 
-  bulkAttendanceStatus = '';
+  showSuccessToast = false;
+  successMessage = '';
 
   private clockInterval: any;
+  private toastTimer: any;
 
   statsCards: StatCard[] = [
     { label: 'Total Students', value: 0, icon: 'bi-people-fill', iconClass: 'stat-card__icon--blue', change: '' },
-    { label: 'Present Today', value: 0, icon: 'bi-check-circle-fill', iconClass: 'stat-card__icon--green', change: '' },
-    { label: 'Absent Today', value: 0, icon: 'bi-x-circle-fill', iconClass: 'stat-card__icon--red', change: '' },
-    { label: 'Late Today', value: 0, icon: 'bi-clock-fill', iconClass: 'stat-card__icon--orange', change: '' }
+    { label: 'Present', value: 0, icon: 'bi-check-circle-fill', iconClass: 'stat-card__icon--green', change: '' },
+    { label: 'Unmarked', value: 0, icon: 'bi-dash-circle-fill', iconClass: 'stat-card__icon--orange', change: '' },
+    { label: 'Pending Changes', value: 0, icon: 'bi-pencil-square', iconClass: 'stat-card__icon--purple', change: '' }
   ];
 
   courses: string[] = [];
 
-  constructor(private internshipService: InternshipService) {}
+  constructor(private internshipService: InternshipService) { }
 
   ngOnInit(): void {
     const now = new Date();
@@ -107,6 +109,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.clockInterval) clearInterval(this.clockInterval);
+    if (this.toastTimer) clearTimeout(this.toastTimer);
   }
 
   loadStudentsFromApi(): void {
@@ -121,18 +124,20 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           phone: item.mobile?.toString() ?? '',
           course: item.internshipType ?? '',
           program: item.program ?? '',
+          college: item.college ?? '',
           avatar: this.getInitials(item.name ?? ''),
           enrollmentDate: item.createdAt ? this.formatDate(new Date(item.createdAt)) : '',
-          attendance: 'unmarked'
+          active: item.active ?? true,
+          attendance: 'unmarked' as const,
+          pendingAttendance: 'unmarked' as const,
+          isDirty: false
         }));
         this.courses = [...new Set(this.students.map(s => s.course).filter(Boolean))];
         this.loadAttendanceForDate();
         this.applyFilters();
         this.isLoading = false;
       },
-      error: () => {
-        this.isLoading = false;
-      }
+      error: () => { this.isLoading = false; }
     });
   }
 
@@ -150,7 +155,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     if (hour >= 5 && hour < 12) {
       this.greetingText = 'Good Morning';
       this.greetingIcon = 'bi-sunrise-fill';
-      this.heroSubtitle = 'Mark today\'s attendance and keep track of your students.';
+      this.heroSubtitle = 'Mark today\'s attendance and submit when done.';
     } else if (hour >= 12 && hour < 17) {
       this.greetingText = 'Good Afternoon';
       this.greetingIcon = 'bi-sun-fill';
@@ -171,24 +176,36 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   getEmptyStudent(): Student {
-    return { id: '', name: '', email: '', phone: '', course: '', program: '', avatar: '', enrollmentDate: '', attendance: 'unmarked' };
+    return { id: '', name: '', email: '', phone: '', course: '', program: '', college: '', avatar: '', enrollmentDate: '', active: true, attendance: 'unmarked', pendingAttendance: 'unmarked', isDirty: false };
   }
 
   loadAttendanceForDate(): void {
     this.students.forEach(s => {
       const record = this.attendanceHistory.find(r => r.studentId === s.id && r.date === this.selectedDate);
-      s.attendance = record ? record.status : 'unmarked';
+      s.attendance = record ? 'present' : 'unmarked';
+      s.pendingAttendance = s.attendance;
+      s.isDirty = false;
     });
     this.updateStats();
   }
 
   onDateChange(): void {
+    if (this.hasPendingChanges) {
+      const confirm = window.confirm('You have unsaved changes. Switch date anyway?');
+      if (!confirm) return;
+    }
     this.loadAttendanceForDate();
     this.applyFilters();
   }
 
   get isToday(): boolean {
     return this.selectedDate === this.formatDate(new Date());
+  }
+
+  get formattedSelectedDate(): string {
+    if (!this.selectedDate) return '';
+    const d = new Date(this.selectedDate + 'T00:00:00');
+    return d.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   }
 
   goToToday(): void {
@@ -206,7 +223,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         s.email.toLowerCase().includes(search) ||
         s.phone.includes(search) ||
         s.course.toLowerCase().includes(search) ||
-        s.program.toLowerCase().includes(search)
+        s.program.toLowerCase().includes(search) ||
+        s.college.toLowerCase().includes(search)
       );
     }
 
@@ -215,7 +233,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     }
 
     if (this.filterStatus) {
-      data = data.filter(s => s.attendance === this.filterStatus);
+      data = data.filter(s => s.pendingAttendance === this.filterStatus);
     }
 
     data.sort((a, b) => {
@@ -240,20 +258,28 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   updateStats(): void {
-    let present = 0, absent = 0, late = 0;
+    let present = 0, unmarked = 0, pending = 0;
     this.students.forEach(s => {
-      if (s.attendance === 'present') present++;
-      else if (s.attendance === 'absent') absent++;
-      else if (s.attendance === 'late') late++;
+      if (s.pendingAttendance === 'present') present++;
+      else unmarked++;
+      if (s.isDirty) pending++;
     });
     this.statsCards[0].value = this.students.length;
-    this.statsCards[0].change = `${this.courses.length} courses`;
+    this.statsCards[0].change = `${this.filteredStudents.length} shown`;
     this.statsCards[1].value = present;
     this.statsCards[1].change = `${this.students.length ? Math.round((present / this.students.length) * 100) : 0}%`;
-    this.statsCards[2].value = absent;
-    this.statsCards[2].change = `${this.students.length ? Math.round((absent / this.students.length) * 100) : 0}%`;
-    this.statsCards[3].value = late;
-    this.statsCards[3].change = `${this.students.length ? Math.round((late / this.students.length) * 100) : 0}%`;
+    this.statsCards[2].value = unmarked;
+    this.statsCards[2].change = `${this.students.length ? Math.round((unmarked / this.students.length) * 100) : 0}%`;
+    this.statsCards[3].value = pending;
+    this.statsCards[3].change = pending > 0 ? 'Click Submit to save' : 'No changes';
+  }
+
+  get pendingChangesCount(): number {
+    return this.students.filter(s => s.isDirty).length;
+  }
+
+  get hasPendingChanges(): boolean {
+    return this.pendingChangesCount > 0;
   }
 
   onSearch(): void {
@@ -261,10 +287,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
-  clearSearch(): void {
-    this.searchText = '';
-    this.onSearch();
-  }
+  clearSearch(): void { this.searchText = ''; this.onSearch(); }
 
   clearFilters(): void {
     this.searchText = '';
@@ -275,12 +298,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   onSort(column: string): void {
-    if (this.sortColumn === column) {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-      this.sortColumn = column;
-      this.sortDirection = 'asc';
-    }
+    if (this.sortColumn === column) this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    else { this.sortColumn = column; this.sortDirection = 'asc'; }
     this.applyFilters();
   }
 
@@ -297,10 +316,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     }
   }
 
-  onPageSizeChange(): void {
-    this.currentPage = 1;
-    this.applyFilters();
-  }
+  onPageSizeChange(): void { this.currentPage = 1; this.applyFilters(); }
 
   getPages(): number[] {
     const pages: number[] = [];
@@ -312,28 +328,15 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     return pages;
   }
 
-  markAttendance(student: Student, status: 'present' | 'absent' | 'late'): void {
-    student.attendance = student.attendance === status ? 'unmarked' : status;
-    this.saveAttendanceRecord(student);
+  togglePendingAttendance(student: Student): void {
+    student.pendingAttendance = student.pendingAttendance === 'present' ? 'unmarked' : 'present';
+    student.isDirty = student.pendingAttendance !== student.attendance;
     this.updateStats();
   }
 
-  private saveAttendanceRecord(student: Student): void {
-    const idx = this.attendanceHistory.findIndex(r => r.studentId === student.id && r.date === this.selectedDate);
-    if (student.attendance === 'unmarked') {
-      if (idx !== -1) this.attendanceHistory.splice(idx, 1);
-    } else {
-      if (idx !== -1) {
-        this.attendanceHistory[idx].status = student.attendance;
-      } else {
-        this.attendanceHistory.push({ studentId: student.id, date: this.selectedDate, status: student.attendance });
-      }
-    }
-  }
-
   selectAllStudents(): void {
-    this.students.forEach(s => this.selectedIds.add(s.id));
-    this.selectAll = true;
+    this.filteredStudents.forEach(s => this.selectedIds.add(s.id));
+    this.checkSelectAll();
   }
 
   deselectAllStudents(): void {
@@ -342,11 +345,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   toggleSelectAll(): void {
-    if (this.selectAll) {
-      this.paginatedStudents.forEach(s => this.selectedIds.add(s.id));
-    } else {
-      this.paginatedStudents.forEach(s => this.selectedIds.delete(s.id));
-    }
+    if (this.selectAll) this.paginatedStudents.forEach(s => this.selectedIds.add(s.id));
+    else this.paginatedStudents.forEach(s => this.selectedIds.delete(s.id));
   }
 
   toggleSelect(id: string): void {
@@ -360,84 +360,120 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       this.paginatedStudents.every(s => this.selectedIds.has(s.id));
   }
 
-  get allStudentsSelected(): boolean {
-    return this.students.length > 0 && this.selectedIds.size === this.students.length;
+  get allFilteredSelected(): boolean {
+    return this.filteredStudents.length > 0 && this.filteredStudents.every(s => this.selectedIds.has(s.id));
   }
 
-  markSelectedAs(status: 'present' | 'absent' | 'late'): void {
+  get someVisibleSelected(): boolean {
+    const visibleIds = this.paginatedStudents.map(s => s.id);
+    return visibleIds.some(id => this.selectedIds.has(id)) && !this.selectAll;
+  }
+
+  markSelectedPending(): void {
     if (this.selectedIds.size === 0) return;
     this.students.forEach(s => {
       if (this.selectedIds.has(s.id)) {
-        s.attendance = status;
-        this.saveAttendanceRecord(s);
+        s.pendingAttendance = 'present';
+        s.isDirty = s.pendingAttendance !== s.attendance;
       }
     });
     this.selectedIds.clear();
     this.selectAll = false;
-    this.bulkAttendanceStatus = '';
     this.updateStats();
-    this.applyFilters();
   }
 
-  markAllPresent(): void {
+  unmarkSelectedPending(): void {
+    if (this.selectedIds.size === 0) return;
     this.students.forEach(s => {
-      s.attendance = 'present';
-      this.saveAttendanceRecord(s);
+      if (this.selectedIds.has(s.id)) {
+        s.pendingAttendance = 'unmarked';
+        s.isDirty = s.pendingAttendance !== s.attendance;
+      }
     });
     this.selectedIds.clear();
     this.selectAll = false;
     this.updateStats();
-    this.applyFilters();
   }
 
-  resetAllAttendance(): void {
+  markAllPending(): void {
     this.students.forEach(s => {
-      s.attendance = 'unmarked';
-      this.saveAttendanceRecord(s);
+      s.pendingAttendance = 'present';
+      s.isDirty = s.pendingAttendance !== s.attendance;
     });
     this.selectedIds.clear();
     this.selectAll = false;
     this.updateStats();
+  }
+
+  resetAllPending(): void {
+    this.students.forEach(s => {
+      s.pendingAttendance = 'unmarked';
+      s.isDirty = s.pendingAttendance !== s.attendance;
+    });
+    this.selectedIds.clear();
+    this.selectAll = false;
+    this.updateStats();
+  }
+
+  discardChanges(): void {
+    if (!this.hasPendingChanges) return;
+    const confirm = window.confirm(`Discard ${this.pendingChangesCount} unsaved change${this.pendingChangesCount > 1 ? 's' : ''}?`);
+    if (!confirm) return;
+    this.students.forEach(s => {
+      s.pendingAttendance = s.attendance;
+      s.isDirty = false;
+    });
+    this.updateStats();
     this.applyFilters();
   }
 
-  openEditModal(student: Student): void {
-    this.modalMode = 'edit';
-    this.modalStudent = { ...student };
-    this.showModal = true;
+  submitAttendance(): void {
+    if (!this.hasPendingChanges || this.isSubmitting) return;
+    this.isSubmitting = true;
+
+    const changes = this.students.filter(s => s.isDirty);
+
+    setTimeout(() => {
+      changes.forEach(s => {
+        s.attendance = s.pendingAttendance;
+        this.saveAttendanceRecord(s);
+        s.isDirty = false;
+      });
+      this.isSubmitting = false;
+      this.updateStats();
+      this.applyFilters();
+      this.showToast(`Attendance saved for ${changes.length} student${changes.length > 1 ? 's' : ''}`);
+    }, 600);
+  }
+
+  private saveAttendanceRecord(student: Student): void {
+    const idx = this.attendanceHistory.findIndex(r => r.studentId === student.id && r.date === this.selectedDate);
+    if (student.attendance === 'unmarked') {
+      if (idx !== -1) this.attendanceHistory.splice(idx, 1);
+    } else {
+      if (idx !== -1) this.attendanceHistory[idx].status = 'present';
+      else this.attendanceHistory.push({ studentId: student.id, date: this.selectedDate, status: 'present' });
+    }
+  }
+
+  private showToast(message: string): void {
+    this.successMessage = message;
+    this.showSuccessToast = true;
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => { this.showSuccessToast = false; }, 3500);
+  }
+
+  closeToast(): void {
+    this.showSuccessToast = false;
+    if (this.toastTimer) clearTimeout(this.toastTimer);
   }
 
   openViewModal(student: Student): void {
-    this.modalMode = 'view';
     this.modalStudent = { ...student };
     this.showModal = true;
   }
 
-  closeModal(): void {
-    this.showModal = false;
-  }
-
-  openDeleteModal(student: Student): void {
-    this.deleteStudentId = student.id;
-    this.deleteStudentName = student.name;
-    this.showDeleteModal = true;
-  }
-
-  closeDeleteModal(): void {
-    this.showDeleteModal = false;
-    this.deleteStudentId = null;
-  }
-
-  confirmDelete(): void {
-    if (this.deleteStudentId !== null) {
-      this.students = this.students.filter(s => s.id !== this.deleteStudentId);
-      this.selectedIds.delete(this.deleteStudentId!);
-      this.attendanceHistory = this.attendanceHistory.filter(r => r.studentId !== this.deleteStudentId);
-      this.courses = [...new Set(this.students.map(s => s.course))];
-      this.closeDeleteModal();
-      this.applyFilters();
-    }
-  }
+  closeModal(): void { this.showModal = false; }
 
   openHistoryModal(student: Student): void {
     this.historyStudent = { ...student };
@@ -445,14 +481,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.showHistoryModal = true;
   }
 
-  closeHistoryModal(): void {
-    this.showHistoryModal = false;
-    this.historyStudent = null;
-  }
+  closeHistoryModal(): void { this.showHistoryModal = false; this.historyStudent = null; }
 
-  onHistoryMonthChange(): void {
-    this.loadHistoryRecords();
-  }
+  onHistoryMonthChange(): void { this.loadHistoryRecords(); }
 
   private loadHistoryRecords(): void {
     if (!this.historyStudent) return;
@@ -466,13 +497,19 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       .sort((a, b) => a.date.localeCompare(b.date));
   }
 
-  getHistoryStats(): { present: number; absent: number; late: number; percentage: number } {
-    const present = this.historyRecords.filter(r => r.status === 'present').length;
-    const absent = this.historyRecords.filter(r => r.status === 'absent').length;
-    const late = this.historyRecords.filter(r => r.status === 'late').length;
-    const total = this.historyRecords.length;
-    const percentage = total ? Math.round(((present + late) / total) * 100) : 0;
-    return { present, absent, late, percentage };
+  getHistoryStats(): { present: number; totalDays: number; percentage: number } {
+    const present = this.historyRecords.length;
+    const [year, month] = this.historyMonth.split('-').map(Number);
+    const now = new Date();
+    let totalDays = 0;
+    const daysInMonth = new Date(year, month, 0).getDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(year, month - 1, d);
+      if (date > now) break;
+      if (date.getDay() !== 0 && date.getDay() !== 6) totalDays++;
+    }
+    const percentage = totalDays ? Math.round((present / totalDays) * 100) : 0;
+    return { present, totalDays, percentage };
   }
 
   getFormattedHistoryDate(dateStr: string): string {
@@ -485,20 +522,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     return date.toLocaleDateString('en-IN', { weekday: 'long' });
   }
 
-  isFormValid(): boolean {
-    return !!(this.modalStudent.name?.trim() &&
-      this.modalStudent.email?.trim() &&
-      this.modalStudent.phone?.trim() &&
-      this.modalStudent.course?.trim());
-  }
-
   getAttendanceBadgeClass(status: string): string {
-    switch (status) {
-      case 'present': return 'badge--present';
-      case 'absent': return 'badge--absent';
-      case 'late': return 'badge--late';
-      default: return 'badge--unmarked';
-    }
+    return status === 'present' ? 'badge--present' : 'badge--unmarked';
   }
 
   private getInitials(name: string): string {
