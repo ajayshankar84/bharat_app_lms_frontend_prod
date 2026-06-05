@@ -1,20 +1,22 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { InternshipService } from '../../core/services/internship-.service';
 
 interface Student {
-  id: number;
+  id: string;
   name: string;
   email: string;
   phone: string;
   course: string;
+  program: string;
   avatar: string;
   enrollmentDate: string;
   attendance: 'present' | 'absent' | 'late' | 'unmarked';
 }
 
 interface AttendanceRecord {
-  studentId: number;
+  studentId: string;
   date: string;
   status: 'present' | 'absent' | 'late';
 }
@@ -40,11 +42,13 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   paginatedStudents: Student[] = [];
   attendanceHistory: AttendanceRecord[] = [];
 
+  isLoading = false;
+
   searchText = '';
   sortColumn = 'name';
   sortDirection: 'asc' | 'desc' = 'asc';
   selectAll = false;
-  selectedIds = new Set<number>();
+  selectedIds = new Set<string>();
   filterCourse = '';
   filterStatus = '';
 
@@ -65,7 +69,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   modalStudent: Student = this.getEmptyStudent();
 
   showDeleteModal = false;
-  deleteStudentId: number | null = null;
+  deleteStudentId: string | null = null;
   deleteStudentName = '';
 
   showHistoryModal = false;
@@ -86,15 +90,13 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   courses: string[] = [];
 
+  constructor(private internshipService: InternshipService) {}
+
   ngOnInit(): void {
     const now = new Date();
     this.selectedDate = this.formatDate(now);
     this.historyMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    this.students = this.getDummyStudents();
-    this.courses = [...new Set(this.students.map(s => s.course))];
-    this.attendanceHistory = this.generateDummyHistory();
-    this.loadAttendanceForDate();
-    this.applyFilters();
+    this.loadStudentsFromApi();
     this.updateClock();
     this.updateGreeting();
     this.clockInterval = setInterval(() => {
@@ -105,6 +107,33 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.clockInterval) clearInterval(this.clockInterval);
+  }
+
+  loadStudentsFromApi(): void {
+    this.isLoading = true;
+    this.internshipService.getAllInternships().subscribe({
+      next: (data: any) => {
+        const list = Array.isArray(data) ? data : (data?.data ?? []);
+        this.students = list.map((item: any) => ({
+          id: item._id ?? item.id ?? '',
+          name: item.name ?? '',
+          email: item.email ?? '',
+          phone: item.mobile?.toString() ?? '',
+          course: item.internshipType ?? '',
+          program: item.program ?? '',
+          avatar: this.getInitials(item.name ?? ''),
+          enrollmentDate: item.createdAt ? this.formatDate(new Date(item.createdAt)) : '',
+          attendance: 'unmarked'
+        }));
+        this.courses = [...new Set(this.students.map(s => s.course).filter(Boolean))];
+        this.loadAttendanceForDate();
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      }
+    });
   }
 
   private updateClock(): void {
@@ -142,50 +171,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   getEmptyStudent(): Student {
-    return { id: 0, name: '', email: '', phone: '', course: '', avatar: '', enrollmentDate: '', attendance: 'unmarked' };
-  }
-
-  getDummyStudents(): Student[] {
-    return [
-      { id: 1, name: 'Aarav Sharma', email: 'aarav@lms.com', phone: '9876543210', course: 'Computer Science', avatar: 'AS', enrollmentDate: '2024-01-15', attendance: 'unmarked' },
-      { id: 2, name: 'Vivaan Patel', email: 'vivaan@lms.com', phone: '9876543211', course: 'Mathematics', avatar: 'VP', enrollmentDate: '2024-01-18', attendance: 'unmarked' },
-      { id: 3, name: 'Aditya Singh', email: 'aditya@lms.com', phone: '9876543212', course: 'Physics', avatar: 'AS', enrollmentDate: '2024-02-01', attendance: 'unmarked' },
-      { id: 4, name: 'Sai Kumar', email: 'sai@lms.com', phone: '9876543213', course: 'Chemistry', avatar: 'SK', enrollmentDate: '2024-02-10', attendance: 'unmarked' },
-      { id: 5, name: 'Arjun Reddy', email: 'arjun@lms.com', phone: '9876543214', course: 'Computer Science', avatar: 'AR', enrollmentDate: '2024-01-20', attendance: 'unmarked' },
-      { id: 6, name: 'Reyansh Gupta', email: 'reyansh@lms.com', phone: '9876543215', course: 'Mathematics', avatar: 'RG', enrollmentDate: '2024-03-05', attendance: 'unmarked' },
-      { id: 7, name: 'Ayaan Khan', email: 'ayaan@lms.com', phone: '9876543216', course: 'Physics', avatar: 'AK', enrollmentDate: '2024-02-22', attendance: 'unmarked' },
-      { id: 8, name: 'Krishna Iyer', email: 'krishna@lms.com', phone: '9876543217', course: 'Chemistry', avatar: 'KI', enrollmentDate: '2024-01-28', attendance: 'unmarked' },
-      { id: 9, name: 'Ishaan Joshi', email: 'ishaan@lms.com', phone: '9876543218', course: 'Computer Science', avatar: 'IJ', enrollmentDate: '2024-03-12', attendance: 'unmarked' },
-      { id: 10, name: 'Shaurya Mishra', email: 'shaurya@lms.com', phone: '9876543219', course: 'Mathematics', avatar: 'SM', enrollmentDate: '2024-02-15', attendance: 'unmarked' },
-      { id: 11, name: 'Dhruv Verma', email: 'dhruv@lms.com', phone: '9876543220', course: 'Physics', avatar: 'DV', enrollmentDate: '2024-03-20', attendance: 'unmarked' },
-      { id: 12, name: 'Kabir Mehta', email: 'kabir@lms.com', phone: '9876543221', course: 'Chemistry', avatar: 'KM', enrollmentDate: '2024-01-10', attendance: 'unmarked' },
-      { id: 13, name: 'Ananya Desai', email: 'ananya@lms.com', phone: '9876543222', course: 'Computer Science', avatar: 'AD', enrollmentDate: '2024-04-01', attendance: 'unmarked' },
-      { id: 14, name: 'Priya Nair', email: 'priya@lms.com', phone: '9876543223', course: 'Mathematics', avatar: 'PN', enrollmentDate: '2024-03-28', attendance: 'unmarked' },
-      { id: 15, name: 'Meera Rao', email: 'meera@lms.com', phone: '9876543224', course: 'Physics', avatar: 'MR', enrollmentDate: '2024-04-05', attendance: 'unmarked' },
-      { id: 16, name: 'Rohan Tiwari', email: 'rohan@lms.com', phone: '9876543225', course: 'Computer Science', avatar: 'RT', enrollmentDate: '2024-02-08', attendance: 'unmarked' },
-      { id: 17, name: 'Neha Agarwal', email: 'neha@lms.com', phone: '9876543226', course: 'Chemistry', avatar: 'NA', enrollmentDate: '2024-04-12', attendance: 'unmarked' },
-      { id: 18, name: 'Vikram Chauhan', email: 'vikram@lms.com', phone: '9876543227', course: 'Mathematics', avatar: 'VC', enrollmentDate: '2024-01-25', attendance: 'unmarked' }
-    ];
-  }
-
-  generateDummyHistory(): AttendanceRecord[] {
-    const records: AttendanceRecord[] = [];
-    const now = new Date();
-    for (let d = 1; d <= 30; d++) {
-      const date = new Date(now.getFullYear(), now.getMonth(), d);
-      if (date > now) break;
-      if (date.getDay() === 0 || date.getDay() === 6) continue;
-      const dateStr = this.formatDate(date);
-      this.students.forEach(s => {
-        const rand = Math.random();
-        let status: 'present' | 'absent' | 'late';
-        if (rand < 0.75) status = 'present';
-        else if (rand < 0.9) status = 'late';
-        else status = 'absent';
-        records.push({ studentId: s.id, date: dateStr, status });
-      });
-    }
-    return records;
+    return { id: '', name: '', email: '', phone: '', course: '', program: '', avatar: '', enrollmentDate: '', attendance: 'unmarked' };
   }
 
   loadAttendanceForDate(): void {
@@ -219,7 +205,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         s.name.toLowerCase().includes(search) ||
         s.email.toLowerCase().includes(search) ||
         s.phone.includes(search) ||
-        s.course.toLowerCase().includes(search)
+        s.course.toLowerCase().includes(search) ||
+        s.program.toLowerCase().includes(search)
       );
     }
 
@@ -362,7 +349,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleSelect(id: number): void {
+  toggleSelect(id: string): void {
     if (this.selectedIds.has(id)) this.selectedIds.delete(id);
     else this.selectedIds.add(id);
     this.checkSelectAll();
@@ -392,11 +379,6 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
-  markSelectedAttendance(): void {
-    if (!this.bulkAttendanceStatus || this.selectedIds.size === 0) return;
-    this.markSelectedAs(this.bulkAttendanceStatus as 'present' | 'absent' | 'late');
-  }
-
   markAllPresent(): void {
     this.students.forEach(s => {
       s.attendance = 'present';
@@ -419,12 +401,6 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
-  openAddModal(): void {
-    this.modalMode = 'add';
-    this.modalStudent = this.getEmptyStudent();
-    this.showModal = true;
-  }
-
   openEditModal(student: Student): void {
     this.modalMode = 'edit';
     this.modalStudent = { ...student };
@@ -441,27 +417,6 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.showModal = false;
   }
 
-  saveStudent(): void {
-    if (this.modalMode === 'add') {
-      const maxId = this.students.reduce((max, s) => Math.max(max, s.id), 0);
-      this.modalStudent.id = maxId + 1;
-      this.modalStudent.attendance = 'unmarked';
-      this.modalStudent.avatar = this.getInitials(this.modalStudent.name);
-      this.modalStudent.enrollmentDate = this.formatDate(new Date());
-      this.students.push({ ...this.modalStudent });
-      this.courses = [...new Set(this.students.map(s => s.course))];
-    } else if (this.modalMode === 'edit') {
-      const index = this.students.findIndex(s => s.id === this.modalStudent.id);
-      if (index !== -1) {
-        this.modalStudent.avatar = this.getInitials(this.modalStudent.name);
-        this.students[index] = { ...this.modalStudent };
-        this.courses = [...new Set(this.students.map(s => s.course))];
-      }
-    }
-    this.closeModal();
-    this.applyFilters();
-  }
-
   openDeleteModal(student: Student): void {
     this.deleteStudentId = student.id;
     this.deleteStudentName = student.name;
@@ -476,7 +431,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   confirmDelete(): void {
     if (this.deleteStudentId !== null) {
       this.students = this.students.filter(s => s.id !== this.deleteStudentId);
-      this.selectedIds.delete(this.deleteStudentId);
+      this.selectedIds.delete(this.deleteStudentId!);
       this.attendanceHistory = this.attendanceHistory.filter(r => r.studentId !== this.deleteStudentId);
       this.courses = [...new Set(this.students.map(s => s.course))];
       this.closeDeleteModal();
