@@ -59,7 +59,7 @@ export class AccountStateService {
       isLoggedIn: false,
     };
 
-    return this.http.post<AccountApiResponse>(LMS_AUTH_ENDPOINT, payload).pipe(
+    return this.http.post<AccountApiResponse>(`${LMS_AUTH_ENDPOINT}/create`, payload).pipe(
       tap((response) => {
         const storedData = this.normalizeAuthResponse(response, payload.mobile);
         this.setAccountData(storedData);

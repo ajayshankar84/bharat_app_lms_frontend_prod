@@ -32,7 +32,11 @@
 
             <nav class="nav-menu">
                 @if (isAdmin) {
-                <a routerLink="/features/assigned-course" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                <a routerLink="/features/users" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-clipboard2-check"></i>
+                    <span>Users</span>
+                </a>
+                    <a routerLink="/features/assigned-course" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
                     <i class="bi bi-clipboard2-check"></i>
                     <span>Assigned course</span>
                 </a>
