@@ -12,7 +12,7 @@ export const POST_CREATE_ASSIGNED_COURSES_ENDPOINT = `${API_BASE_URL}/assigned-c
 export const ASSIGNED_COURSES_ENDPOINT = `${API_BASE_URL}/assigned-course`;
 
 // course detail endpoints
-// export const GET_COURSE_DETAIL_ENDPOINT = `${API_BASE_URL}/course-detail`;
+// export const GET_COURSE_DETAIL_ENDPOINT = `${PROD_API_BASE_URL}/course-detail`;
 export const COURSE_DETAIL_ENDPOINT = `${API_BASE_URL}/course-detail`;
 
 // course

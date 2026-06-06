@@ -32,7 +32,11 @@
 
             <nav class="nav-menu">
                 @if (isAdmin) {
-                <a routerLink="/features/assigned-course" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                <a routerLink="/features/users" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-clipboard2-check"></i>
+                    <span>Users</span>
+                </a>
+                    <a routerLink="/features/assigned-course" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
                     <i class="bi bi-clipboard2-check"></i>
                     <span>Assigned course</span>
                 </a>
@@ -75,6 +79,10 @@
                 <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
                     <i class="bi bi-file-earmark-text"></i>
                     <span>Experience Letter</span>
+                </a>
+                <a routerLink="/features/attendance" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>Attendance</span>
                 </a>
                 } @else {
                 <a routerLink="/features/my-courses" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
