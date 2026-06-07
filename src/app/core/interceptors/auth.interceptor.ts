@@ -10,7 +10,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = sessionService.getSessionToken();
 
   // Define endpoints or keywords that should not have the Authorization header
-  const excludedEndpoints = ['/login', '/create', '/reset-password'];
+  // We change '/create' to a more specific path to avoid excluding Attendance creation
+  const excludedEndpoints = ['/login', '/lms-auth/create', '/reset-password'];
   const isExcluded = excludedEndpoints.some(url => req.url.includes(url));
 
   let authReq = req;

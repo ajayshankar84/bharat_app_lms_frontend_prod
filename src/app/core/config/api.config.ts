@@ -1,6 +1,6 @@
-export const API_BASE_URL ='http://localhost:3000';// `https://bharatapp-admin.praispranav.com`; //
+export const API_BASE_URL =`https://bharatapp-admin.praispranav.com`; //'http://localhost:3000';// 
  export const PROD_API_BASE_URL = `https://bharatapp-admin.praispranav.com`;
-export const LMS_INTERNSHIP_ENDPOINT = `${PROD_API_BASE_URL}/internship`;
+export const LMS_INTERNSHIP_ENDPOINT = `${API_BASE_URL}/internship`;
 
 
 export const LMS_AUTH_ENDPOINT = `${API_BASE_URL}/lms-auth`;
@@ -26,3 +26,5 @@ export const VIDEO_PROGRESS_ENDPOINT = `${API_BASE_URL}/video-progress`;
 export const UPLOAD_FILE_ENDPOINT = `${API_BASE_URL}/upload-file`;
 
 export const FILE_PROGRESS_ENDPOINT = `${API_BASE_URL}/file-progress`;
+
+export const ATTENDANCE_ENDPOINT = `${API_BASE_URL}/attendance`; 
