@@ -21,6 +21,14 @@ const routes: Routes = [{
       loadChildren: () =>
         import('./forget-password/forget-password.module').then(m => m.ForgetPasswordModule),
     },
+   {
+      path: 'verify-otp',
+      loadChildren: () => import('./verify-otp/verify-otp.module').then(m => m.VerifyOtpModule)
+    },
+    {
+      path: 'reset-password',
+      loadChildren: () => import('./reset-password/reset-password.module').then(m => m.ResetPasswordModule)
+    },
     {
       path: '',
       redirectTo: 'login',

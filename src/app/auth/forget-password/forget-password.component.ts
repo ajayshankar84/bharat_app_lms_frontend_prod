@@ -1,5 +1,6 @@
 ﻿import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -13,29 +14,43 @@ export class ForgetPasswordComponent {
   successMessage = '';
   errorMessage = '';
 
-  constructor(private fb: FormBuilder, private authService: AuthService) {
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router
+  ) {
     this.forgotForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email, Validators.pattern(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/)]]
+      email: ['', [
+        Validators.required,
+        Validators.email,
+        Validators.pattern(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/)
+      ]]
     });
   }
 
   onSubmit() {
     if (this.forgotForm.invalid) return;
-    
+
     this.loading = true;
     this.successMessage = '';
     this.errorMessage = '';
 
     const email = this.forgotForm.get('email')?.value;
- console.log(email);
-    this.authService.sendResetLink(email).subscribe({
-      next: () => {
-        this.successMessage = 'If an account exists for this email, you will receive a reset link shortly.';
+
+    this.authService.sendOtp(email).subscribe({
+      next: (res) => {
+        this.successMessage = 'OTP sent successfully to your email!';
         this.loading = false;
-        this.forgotForm.reset();
+
+        // Navigate to OTP verify page after 1.5 sec
+        setTimeout(() => {
+          this.router.navigate(['/auth/verify-otp'], {
+            queryParams: { email: email }
+          });
+        }, 1500);
       },
       error: (err) => {
-        this.errorMessage = err.error?.message || 'Unable to process request. Please try again later.';
+        this.errorMessage = err.error?.message || 'Unable to send OTP. Please try again.';
         this.loading = false;
       }
     });

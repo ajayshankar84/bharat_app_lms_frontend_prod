@@ -1,0 +1,112 @@
+<div class="auth-container d-flex align-items-center justify-content-center">
+  <div class="card glass-card p-4 p-md-5 shadow-lg">
+    <div class="step-indicator d-flex justify-content-center mb-4">
+      <div class="step completed">
+        <div class="step-circle"><i class="bi bi-check"></i></div>
+        <small>Email</small>
+      </div>
+      <div class="step-line active"></div>
+      <div class="step active">
+        <div class="step-circle">2</div>
+        <small>OTP</small>
+      </div>
+      <div class="step-line"></div>
+      <div class="step">
+        <div class="step-circle">3</div>
+        <small>Password</small>
+      </div>
+    </div>
+
+    <div class="text-center mb-4">
+      <div class="icon-circle mx-auto mb-3">
+        <i class="bi bi-shield-lock fs-1 text-primary"></i>
+      </div>
+      <h2 class="fw-bold text-gradient">Verify OTP</h2>
+      <p class="text-secondary small">
+        We've sent a 6-digit code to <strong>{{ maskedEmail }}</strong>
+      </p>
+    </div>
+
+    <form [formGroup]="otpForm" (ngSubmit)="onSubmit()">
+      <div
+        class="otp-container d-flex justify-content-center gap-2 gap-md-3 mb-4"
+        (paste)="onPaste($event)"
+      >
+        <input
+          *ngFor="let i of [1, 2, 3, 4, 5, 6]; let idx = index"
+          #otpInput
+          type="text"
+          inputmode="numeric"
+          maxlength="1"
+          class="otp-box form-control text-center fw-bold"
+          [formControlName]="'otp' + i"
+          (input)="onInput($event, i)"
+          (keydown)="onKeyDown($event, i)"
+          [class.is-invalid]="
+            otpForm.get('otp' + i)?.touched && otpForm.get('otp' + i)?.invalid
+          "
+          [class.filled]="otpForm.get('otp' + i)?.value"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="text-center mb-4">
+        <div *ngIf="!canResend" class="text-secondary small">
+          <i class="bi bi-clock me-1"></i>
+          Resend OTP in <strong class="text-primary">{{ countdown }}s</strong>
+        </div>
+        <button
+          *ngIf="canResend"
+          type="button"
+          class="btn btn-link text-primary fw-semibold small p-0 text-decoration-none"
+          (click)="resendOtp()"
+          [disabled]="resending"
+        >
+          <span
+            *ngIf="resending"
+            class="spinner-border spinner-border-sm me-1"
+          ></span>
+          <i *ngIf="!resending" class="bi bi-arrow-clockwise me-1"></i>
+          {{ resending ? "Sending..." : "Resend OTP" }}
+        </button>
+      </div>
+
+      <div
+        *ngIf="successMessage"
+        class="alert alert-success border-0 py-2 mb-3 d-flex align-items-center"
+      >
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <small>{{ successMessage }}</small>
+      </div>
+
+      <div
+        *ngIf="errorMessage"
+        class="alert alert-danger border-0 py-2 mb-3 d-flex align-items-center"
+      >
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <small>{{ errorMessage }}</small>
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-primary w-100 py-2 fw-bold"
+        [disabled]="otpForm.invalid || loading"
+      >
+        <span
+          *ngIf="loading"
+          class="spinner-border spinner-border-sm me-2"
+        ></span>
+        {{ loading ? "Verifying..." : "Verify OTP" }}
+      </button>
+    </form>
+
+    <div class="text-center mt-4">
+      <a
+        routerLink="/auth/forget-password"
+        class="text-decoration-none small text-primary fw-semibold"
+      >
+        <i class="bi bi-arrow-left me-1"></i> Change Email
+      </a>
+    </div>
+  </div>
+</div>

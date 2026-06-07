@@ -64,6 +64,27 @@ export class AuthService {
   //   return this.http.post(`${this.API_URL}/reset-password`, { password, token });
   // }
 
+   sendOtp(email: string): Observable<any> {
+    return this.http.post(`${this.API_URL}/send-otp`, { email });
+  }
+
+  verifyOtp(email: string, otp: string): Observable<any> {
+    return this.http.post(`${this.API_URL}/verify-otp`, { email, otp });
+  }
+
+  resetPassword(email: string, otp: string, password: string, confirmPassword: string): Observable<any> {
+    return this.http.post(`${this.API_URL}/reset-password`, {
+      email,
+      otp,
+      password,
+      confirmPassword
+    });
+  }
+
+  resendOtp(email: string): Observable<any> {
+    return this.http.post(`${this.API_URL}/resend-otp`, { email });
+  }
+
   public get currentUserValue(): User | null {
     return this.currentUserSubject.value;
   }
