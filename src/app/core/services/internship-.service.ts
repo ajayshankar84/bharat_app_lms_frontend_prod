@@ -16,4 +16,12 @@ export class InternshipService {
   getAllCourses(): Observable<any[]> {
     return this.http.get<any[]>(COURSES_ENDPOINT);
   }
+
+  deleteInternship(id: string): Observable<any> {
+    return this.http.delete(`${LMS_INTERNSHIP_ENDPOINT}/${id}`);
+  }
+
+  updateInternship(id: string, data: any): Observable<any> {
+    return this.http.patch(`${LMS_INTERNSHIP_ENDPOINT}/${id}`, data);
+  }
 }

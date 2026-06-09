@@ -14,6 +14,7 @@ export class UsersComponent implements OnInit {
   private authService = inject(AuthService);
   users: User[] = [];
   searchTerm: string = '';
+  roleFilter: 'all' | 'admin' | 'user' = 'all';
   visiblePasswords: Set<string> = new Set();
   isAddModalOpen = false;
   isEditModalOpen = false;
@@ -38,15 +39,27 @@ export class UsersComponent implements OnInit {
 
   get filteredUsers(): User[] {
     const term = this.searchTerm.toLowerCase().trim();
-    if (!term) {
-      return this.users;
+    let results = this.users;
+
+    // 1. Apply Role Filter
+    if (this.roleFilter !== 'all') {
+      results = results.filter(user => user.role === this.roleFilter);
     }
 
-    return this.users.filter(user => 
+    // 2. Apply Search Filter
+    if (!term) {
+      return results;
+    }
+
+    return results.filter(user => 
       user.firstName.toLowerCase().includes(term) ||
       user.lastName.toLowerCase().includes(term) ||
       user.email.toLowerCase().includes(term)
     );
+  }
+
+  setRoleFilter(role: 'all' | 'admin' | 'user'): void {
+    this.roleFilter = role;
   }
 
   togglePasswordVisibility(userId: string): void {

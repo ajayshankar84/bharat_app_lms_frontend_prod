@@ -6,7 +6,7 @@
     </button>
   </div>
 
-  <div class="row mb-4">
+  <div class="row mb-4 align-items-center">
     <div class="col-md-5 col-lg-4">
       <div class="input-group shadow-sm">
       <input 
@@ -23,6 +23,23 @@
       </button>
     </div>
   </div>
+    <div class="col-md-7 col-lg-8">
+      <div class="btn-group btn-group-sm rounded-pill overflow-hidden shadow-sm" role="group" aria-label="Role filter">
+        <button type="button" class="btn px-3" 
+          [class.btn-primary]="roleFilter === 'all'" 
+          [class.btn-outline-primary]="roleFilter !== 'all'" 
+          (click)="setRoleFilter('all')">All Roles</button>
+        <button type="button" class="btn px-3" 
+          [class.btn-primary]="roleFilter === 'admin'" 
+          [class.btn-outline-primary]="roleFilter !== 'admin'" 
+          (click)="setRoleFilter('admin')">Admins</button>
+        <button type="button" class="btn px-3" 
+          [class.btn-primary]="roleFilter === 'user'" 
+          [class.btn-outline-primary]="roleFilter !== 'user'" 
+          (click)="setRoleFilter('user')">Users</button>
+      </div>
+      <span class="ms-3 text-muted small">Found: {{ filteredUsers.length }}</span>
+    </div>
   </div>
 
   <div class="table-responsive shadow-sm rounded-3 border" *ngIf="filteredUsers.length > 0; else noUsers">

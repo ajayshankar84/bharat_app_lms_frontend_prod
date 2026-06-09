@@ -24,7 +24,7 @@ export class FeaturesComponent {
 
   }
   get isAdmin(): boolean {
-    return this.accountStateService.getStoredAccountData()?.role?.toLowerCase() === 'admin';
+    return this.accountData?.role?.toLowerCase() === 'admin';
   }
 
   toggleSidebar() {

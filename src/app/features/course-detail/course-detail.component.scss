@@ -28,9 +28,19 @@ $open-bg: #e9f2ff;
         &:not(.collapsed) {
             color: $dark;
             background: $open-bg;
+            box-shadow: inset 0 -1px 0 rgba($dark, 0.05);
+        }
+        
+        &:focus {
+            box-shadow: none;
+            border-color: rgba($primary-color, 0.1);
         }
         &::after {
             filter: invert(0.4);
+        }
+        @media (max-width: 576px) {
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
         }
     }
     .card-body {
@@ -233,11 +243,14 @@ $open-bg: #e9f2ff;
     // Lecture list row enhancements
     .lecture-row {
         border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-        
-        &:hover {
-            background-color: rgba($primary-color, 0.04);
-            transform: translateX(4px);
+        transition: all 0.2s ease;
+        @media (min-width: 768px) {
+            &:hover {
+                background-color: rgba($primary-color, 0.04);
+                padding-left: 1.25rem !important;
+            }
         }
+        &:last-child { border-bottom: none; }
     }
 
     .completion-check {

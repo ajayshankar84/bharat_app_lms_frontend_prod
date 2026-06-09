@@ -23,6 +23,7 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
   courseDetail: any = null;
   isLoading: boolean = false;
   isAddingLearning: boolean = false;
+  isAllExpanded: boolean = false;
   isAddingFaq: boolean = false;
   showDeleteModal: boolean = false;
   private tooltipInstances: any[] = [];
@@ -388,6 +389,21 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
       this.completedLectures.add(lectureId);
     }
     // Logic to sync with backend can be added here
+  }
+
+  /**
+   * Toggles all accordion sections in the curriculum.
+   */
+  toggleAllSections(): void {
+    this.isAllExpanded = !this.isAllExpanded;
+    const accordionElement = document.getElementById('courseAccordion');
+    if (accordionElement) {
+      const collapses = accordionElement.querySelectorAll('.accordion-collapse');
+      collapses.forEach((collapseEl: any) => {
+        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseEl, { toggle: false });
+        this.isAllExpanded ? bsCollapse.show() : bsCollapse.hide();
+      });
+    }
   }
 
   /**

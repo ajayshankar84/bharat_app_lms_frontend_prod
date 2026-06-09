@@ -52,4 +52,13 @@ export class AssignedCourseService {
       })
     );
   }
+
+   getAllAssignedCourses(): Observable<any> {
+    const courseDetailEndpoint = `${ASSIGNED_COURSES_ENDPOINT}}`;
+    return this.http.get(courseDetailEndpoint).pipe(
+      catchError((error) => {
+        return throwError(() => error);
+      })
+    );
+  }
 }

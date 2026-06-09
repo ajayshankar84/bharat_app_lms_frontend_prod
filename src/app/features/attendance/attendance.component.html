@@ -1,439 +1,359 @@
-<div class="attendance-page">
-
-  <div class="success-toast" *ngIf="showSuccessToast">
-    <div class="success-toast__icon"><i class="bi bi-check-circle-fill"></i></div>
-    <div class="success-toast__body">
-      <span class="success-toast__title">Success</span>
-      <span class="success-toast__message">{{ successMessage }}</span>
-    </div>
-    <button class="success-toast__close" (click)="closeToast()"><i class="bi bi-x-lg"></i></button>
-  </div>
-
-  <div class="hero">
-    <div class="hero__bg"></div>
-    <div class="hero__content">
-      <div class="hero__left">
-        <div class="hero__meta">
-          <span class="hero__greeting-icon"><i class="bi" [ngClass]="greetingIcon"></i></span>
-          <span class="hero__greeting-text">{{ greetingText }}</span>
-          <span class="hero__time"><i class="bi bi-clock"></i> {{ currentTime }}</span>
-        </div>
-        <h1 class="hero__title">
-          Student <span class="hero__name">Attendance</span>
-        </h1>
-        <p class="hero__subtitle">{{ heroSubtitle }}</p>
-        <div class="hero__actions">
-          <button class="hero__btn hero__btn--primary" (click)="markAllPending()">
-            <i class="bi bi-check-all"></i> Mark All Present
-          </button>
-          <button class="hero__btn hero__btn--ghost" (click)="resetAllPending()">
-            <i class="bi bi-arrow-counterclockwise"></i> Reset All
-          </button>
-        </div>
-      </div>
-      <div class="hero__date-picker">
-        <div class="hero__date-card">
-          <div class="hero__date-visual">
-            <span class="hero__date-day">{{ today | date:'dd' }}</span>
-            <span class="hero__date-month">{{ today | date:'MMM' }}</span>
-          </div>
-          <div class="hero__date-info">
-            <span class="hero__date-label">Attendance Date</span>
-            <span class="hero__date-display">{{ formattedSelectedDate }}</span>
-            <input type="date" class="hero__date-input" [(ngModel)]="selectedDate" (change)="onDateChange()">
-          </div>
-          <button class="hero__today-btn" *ngIf="!isToday" (click)="goToToday()">
-            <i class="bi bi-arrow-return-left"></i> Today
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-2 g-md-3 mb-4">
-    <div class="col-6 col-lg-3" *ngFor="let stat of statsCards">
-      <div class="stat-card" [class.stat-card--pulse]="stat.label === 'Pending Changes' && +stat.value > 0">
-        <div class="stat-card__icon" [ngClass]="stat.iconClass">
-          <i class="bi" [ngClass]="stat.icon"></i>
-        </div>
-        <div class="stat-card__content">
-          <span class="stat-card__label">{{ stat.label }}</span>
-          <span class="stat-card__value">{{ stat.value }}</span>
-          <div class="stat-card__trend"><span>{{ stat.change }}</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="submit-bar" *ngIf="hasPendingChanges">
-    <div class="submit-bar__left">
-      <div class="submit-bar__icon"><i class="bi bi-exclamation-circle-fill"></i></div>
-      <div class="submit-bar__info">
-        <span class="submit-bar__title">{{ pendingChangesCount }} unsaved change{{ pendingChangesCount > 1 ? 's' : '' }}</span>
-        <span class="submit-bar__subtitle">Click Submit to save attendance for {{ formattedSelectedDate }}</span>
-      </div>
-    </div>
-    <div class="submit-bar__right">
-      <button class="submit-bar__discard" (click)="discardChanges()" [disabled]="isSubmitting">
-        <i class="bi bi-x-circle"></i> Discard
-      </button>
-      <button class="submit-bar__submit" (click)="submitAttendance()" [disabled]="isSubmitting">
-        <span *ngIf="!isSubmitting"><i class="bi bi-cloud-arrow-up-fill"></i> Submit Attendance</span>
-        <span *ngIf="isSubmitting"><i class="bi bi-arrow-clockwise spinning"></i> Submitting...</span>
-      </button>
-    </div>
-  </div>
-
-  <div class="selection-bar" *ngIf="selectedIds.size > 0">
-    <div class="selection-bar__left">
-      <div class="selection-bar__check"><i class="bi bi-check2-square"></i></div>
-      <span class="selection-bar__count">{{ selectedIds.size }} student{{ selectedIds.size > 1 ? 's' : '' }} selected</span>
-      <button class="selection-bar__link" (click)="selectAllStudents()" *ngIf="!allFilteredSelected">
-        Select all {{ filteredStudents.length }}
-      </button>
-      <button class="selection-bar__link selection-bar__link--muted" (click)="deselectAllStudents()">
-        Clear selection
-      </button>
-    </div>
-    <div class="selection-bar__right">
-      <button class="selection-bar__action selection-bar__action--unmark" (click)="unmarkSelectedPending()">
-        <i class="bi bi-x-circle"></i> Unmark
-      </button>
-      <button class="selection-bar__action" (click)="markSelectedPending()">
-        <i class="bi bi-check-circle-fill"></i> Mark Present
-      </button>
-    </div>
-  </div>
-
-  <div class="toolbar-card">
-    <div class="toolbar-card__body">
-      <div class="toolbar-row">
-        <div class="toolbar-search">
-          <i class="bi bi-search toolbar-search__icon"></i>
-          <input type="text" class="toolbar-search__input"
-            placeholder="Search name, email, mobile, college..."
-            [(ngModel)]="searchText" (input)="onSearch()">
-          <button class="toolbar-search__clear" *ngIf="searchText" (click)="clearSearch()">
-            <i class="bi bi-x-lg"></i>
-          </button>
-        </div>
-        <div class="toolbar-filters">
-          <select class="toolbar-select" [(ngModel)]="filterCourse" (change)="applyFilters()">
-            <option value="">All Courses</option>
-            <option *ngFor="let c of courses" [value]="c">{{ c }}</option>
-          </select>
-          <select class="toolbar-select" [(ngModel)]="filterStatus" (change)="applyFilters()">
-            <option value="">All Status</option>
-            <option value="present">Present</option>
-            <option value="unmarked">Unmarked</option>
-          </select>
-          <button class="toolbar-btn toolbar-btn--ghost" *ngIf="hasActiveFilters" (click)="clearFilters()">
-            <i class="bi bi-x-circle"></i> Clear
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="table-card">
-
-    <div class="loading-bar" *ngIf="isLoading">
-      <div class="loading-bar__fill"></div>
-    </div>
-
-    <div class="table-responsive">
-      <table class="attendance-table">
-        <thead>
-          <tr>
-            <th class="th-checkbox">
-              <label class="checkbox-wrapper">
-                <input type="checkbox" class="custom-checkbox"
-                  [checked]="selectAll" [indeterminate]="someVisibleSelected"
-                  (change)="selectAll = !selectAll; toggleSelectAll()">
-                <span class="checkbox-visual"><i class="bi bi-check-lg"></i></span>
-              </label>
-            </th>
-            <th class="th-sno">#</th>
-            <th class="th-student sortable" (click)="onSort('name')">
-              Student <i class="bi sort-icon" [ngClass]="getSortIcon('name')"></i>
-            </th>
-            <th class="th-course sortable d-none d-md-table-cell" (click)="onSort('course')">
-              Course / Program <i class="bi sort-icon" [ngClass]="getSortIcon('course')"></i>
-            </th>
-            <th class="th-college sortable d-none d-lg-table-cell" (click)="onSort('college')">
-              College <i class="bi sort-icon" [ngClass]="getSortIcon('college')"></i>
-            </th>
-            <th class="th-contact d-none d-xl-table-cell">Mobile</th>
-            <th class="th-mark text-center">Mark</th>
-            <th class="th-status text-center">Status</th>
-            <th class="th-actions text-center">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngIf="isLoading && paginatedStudents.length === 0">
-            <td colspan="9">
-              <div class="skeleton-rows">
-                <div class="skeleton-row" *ngFor="let i of [1,2,3,4,5,6]">
-                  <div class="skeleton skeleton--check"></div>
-                  <div class="skeleton skeleton--sm"></div>
-                  <div class="skeleton skeleton--lg"></div>
-                  <div class="skeleton skeleton--md"></div>
-                  <div class="skeleton skeleton--md"></div>
-                  <div class="skeleton skeleton--sm"></div>
+<div class="container-fluid assigned-course-page">
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+        <div class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true"
+            [class.show]="toastVisible" [class.fade]="true" [class.bg-success]="toastVariant === 'success'"
+            [class.bg-danger]="toastVariant === 'danger'">
+            <div class="d-flex">
+                <div class="toast-body text-white">
+                    {{ toastMessage }}
                 </div>
-              </div>
-            </td>
-          </tr>
-          <tr *ngIf="!isLoading && paginatedStudents.length === 0">
-            <td colspan="9" class="empty-state">
-              <div class="empty-state__content">
-                <i class="bi bi-inbox"></i>
-                <h4>No Students Found</h4>
-                <p>Try adjusting your search or filters</p>
-                <button class="toolbar-btn toolbar-btn--primary" (click)="clearFilters()" *ngIf="hasActiveFilters">
-                  Clear Filters
-                </button>
-              </div>
-            </td>
-          </tr>
-          <tr *ngFor="let student of paginatedStudents; let i = index"
-            [class.row-present]="student.pendingAttendance === 'present'"
-            [class.row-selected]="selectedIds.has(student.id)"
-            [class.row-dirty]="student.isDirty">
-            <td class="td-checkbox">
-              <label class="checkbox-wrapper">
-                <input type="checkbox" class="custom-checkbox"
-                  [checked]="selectedIds.has(student.id)"
-                  (change)="toggleSelect(student.id)">
-                <span class="checkbox-visual"><i class="bi bi-check-lg"></i></span>
-              </label>
-            </td>
-            <td class="td-sno">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
-            <td class="td-student">
-              <div class="student-info">
-                <div class="student-avatar" [style.background]="getAvatarColor(student.name)">
-                  {{ student.avatar }}
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Close"
+                    (click)="toastVisible = false"></button>
+            </div>
+        </div>
+    </div>
+    <div class="page-header d-flex flex-column flex-lg-row justify-content-between gap-3">
+        <div>
+            <p class="eyebrow mb-2">Admin workspace</p>
+            <h1 class="page-title mb-1">Assigned Course</h1>
+            <p class="page-subtitle mb-0">
+                Review the courses assigned to learners, monitor progress, and keep follow-ups in one place.
+            </p>
+        </div>
+
+        <div class="header-chip-wrapper">
+            <span class="status-chip">Live</span>
+        </div>
+    </div>
+
+    <div class="summary-grid row g-3 mt-3">
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="summary-card">
+                <p class="summary-label">Courses assigned</p>
+                <h2 class="summary-value">12</h2>
+                <small class="summary-caption">+3 this week</small>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="summary-card">
+                <p class="summary-label">Active learners</p>
+                <h2 class="summary-value">48</h2>
+                <small class="summary-caption">7 pending reviews</small>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="summary-card">
+                <p class="summary-label">Completion rate</p>
+                <h2 class="summary-value">74%</h2>
+                <small class="summary-caption">Up by 6% this month</small>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="summary-card">
+                <p class="summary-label">Needs attention</p>
+                <h2 class="summary-value">5</h2>
+                <small class="summary-caption">Require mentor follow-up</small>
+            </div>
+        </div>
+    </div>
+    <div class="content-grid row g-4 mt-1 align-items-center">
+        <div class="col-12 col-xl-4">
+            <section class="panel">
+                <div class="panel-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="panel-kicker">Assignments</p>
+                        <h3 class="panel-title mb-0">Showing {{ filteredInternships.length }} of {{ internships.length
+                            }}
+                        </h3>
+                    </div>
                 </div>
-                <div class="student-details">
-                  <span class="student-name">
-                    {{ student.name }}
-                    <span class="dirty-dot" *ngIf="student.isDirty" title="Unsaved change"></span>
-                  </span>
-                  <span class="student-email">{{ student.email }}</span>
+            </section>
+        </div>
+        <div class="col-12 col-xl-8 d-flex justify-content-end align-items-center gap-2">
+            <div class="input-group input-group-sm bg-white shadow-sm overflow-hidden border date-timepicker px-3" style="max-width: 220px;">
+                <span class="input-group-text bg-white border-0"><i class="bi bi-calendar3 text-muted"></i></span>
+                <input type="date" class="form-control border-0 shadow-none" [(ngModel)]="selectedDateTimeStr"
+                   aria-label="Filter by date" /> @if (selectedDateTimeStr) {
+                <button class="btn btn-sm btn-outline-secondary border-0" type="button" (click)="clearDateFilter()">
+                    <i class="bi bi-x-lg"></i>
+                </button> }
+            </div>
+
+            <button id="viewAttendance" class="btn btn-outline-info rounded-pill px-4"
+                (click)="openAttendanceModal()">
+                <i class="bi bi-eye me-2"></i>View Attendance
+            </button>
+            <button class="btn btn-outline-danger rounded-pill px-4" type="button"
+                (click)="clearAllFilters()">
+                <i class="bi bi-x-circle me-2"></i>Clear Filters
+            </button>
+        </div>
+        <div class="row mt-2 mb-4 py-3 align-items-center shadow-sm rounded">
+
+            <div class="col-md-5">
+                <div class="input-group input-group-sm bg-white rounded-pill shadow-sm overflow-hidden border">
+                    <span class="input-group-text bg-white border-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" class="form-control border-0 shadow-none"
+                        placeholder="Search name, mobile, college..." [(ngModel)]="searchTerm"
+                        (ngModelChange)="onFiltersChanged()">
                 </div>
-              </div>
-            </td>
-            <td class="td-course d-none d-md-table-cell">
-              <span class="course-badge">{{ student.course }}</span>
-              <span class="program-text">{{ student.program }}</span>
-            </td>
-            <td class="td-college d-none d-lg-table-cell">
-              <span class="college-text">{{ student.college }}</span>
-            </td>
-            <td class="td-contact d-none d-xl-table-cell">
-              <span class="phone-text">{{ student.phone }}</span>
-            </td>
-            <td class="td-mark text-center">
-              <button class="mark-btn" [class.mark-btn--active]="student.pendingAttendance === 'present'"
-                (click)="togglePendingAttendance(student)">
-                <i class="bi" [ngClass]="student.pendingAttendance === 'present' ? 'bi-check-circle-fill' : 'bi-circle'"></i>
-                <span>{{ student.pendingAttendance === 'present' ? 'Present' : 'Mark' }}</span>
-              </button>
-            </td>
-            <td class="td-status text-center">
-              <div class="status-wrap">
-                <span class="status-dot" [class.status-dot--present]="student.attendance === 'present'"></span>
-                <span class="pending-badge" *ngIf="student.isDirty">
-                  <i class="bi bi-pencil-fill"></i> Pending
-                </span>
-              </div>
-            </td>
-            <td class="td-actions text-center">
-              <div class="action-btns">
-                <button class="action-btn action-btn--view" (click)="openViewModal(student)" title="View">
-                  <i class="bi bi-eye"></i>
+            </div>
+            <div class="col-md-5">
+                <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm rounded-pill shadow-sm border" aria-label="Course"
+                        [(ngModel)]="selectedCourseId" (ngModelChange)="onFiltersChanged()">
+                        <option value="">All courses</option>
+                        @for (course of courses; track course.id) {
+                        <option [value]="course.id">{{ course.name }}</option>
+                        }
+                    </select>
+
+                    <select class="form-select form-select-sm rounded-pill shadow-sm border" aria-label="Batch"
+                        [(ngModel)]="selectedBatchId" (ngModelChange)="onFiltersChanged()">
+                        <option value="">All batches</option>
+                        @for (batch of batches; track batch.id) {
+                        <option [value]="batch.id">{{ batch.name }}</option>
+                        }
+                    </select>
+                </div>
+                <!-- <div class="mt-2 px-1">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="filterUnmarked"
+                            [(ngModel)]="showOnlyUnmarked" (change)="onFiltersChanged()">
+                        <label class="form-check-label small text-muted" for="filterUnmarked" style="cursor: pointer;">
+                            Show unmarked only
+                        </label>
+                    </div>
+                </div> -->
+                <!-- <div class="input-group input-group-sm bg-white rounded-pill shadow-sm overflow-hidden border">
+                     <span class="input-group-text bg-white border-0"><i class="bi bi-x-circle text-danger"></i></span>
+                     <input type="text" class="form-control border-0 shadow-none" placeholder="Exclude: College A, College B..." [(ngModel)]="excludeSearch">
+                 </div> -->
+
+            </div>
+
+
+
+            <div class="col-md-2 text-md-end py-1">
+
+                <button class="btn btn-primary rounded-pill px-4 me-2" (click)="markAttendanceHandler()"
+                    [disabled]="!selectedCourseId || !selectedBatchId || selectedStudentsCount === 0 || !selectedDateTimeStr">
+                    <i class="bi bi-download me-2"></i>Mark Attendance
                 </button>
-                <button class="action-btn action-btn--history" (click)="openHistoryModal(student)" title="History">
-                  <i class="bi bi-calendar-check"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+
+            </div>
+        </div>
+    </div>
+    <div class="content-grid row g-4 mt-1">
+        <div class="col-12 col-xl-12">
+            <section class="panel">
+                <div class="table-responsive mt-3">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th style="width: 44px;" class="text-center">
+                                    <input class="form-check-input" type="checkbox" [checked]="allVisibleSelected"
+                                        [indeterminate]="someVisibleSelected"
+                                        (change)="toggleAllVisible($any($event.target).checked)"
+                                        aria-label="Select all students" />
+                                </th>
+                                <td>#</td>
+                                <th>Name</th>
+                                <th class="text-center">Mobile</th>
+                                <th class="text-center">Program</th>
+                                <th class="text-center">University</th>
+                                <th class="text-center">Date</th>
+                                <!-- <th class="text-center">Type</th> -->
+                                <!-- <th class="text-end pe-4">Actions</th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (internship of pagedInternships; track internship._id;let i = $index) {
+                            <tr class="shadow-sm rounded"
+                                [class.table-success]="isAttendanceAlreadyMarked(internship._id)"
+                                [class.opacity-75]="isAttendanceAlreadyMarked(internship._id)"
+                                (click)="!isAttendanceAlreadyMarked(internship._id) && toggleStudent(internship._id, !isStudentSelected(internship._id))"
+                                [style.cursor]="isAttendanceAlreadyMarked(internship._id) ? 'default' : 'pointer'">
+                                <td class="text-center" (click)="$event.stopPropagation()">
+                                    <input class="form-check-input" type="checkbox"
+                                        [checked]="isStudentSelected(internship._id)"
+                                        (change)="toggleStudent(internship._id, $any($event.target).checked)"
+                                        [disabled]="isAttendanceAlreadyMarked(internship._id)"
+                                        aria-label="Select student" />
+                                </td>
+                                <td class="ps-4 fw-bold text-muted">{{ ((currentPage - 1) * pageSize) + i + 1 }}</td>
+                                <td class="text-left">
+                                    <div class="text-dark">{{ internship.name }}</div>
+                                    <div class="text-primary small fw-bold">{{ internship.email }}</div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="text-dark"> {{ internship.mobile }}</div>
+                                    <div class="text-muted small">{{ internship.city }}</div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="text-dark">{{ internship.program }}</div>
+                                    <div class="text-primary small">({{ internship.internshipType}})</div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="text-dark">{{ internship.college }}</div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="small mb-1">{{ internship.createdAt | date:'mediumDate' }}</div>
+                                    <span class="badge rounded-pill px-3 py-1"
+                                        [ngClass]="internship.active ? 'text-success' : 'text-danger'">
+                                        {{ internship.active ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </td>
+                                <!-- <td class="text-center">
+                                <span class="badge rounded-pill px-3 py-1 bg-primary">{{ internship.internshipType
+                                    }}</span>
+                            </td> -->
+                                <!-- <td class="pe-4 text-end">
+                                    <button class="btn btn-sm btn-outline-secondary rounded-pill" (click)="navigateToEdit(internship._id)">View</button>
+                                </td> -->
+                            </tr>
+                            } @empty {
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">No internships found for this
+                                    filter.
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <nav class="d-flex justify-content-end mt-3" aria-label="Assigned course pagination">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" [class.disabled]="currentPage === 1">
+                            <button class="page-link" type="button" (click)="prevPage()">Prev</button>
+                        </li>
+
+                        @for (p of pages; track p) {
+                        <li class="page-item" [class.active]="p === currentPage">
+                            <button class="page-link" type="button" (click)="goToPage(p)">{{ p }}</button>
+                        </li>
+                        }
+
+                        <li class="page-item" [class.disabled]="currentPage === totalPages">
+                            <button class="page-link" type="button" (click)="nextPage()">Next</button>
+                        </li>
+                    </ul>
+                </nav>
+            </section>
+        </div>
+    </div>
+    <div class="content-grid row g-4 mt-1">
+        <div class="col-12 col-xl-12">
+            <section class="panel">
+                <div class="panel-header">
+                    <div>
+                        <p class="panel-kicker">Milestones</p>
+                        <h3 class="panel-title mb-0">Upcoming checkpoints</h3>
+                    </div>
+                </div>
+
+                <div class="milestone-list mt-3">
+                    <div class="milestone-row">
+                        <div>
+                            <h4>Module 2 submission</h4>
+                            <p>Due in 2 days</p>
+                        </div>
+                        <span class="status-pill status-review">High priority</span>
+                    </div>
+
+                    <div class="milestone-row">
+                        <div>
+                            <h4>Live mentoring session</h4>
+                            <p>Friday, 11:00 AM</p>
+                        </div>
+                        <span class="status-pill status-on-track">Scheduled</span>
+                    </div>
+
+                    <div class="milestone-row">
+                        <div>
+                            <h4>Capstone review</h4>
+                            <p>Next week</p>
+                        </div>
+                        <span class="status-pill status-pending">Pending</span>
+                    </div>
+                </div>
+            </section>
+        </div>
     </div>
 
-    <div class="table-footer">
-      <div class="table-footer__info">
-        <select class="toolbar-select toolbar-select--sm" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
-          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
-        </select>
-        <span class="table-footer__text">{{ startEntry }}–{{ endEntry }} of {{ filteredStudents.length }}</span>
-      </div>
-      <div class="table-footer__pagination">
-        <button class="page-btn" [disabled]="currentPage === 1" (click)="onPageChange(1)">
-          <i class="bi bi-chevron-double-left"></i>
-        </button>
-        <button class="page-btn" [disabled]="currentPage === 1" (click)="onPageChange(currentPage - 1)">
-          <i class="bi bi-chevron-left"></i>
-        </button>
-        <button class="page-btn" *ngFor="let page of getPages()"
-          [class.page-btn--active]="page === currentPage" (click)="onPageChange(page)">{{ page }}</button>
-        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="onPageChange(currentPage + 1)">
-          <i class="bi bi-chevron-right"></i>
-        </button>
-        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="onPageChange(totalPages)">
-          <i class="bi bi-chevron-double-right"></i>
-        </button>
-      </div>
+    <!-- Attendance View Modal -->
+    <div id="attendanceModal" class="modal fade" [class.show]="isAttendanceModalVisible"
+        [style.display]="isAttendanceModalVisible ? 'block' : 'none'" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered shadow-lg">
+            <div class="modal-content border-0 rounded-4 overflow-hidden">
+                <div class="modal-header border-bottom-0 bg-light px-4 pt-4">
+                    <h5 class="modal-title fw-bold text-dark">Attendance Sheet</h5>
+                    <button type="button" class="btn-close shadow-none" (click)="closeAttendanceModal()"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 pb-4">
+                    <div class="mb-4 p-3 bg-info-subtle rounded-3 border border-info-subtle">
+                        <p class="text-info-emphasis small fw-semibold mb-1 text-uppercase letter-spacing-1">
+                            Configuration</p>
+                        <h6 class="fw-bold mb-1 text-dark">{{ selectedCourseDetails?.name || 'All Courses' }} — {{
+                            selectedBatchId }}</h6>
+                        <p class="text-muted small mb-0"><i class="bi bi-calendar-event me-1"></i> {{
+                            selectedDateTimeStr | date:'fullDate' }}</p>
+                    </div>
+
+                    <div class="table-responsive rounded-3 border" style="max-height: 450px;">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light sticky-top shadow-sm">
+                                <tr>
+                                    <th class="ps-3">Name</th>
+                                    <th>Details</th>
+                                    <th>Program</th>
+                                    <th>Batch</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (record of attendanceRecords; track record.studentId) {
+                                <tr>
+                                    <td class="ps-3 fw-medium text-dark">{{ record.studentName }}</td>
+                                    <td class="text-muted small">{{ record.mobile }}<br>{{ record.email }} </td>
+
+                                    <td class="text-muted small">{{ record.program }} <br> {{record.college}}</td>
+                                    <td class="text-muted small">{{ record.batchName }} <br>{{ record.internshipType }}
+                                    </td>
+                                    <td class="text-center">
+                                        <span
+                                            class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3">Present</span>
+                                    </td>
+                                </tr>
+                                } @empty {
+                                <tr>
+                                    <td colspan="3" class="text-center py-5">
+                                        <div class="text-muted mb-2"><i class="bi bi-person-x fs-2"></i></div>
+                                        <p class="mb-0">No records found for the selected criteria.</p>
+                                    </td>
+                                </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 px-4 pb-4">
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-medium shadow-sm me-auto"
+                        (click)="downloadAttendanceModalCSV()" [disabled]="attendanceRecords.length === 0">
+                        <i class="bi bi-download me-2"></i>Download CSV
+                    </button>
+
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-medium border shadow-sm"
+                        (click)="closeAttendanceModal()">Dismiss</button>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-
-  <div class="floating-submit" *ngIf="hasPendingChanges && !isSubmitting">
-    <button class="floating-submit__btn" (click)="submitAttendance()">
-      <i class="bi bi-cloud-arrow-up-fill"></i>
-      <span class="floating-submit__count">{{ pendingChangesCount }}</span>
-    </button>
-    <span class="floating-submit__tooltip">Submit {{ pendingChangesCount }} change{{ pendingChangesCount > 1 ? 's' : '' }}</span>
-  </div>
-
-  <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()"></div>
-  <div class="modal-container" *ngIf="showModal">
-    <div class="modal-panel">
-      <div class="modal-header modal-header--view">
-        <div class="modal-header__title">
-          <i class="bi bi-person-badge"></i>
-          <span>Student Profile</span>
-        </div>
-        <button class="modal-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
-      </div>
-      <div class="modal-body">
-        <div class="view-profile">
-          <div class="view-profile__header">
-            <div class="view-profile__avatar" [style.background]="getAvatarColor(modalStudent.name)">
-              {{ modalStudent.avatar }}
-            </div>
-            <h3 class="view-profile__name">{{ modalStudent.name }}</h3>
-            <span class="status-badge" [ngClass]="getAttendanceBadgeClass(modalStudent.attendance)">
-              {{ modalStudent.attendance === 'present' ? 'Present' : 'Unmarked' }}
-            </span>
-          </div>
-          <div class="view-profile__grid">
-            <div class="view-profile__item">
-              <div class="view-profile__item-icon"><i class="bi bi-envelope-fill"></i></div>
-              <div>
-                <span class="view-profile__label">Email</span>
-                <span class="view-profile__value">{{ modalStudent.email }}</span>
-              </div>
-            </div>
-            <div class="view-profile__item">
-              <div class="view-profile__item-icon"><i class="bi bi-telephone-fill"></i></div>
-              <div>
-                <span class="view-profile__label">Mobile</span>
-                <span class="view-profile__value">{{ modalStudent.phone }}</span>
-              </div>
-            </div>
-            <div class="view-profile__item">
-              <div class="view-profile__item-icon"><i class="bi bi-shield-fill-check"></i></div>
-              <div>
-                <span class="view-profile__label">Course</span>
-                <span class="view-profile__value">{{ modalStudent.course }}</span>
-              </div>
-            </div>
-            <div class="view-profile__item">
-              <div class="view-profile__item-icon"><i class="bi bi-mortarboard-fill"></i></div>
-              <div>
-                <span class="view-profile__label">Program</span>
-                <span class="view-profile__value">{{ modalStudent.program }}</span>
-              </div>
-            </div>
-            <div class="view-profile__item view-profile__item--full">
-              <div class="view-profile__item-icon"><i class="bi bi-building"></i></div>
-              <div>
-                <span class="view-profile__label">College</span>
-                <span class="view-profile__value">{{ modalStudent.college }}</span>
-              </div>
-            </div>
-            <div class="view-profile__item">
-              <div class="view-profile__item-icon"><i class="bi bi-calendar-event-fill"></i></div>
-              <div>
-                <span class="view-profile__label">Registered On</span>
-                <span class="view-profile__value">{{ modalStudent.enrollmentDate }}</span>
-              </div>
-            </div>
-            <div class="view-profile__item">
-              <div class="view-profile__item-icon"><i class="bi bi-activity"></i></div>
-              <div>
-                <span class="view-profile__label">Status</span>
-                <span class="view-profile__value">{{ modalStudent.active ? 'Active' : 'Inactive' }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="modal-btn modal-btn--secondary" (click)="closeModal()">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-overlay" *ngIf="showHistoryModal" (click)="closeHistoryModal()"></div>
-  <div class="modal-container" *ngIf="showHistoryModal">
-    <div class="modal-panel modal-panel--lg">
-      <div class="modal-header modal-header--history">
-        <div class="modal-header__title">
-          <i class="bi bi-calendar-check"></i>
-          <span>Attendance History</span>
-        </div>
-        <button class="modal-close" (click)="closeHistoryModal()"><i class="bi bi-x-lg"></i></button>
-      </div>
-      <div class="modal-body" *ngIf="historyStudent">
-        <div class="history-header">
-          <div class="history-student">
-            <div class="student-avatar student-avatar--sm" [style.background]="getAvatarColor(historyStudent.name)">
-              {{ historyStudent.avatar }}
-            </div>
-            <div>
-              <span class="student-name">{{ historyStudent.name }}</span>
-              <span class="student-email">{{ historyStudent.course }} · {{ historyStudent.program }}</span>
-            </div>
-          </div>
-          <div class="history-month-picker">
-            <input type="month" class="form-input form-input--sm" [(ngModel)]="historyMonth" (change)="onHistoryMonthChange()">
-          </div>
-        </div>
-        <div class="history-stats">
-          <div class="history-stat history-stat--present">
-            <span class="history-stat__value">{{ getHistoryStats().present }}</span>
-            <span class="history-stat__label">Present</span>
-          </div>
-          <div class="history-stat history-stat--total">
-            <span class="history-stat__value">{{ getHistoryStats().totalDays }}</span>
-            <span class="history-stat__label">Working Days</span>
-          </div>
-          <div class="history-stat history-stat--percentage">
-            <span class="history-stat__value">{{ getHistoryStats().percentage }}%</span>
-            <span class="history-stat__label">Attendance</span>
-          </div>
-        </div>
-        <div class="history-list" *ngIf="historyRecords.length > 0">
-          <div class="history-item" *ngFor="let record of historyRecords">
-            <div class="history-item__date">
-              <span class="history-item__day">{{ getFormattedHistoryDate(record.date) }}</span>
-              <span class="history-item__weekday">{{ getDayName(record.date) }}</span>
-            </div>
-            <span class="status-badge badge--present">Present</span>
-          </div>
-        </div>
-        <div class="empty-state empty-state--sm" *ngIf="historyRecords.length === 0">
-          <i class="bi bi-calendar-x"></i>
-          <p>No attendance records for this month</p>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="modal-btn modal-btn--secondary" (click)="closeHistoryModal()">Close</button>
-      </div>
-    </div>
-  </div>
-
+    @if (isAttendanceModalVisible) {
+    <div class="modal-backdrop fade show"></div>
+    }
 </div>
