@@ -1,0 +1,251 @@
+<div class="container py-4">
+  <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+    <div class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true"
+        [class.show]="toastVisible" [class.fade]="true" [class.bg-success]="toastVariant === 'success'"
+        [class.bg-danger]="toastVariant === 'danger'">
+        <div class="d-flex">
+            <div class="toast-body text-white">
+                {{ toastMessage }}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Close"
+                (click)="toastVisible = false"></button>
+        </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+      <h2 class="h4 mb-0 fw-bold">Internship Directory</h2>
+      <p class="text-muted small mb-0">Manage and view all registered interns</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-success rounded-pill px-4" (click)="downloadCSV()"
+        [disabled]="filteredInternships.length === 0">
+        <i class="bi bi-download me-2"></i>Download CSV
+      </button>
+      <button class="btn btn-primary rounded-pill px-4" (click)="loadInternships()">
+        <i class="bi bi-arrow-clockwise me-2"></i>Refresh List
+      </button>
+    </div>
+  </div>
+
+  <div class="row mb-4 g-3 align-items-center">
+    <div class="col-12 col-md-4">
+      <div class="input-group input-group-sm bg-white rounded-pill shadow-sm overflow-hidden border">
+        <span class="input-group-text bg-white border-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" class="form-control border-0 shadow-none" placeholder="Search name, email, or mobile..."
+          [(ngModel)]="searchTerm">
+        @if (searchTerm) {
+        <button class="btn btn-link text-muted border-0" (click)="searchTerm = ''"><i
+            class="bi bi-x-circle"></i></button>
+        }
+      </div>
+    </div>
+    <div class="col-12 col-md-8">
+      <div>
+        <div class="d-flex align-items-center gap-2">
+          <div class="input-group input-group-sm bg-white rounded-pill shadow-sm overflow-hidden border">
+            <span class="input-group-text bg-white border-0 small text-muted">From</span>
+            <input type="date" class="form-control border-0 shadow-none" [(ngModel)]="startDate">
+          </div>
+          <div class="input-group input-group-sm bg-white rounded-pill shadow-sm overflow-hidden border">
+            <span class="input-group-text bg-white border-0 small text-muted">To</span>
+            <input type="date" class="form-control border-0 shadow-none" [(ngModel)]="endDate">
+            @if (startDate || endDate) {
+            <button class="btn btn-link text-muted border-0" (click)="clearDateFilter()"><i
+                class="bi bi-x-circle"></i></button>
+            }
+          </div>
+        </div>
+        <div class="mt-2 d-flex flex-wrap gap-2">
+          <span class="small text-muted align-self-center me-1">Quick Range:</span>
+          <button class="btn btn-link text-decoration-none p-0 small text-primary fw-bold" style="font-size: 0.75rem;" (click)="setRangeFilter('7days')">7D</button>
+          <button class="btn btn-link text-decoration-none p-0 small text-primary fw-bold" style="font-size: 0.75rem;" (click)="setRangeFilter('15days')">15D</button>
+          <button class="btn btn-link text-decoration-none p-0 small text-primary fw-bold" style="font-size: 0.75rem;" (click)="setRangeFilter('1month')">1M</button>
+          <button class="btn btn-link text-decoration-none p-0 small text-primary fw-bold" style="font-size: 0.75rem;" (click)="setRangeFilter('2months')">2M</button>
+          <button class="btn btn-link text-decoration-none p-0 small text-primary fw-bold" style="font-size: 0.75rem;" (click)="setRangeFilter('6months')">6M</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading) {
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2 text-muted small">Fetching records...</p>
+  </div>
+  } @else {
+  <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light text-secondary small text-uppercase fw-bold">
+          <tr>
+            <th>Name</th>
+            <th class="text-center">Mobile</th>
+
+            <th class="text-center">Program</th>
+            <!-- <th class="text-center">University</th> -->
+            <th class="text-center">Date</th>
+          
+            <th class="text-end pe-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (intern of filteredInternships; track intern._id) {
+          <tr>
+            <td class="ps-4 text-start">
+              <div class="fw-bold text-dark">{{ intern.name }}</div>
+              <div class="small text-primary">{{ intern.email }}</div>
+            </td>
+            <td class="text-muted text-center">
+              <div class="fw-bold text-dark">{{ intern.mobile }}</div>
+              <div class="small text-primary">{{ intern.city }}</div>
+              <div class="text-primary small">({{ intern.internshipType}})</div>
+            </td>
+
+            <td class="text-center">
+              <div class="text-dark">{{ intern.program }}</div>
+              
+               <div class="text-dark">{{ intern.college }}</div>
+            </td>
+            <!-- <td class="text-center">
+              <div class="text-dark">{{ intern.college }}</div>
+            </td> -->
+            <td class="text-center">
+              <div class="text-dark">{{ intern.createdAt | date:'dd-MMM-yyyy' }}</div>
+              <div> <span class="badge rounded-pill px-3"
+                  [ngClass]="intern.active ? 'text-bg-success' : 'text-bg-danger'">
+                  {{ intern.active ? 'Active' : 'Inactive' }}
+                </span></div>
+            </td>
+          
+
+            <td class="text-end pe-4">
+              <div class="btn-group">
+                <button class="btn btn-sm btn-outline-primary rounded-pill me-1" (click)="editIntern(intern)"
+                  title="Edit Intern">
+                  <i class="bi bi-pencil me-1"></i> Edit
+                </button>
+                <button class="btn btn-sm btn-outline-danger rounded-pill" (click)="confirmDelete(intern)"
+                  title="Delete Intern">
+                  <i class="bi bi-trash me-1"></i> Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="5" class="text-center py-5 text-muted">
+              <div class="mb-2"><i class="bi bi-info-circle fs-2"></i></div>
+              No internship records found.
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+
+  <!-- Edit Internship Modal -->
+  <div class="modal fade show d-block" *ngIf="isEditModalOpen" (click)="closeModals()" tabindex="-1" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);">
+    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+      <div class="modal-content shadow-lg border-0">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Edit Internship Record</h5>
+          <button type="button" class="btn-close" (click)="closeModals()"></button>
+        </div>
+        <form (ngSubmit)="saveIntern()" #editForm="ngForm" *ngIf="selectedIntern">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label small fw-bold">Full Name</label>
+                <input type="text" name="name" [(ngModel)]="selectedIntern.name" required class="form-control">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Email</label>
+                <input type="email" name="email" [(ngModel)]="selectedIntern.email" required email class="form-control">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Phone</label>
+                <input type="text" name="mobile" [(ngModel)]="selectedIntern.mobile" required class="form-control">
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-bold">University / College</label>
+                <input type="text" name="college" [(ngModel)]="selectedIntern.college" class="form-control">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Program</label>
+                <select name="program" [(ngModel)]="selectedIntern.program" class="form-select">
+                  <option value="">Select Program</option>
+                  @for (option of programOptions; track option) {
+                    <option [value]="option">{{ option }}</option>
+                  }
+                </select>
+              </div>
+              <!-- <div class="col-md-6">
+                <label class="form-label small fw-bold">Internship Type</label>
+                <select name="internshipType" [(ngModel)]="selectedIntern.internshipType" class="form-select">
+                  <option value="Online">Online</option>
+                  <option value="Offline">Offline</option>
+                  <option value="Hybrid">Hybrid</option>
+                </select>
+              </div> -->
+              <div class="col-md-4">
+                <label class="form-label small fw-bold">Total Fees</label>
+                <input type="number" name="total" [(ngModel)]="selectedIntern.total" class="form-control" placeholder="0">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-bold">Paid Amount</label>
+                <input type="number" name="paid" [(ngModel)]="selectedIntern.paid" class="form-control" 
+                  [class.is-invalid]="selectedIntern.paid > selectedIntern.total" placeholder="0">
+                @if (selectedIntern.paid > selectedIntern.total) {
+                  <div class="invalid-feedback d-block">
+                    <small>Paid amount cannot exceed total fees.</small>
+                  </div>
+                }
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-bold">Balance</label>
+                <input type="number" name="balance" [value]="(selectedIntern.total || 0) - (selectedIntern.paid || 0)" readonly class="form-control bg-light">
+              </div>
+              <div class="col-12">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" name="active" [(ngModel)]="selectedIntern.active" id="activeStatus">
+                  <label class="form-check-label" for="activeStatus">Active Intern</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-link text-decoration-none text-secondary" (click)="closeModals()">Cancel</button>
+            <button type="submit" class="btn btn-primary px-4" 
+              [disabled]="!editForm.form.valid || selectedIntern.paid > selectedIntern.total">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade show d-block" *ngIf="isDeleteModalOpen" (click)="closeModals()" tabindex="-1" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);">
+    <div class="modal-dialog modal-dialog-centered modal-sm" (click)="$event.stopPropagation()">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Confirm Delete</h5>
+          <button type="button" class="btn-close" (click)="closeModals()"></button>
+        </div>
+        <div class="modal-body text-center">
+          <p class="mb-0">Are you sure you want to delete <strong>{{ internToDelete?.name }}</strong>?</p>
+          <div class="alert alert-warning mt-3 small py-2">This action cannot be undone.</div>
+        </div>
+        <div class="modal-footer justify-content-center border-0 pb-4">
+          <button type="button" class="btn btn-light px-4" (click)="closeModals()">No</button>
+          <button type="button" class="btn btn-danger px-4" (click)="executeDelete()">Yes, Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
