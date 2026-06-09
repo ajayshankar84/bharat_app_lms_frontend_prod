@@ -1,5 +1,7 @@
 export const API_BASE_URL =`https://bharatapp-admin.praispranav.com`; //'http://localhost:3000';// 
  export const PROD_API_BASE_URL = `https://bharatapp-admin.praispranav.com`;
+
+//  internship
 export const LMS_INTERNSHIP_ENDPOINT = `${API_BASE_URL}/internship`;
 
 

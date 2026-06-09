@@ -1,50 +1,94 @@
-<div class="admin-wrapper" [class.sidebar-collapsed]="isSidebarCollapsed">
+<div class="admin-wrapper" [class.sidebar-collapsed]="isSidebarCollapsed" [class.user-layout]="!isAdmin">
     <header class="top-navbar shadow-sm">
-        <div class="d-flex align-items-center px-3 h-100">
+        <div class="d-flex align-items-center px-3 h-100" [class.container-xl]="!isAdmin">
+            @if (isAdmin) {
             <button class="toggle-btn me-3" (click)="toggleSidebar()">
                 <i class="bi" [class.bi-list]="isSidebarCollapsed" [class.bi-x-lg]="!isSidebarCollapsed"></i>
             </button>
-            <h5 class="mb-0 fw-bold text-dark">Admin Portal</h5>
+            }
+            
+            <h5 class="mb-0 fw-bold text-dark me-4">{{isAdmin ? 'Admin Portal' : 'Student Portal'}}</h5>
+
+            <!-- Navigation Links for User Role (Top Nav) -->
+            @if (!isAdmin) {
+            <nav class="d-none d-md-flex align-items-center gap-2">
+                <!-- <a routerLink="/features/my-courses" routerLinkActive="active-link" class="nav-link-custom">My Courses</a>
+                <a routerLink="/features/dashboard-v1" routerLinkActive="active-link" class="nav-link-custom">In Progress</a>
+                <a routerLink="/features/recommended-courses" routerLinkActive="active-link" class="nav-link-custom">Recommended</a>
+                <a routerLink="/features/course-detail" routerLinkActive="active-link" class="nav-link-custom">Completed</a> -->
+            </nav>
+
+            <!-- Mobile Menu Toggler for User -->
+            <div class="dropdown d-md-none ms-2">
+                <button class="btn btn-sm btn-outline-info dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    Menu
+                </button>
+                <ul class="dropdown-menu shadow border-0">
+                    <li><a class="dropdown-item" routerLink="/features/my-courses">My Courses</a></li>
+                    <li><a class="dropdown-item" routerLink="/features/dashboard-v1">In Progress</a></li>
+                    <li><a class="dropdown-item" routerLink="/features/recommended-courses">Recommended</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" routerLink="/features/dashboard-v1">Assignments</a></li>
+                    <li><a class="dropdown-item" routerLink="/features/dashboard-v1">Quizzes</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" routerLink="/settings">Settings</a></li>
+                </ul>
+            </div>
+            }
 
             <div class="ms-auto d-flex align-items-center">
                 <div class="user-profile d-flex align-items-center">
-                    <span class="me-2 small fw-medium"> Welcome, {{accountData?.role}} | {{ accountData?.firstName || accountData?.lastName}}</span>
+                    <span class="me-2 small fw-medium"> Welcome, {{accountData?.role}} | {{ accountData?.firstName ||
+                        accountData?.lastName}}</span>
                     <!-- <div class="avatar">A</div> -->
-                     <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1" (click)="logout()" [disabled]="isLoggingOut">
+                    <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1" (click)="logout()"
+                        [disabled]="isLoggingOut">
                         @if (isLoggingOut) {
-                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                         }
                         <span>Logout</span>
-                     </button>
+                    </button>
                 </div>
             </div>
         </div>
     </header>
 
     <div class="layout-container">
+        @if (isAdmin) {
         <aside class="sidebar shadow">
             <div class="sidebar-header py-4 px-3 text-center">
                 <div class="brand-logo mb-2">
                     <i class="bi bi-shield-check text-info fs-1"></i>
                 </div>
-                <h6 class="text-uppercase fw-bold text-info letter-spacing-1">Dashboard Panel</h6>
+                <h6 class="text-uppercase fw-bold text-info letter-spacing-1">Admin Panel</h6>
             </div>
 
             <nav class="nav-menu">
-                @if (isAdmin) {
+                <a routerLink="/features/attendance" routerLinkActive="active" class="nav-item"
+                    (click)="toggleSidebar()">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>Attendance</span>
+                </a>
+                <a routerLink="/features/internship" routerLinkActive="active" class="nav-item"
+                    (click)="toggleSidebar()">
+                    <i class="bi bi-clipboard2-check"></i>
+                    <span>Internship</span>
+                </a>
                 <a routerLink="/features/users" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
                     <i class="bi bi-clipboard2-check"></i>
                     <span>Users</span>
                 </a>
-                    <a routerLink="/features/assigned-course" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                <a routerLink="/features/assigned-course" routerLinkActive="active" class="nav-item"
+                    (click)="toggleSidebar()">
                     <i class="bi bi-clipboard2-check"></i>
                     <span>Assigned course</span>
                 </a>
-                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item"
+                    (click)="toggleSidebar()">
                     <i class="bi bi-people"></i>
                     <span>Students</span>
                 </a>
-                  <!-- <a routerLink="/features/create-course" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                <!-- <a routerLink="/features/create-course" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
                     <i class="bi bi-journal-bookmark"></i>
                     <span>Create Courses</span>
                 </a> -->
@@ -52,72 +96,39 @@
                     <i class="bi bi-journal-bookmark"></i>
                     <span>Courses</span>
                 </a>
-                 <!-- <a routerLink="/features/upload-video" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                <!-- <a routerLink="/features/upload-video" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
                     <i class="bi bi-journal-bookmark"></i>
                     <span>Upload Video</span>
                 </a> -->
-                 <!-- <a routerLink="/features/course-content" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                <!-- <a routerLink="/features/course-content" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
                     <i class="bi bi-journal-bookmark"></i>
                     <span>Course Content</span>
                 </a> -->
-                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item"
+                    (click)="toggleSidebar()">
                     <i class="bi bi-briefcase"></i>
                     <span>Internship</span>
                 </a>
-                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item"
+                    (click)="toggleSidebar()">
                     <i class="bi bi-clipboard-data"></i>
                     <span>Assigments</span>
                 </a>
-                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item"
+                    (click)="toggleSidebar()">
                     <i class="bi bi-question-circle"></i>
                     <span>Quizzs</span>
                 </a>
-                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item"
+                    (click)="toggleSidebar()">
                     <i class="bi bi-award"></i>
                     <span>Certificate</span>
                 </a>
-                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
+                <a routerLink="/features/dashboard-v2" routerLinkActive="active" class="nav-item"
+                    (click)="toggleSidebar()">
                     <i class="bi bi-file-earmark-text"></i>
                     <span>Experience Letter</span>
                 </a>
-                <a routerLink="/features/attendance" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
-                    <i class="bi bi-calendar-check"></i>
-                    <span>Attendance</span>
-                </a>
-                } @else {
-                <a routerLink="/features/my-courses" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
-                    <i class="bi bi-book"></i>
-                    <span>My Courses</span>
-                </a>
-                <a routerLink="/features/dashboard-v1" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
-                    <i class="bi bi-hourglass-split"></i>
-                    <span>In Progress Courses</span>
-                </a>
-                <a routerLink="/features/recommended-courses" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
-                    <i class="bi bi-star"></i>
-                    <span>Recomended Courses</span>
-                </a>
-                <a routerLink="/features/course-detail" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
-                    <i class="bi bi-check2-circle"></i>
-                    <span>Completed Courses</span>
-                </a>
-                <a routerLink="/features/dashboard-v1" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
-                    <i class="bi bi-clipboard-data"></i>
-                    <span>Assigments</span>
-                </a>
-                <a routerLink="/features/dashboard-v1" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
-                    <i class="bi bi-question-circle"></i>
-                    <span>Quizzs</span>
-                </a>
-                <a routerLink="/features/dashboard-v1" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
-                    <i class="bi bi-award"></i>
-                    <span>Certificate</span>
-                </a>
-                <a routerLink="/features/dashboard-v1" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
-                    <i class="bi bi-file-earmark-text"></i>
-                    <span>Experience Letter</span>
-                </a>
-                }
 
                 <div class="nav-divider"></div>
 
@@ -125,20 +136,23 @@
                     <i class="bi bi-gear"></i>
                     <span>Settings</span>
                 </a>
-                <a href="javascript:void(0)" (click)="logout()" class="nav-item text-danger" 
-                   [style.pointer-events]="isLoggingOut ? 'none' : 'auto'" [class.opacity-50]="isLoggingOut">
+                <a href="javascript:void(0)" (click)="logout()" class="nav-item text-danger"
+                    [style.pointer-events]="isLoggingOut ? 'none' : 'auto'" [class.opacity-50]="isLoggingOut">
                     @if (isLoggingOut) {
-                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                     } @else {
-                        <i class="bi bi-box-arrow-right"></i>
+                    <i class="bi bi-box-arrow-right"></i>
                     }
                     <span>Logout</span>
                 </a>
             </nav>
         </aside>
+        }
 
-        <main class="main-content">
-            <div class="content-wrapper rounded-4 shadow-sm bg-white">
+        <main class="main-content" [class.py-4]="!isAdmin" [class.px-2]="!isAdmin">
+            <div [class.container-xl]="!isAdmin" [class.content-wrapper]="isAdmin" 
+                 [class.bg-white]="isAdmin" [class.shadow-sm]="isAdmin" [class.rounded-4]="isAdmin" 
+                 class="overflow-hidden">
                 <router-outlet></router-outlet>
             </div>
         </main>
