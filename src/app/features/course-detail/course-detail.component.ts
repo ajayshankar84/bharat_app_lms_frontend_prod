@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl, SafeUrl } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { CourseDetailService } from '../../core/services/course-detail.service';
@@ -42,6 +43,16 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
   private lastSavedTime: number = 0;
   private readonly SAVE_INTERVAL = 5; // Save every 5 seconds
   private timerInterval: any;
+
+  // File upload state management
+  selectedFiles = new Map<string, File>();
+  uploadTitles = new Map<string, string>();
+  uploadDescriptions = new Map<string, string>();
+  uploadingFileForLectureId: string | null = null;
+  uploadProgress = 0;
+  uploadErrorForLectureId: string | null = null;
+  uploadErrorMessage = '';
+  uploadSuccessForLectureId: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -518,6 +529,140 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
       this.saveUpdate(updatedDetail);
     }
     this.isAddingFaq = false;
+  }
+
+  /**
+   * Handles file selection for a specific lecture.
+   */
+  onFileSelected(event: any, lectureId: string): void {
+    const file = event.target.files[0];
+    if (file) {
+      // 1. File Size Validation (10MB limit)
+      const MAX_SIZE_MB = 10;
+      const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+      if (file.size > MAX_SIZE_BYTES) {
+        this.uploadErrorForLectureId = lectureId;
+        this.uploadErrorMessage = `File size exceeds the ${MAX_SIZE_MB}MB limit. Current file: ${(file.size / (1024 * 1024)).toFixed(2)}MB`;
+        this.selectedFiles.delete(lectureId);
+        event.target.value = ''; // Clear the input so the user can re-select
+        return;
+      }
+
+      const allowedDocs = ['pdf', 'txt', 'doc', 'docx', 'xlx', 'xls', 'xlsx', 'csv'];
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+
+      if (!fileExtension || !allowedDocs.includes(fileExtension)) {
+        this.uploadErrorForLectureId = lectureId;
+        this.uploadErrorMessage = 'Invalid file type. Only PDF, TXT, DOC, DOCX, Excel, and CSV are allowed.';
+        this.selectedFiles.delete(lectureId);
+        event.target.value = ''; // Reset the file input
+        return;
+      }
+
+      this.selectedFiles.set(lectureId, file);
+      // Set default title to filename without extension
+      this.uploadTitles.set(lectureId, file.name.replace(/\.[^/.]+$/, ""));
+      this.uploadDescriptions.set(lectureId, '');
+      // Clear status messages when a new file is picked
+      this.uploadErrorForLectureId = null;
+      this.uploadSuccessForLectureId = null;
+    }
+  }
+
+  /**
+   * Uploads the selected file for a specific lecture.
+   */
+  uploadFile(lectureId: string): void {
+    const file = this.selectedFiles.get(lectureId);
+    if (!file || !this.courseId) {
+      this.uploadErrorForLectureId = lectureId;
+      this.uploadErrorMessage = !file ? 'Please select a file first.' : 'Course ID missing.';
+      return;
+    }
+
+    // Find the correct topicId for the selected lecture
+    const course = this.courseDetail?.[0];
+    const authId = this.accountStateService.getStoredAccountData()?.id;
+    
+    let topicId = '';
+    let topicName = '';
+    let lectureName = '';
+
+    course?.curriculum?.forEach((section: any) => {
+      const foundLecture = section.lectures?.find((l: any) => l.lectureId === lectureId);
+      if (foundLecture) {
+        topicId = section.topicId || section._id;
+        topicName = section.topics;
+        lectureName = foundLecture.lecture;
+      }
+    });
+
+    const payload = { 
+      file, 
+      authId,
+      courseId: this.courseId, 
+      topicId, 
+      topic: topicName,
+      lectureId, 
+      lecture: lectureName,
+      title: this.uploadTitles.get(lectureId) || file.name,
+      description: this.uploadDescriptions.get(lectureId) || '',
+      filePath: file.name // Sending filename as requested, backend will likely overwrite with actual path
+    };
+
+    this.uploadingFileForLectureId = lectureId;
+    this.uploadProgress = 0;
+    this.uploadErrorForLectureId = null;
+    this.uploadSuccessForLectureId = null;
+
+    this.uploadFileService.uploadFile(payload).subscribe({
+      next: (event: any) => {
+        if (event.type === HttpEventType.UploadProgress) {
+          this.uploadProgress = Math.round((100 * (event.loaded || 0)) / (event.total || 1));
+        } else if (event instanceof HttpResponse) {
+          this.uploadSuccessForLectureId = lectureId;
+          this.uploadingFileForLectureId = null;
+          this.uploadProgress = 0;
+          this.selectedFiles.delete(lectureId);
+          this.uploadTitles.delete(lectureId);
+          this.uploadDescriptions.delete(lectureId);
+          this.loadFiles(); // Refresh the file list view
+        }
+      },
+      error: (err) => {
+        console.error('File upload failed:', err);
+        this.uploadingFileForLectureId = null;
+        this.uploadErrorForLectureId = lectureId;
+        this.uploadErrorMessage = 'Upload failed. Please try again.';
+      }
+    });
+  }
+
+  /**
+   * Formats bytes into a human-readable string (KB, MB, etc.).
+   */
+  formatBytes(bytes: number, decimals = 2): string {
+    if (!bytes || bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  }
+
+  /**
+   * Clears the current file selection and metadata for a lecture.
+   */
+  clearSelection(lectureId: string): void {
+    this.selectedFiles.delete(lectureId);
+    this.uploadTitles.delete(lectureId);
+    this.uploadDescriptions.delete(lectureId);
+    this.uploadErrorForLectureId = null;
+    this.uploadSuccessForLectureId = null;
+    
+    // Reset the native input element
+    const input = document.getElementById(`fileUpload-${lectureId}`) as HTMLInputElement;
+    if (input) input.value = '';
   }
 
   ngOnDestroy(): void {
